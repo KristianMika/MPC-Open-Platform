@@ -17,7 +17,7 @@ An MPC node consists of:
 
 <div style="text-align:center">
 
-![MPC Open Platform architecture](src/raspiArchitectureScheme.png)
+![MPC Open Platform architecture](src/MPCNodeScheme.png)
 
 </div>
 
@@ -26,6 +26,6 @@ A network of MPC nodes can be used as a single node.
 
 <div style="text-align:center">
 
-![Network of MPC nodes](src/MPCOpelPlatfromNetwork.png)
+![Network of MPC nodes](src/MPCOPNetwork.png)
 
 </div>
