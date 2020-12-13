@@ -12,7 +12,7 @@ This project aims to create an open platform that uses sets of smartcards connec
 An MPC node consists of:
 * a Raspbian OS (or any Debian-based OS)
 * MPC protocols that implement the MPC Open Platform interface
-* a REST API server that allows users to control nodes.
+* a HTTP server with websockets that allows users to control nodes.
 * Connected smartcards that perform computations
 
 <div style="text-align:center">
