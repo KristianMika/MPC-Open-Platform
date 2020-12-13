@@ -1,7 +1,13 @@
 dist: Focal
 sudo: required
 
-script:
-    - cd pcsc-lite-max-readers-macro-update/
-    - chmod +x script.sh
-    - sudo ./script.sh
+stages:
+    - test-PCSC-packaging
+
+jobs:
+    include:
+    - stage: test-PCSC-packaging
+    script:
+        - cd pcsc-lite-max-readers-macro-update/
+        - chmod +x script.sh
+        - sudo ./script.sh
