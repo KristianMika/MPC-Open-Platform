@@ -1,0 +1,11 @@
+name: Package-PCSCI
+on: push
+jobs:
+    test:
+        name: test package PCSCI script
+        runs-on: ubuntu-latest
+
+        steps:
+            - cd csc-lite-max-readers-macro-update/
+            - chmod +x ./script.sh
+            - ./script.sh
