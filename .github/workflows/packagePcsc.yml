@@ -7,4 +7,4 @@ jobs:
 
         steps:
         - name: Run script
-          run: ls -R
+          run: pcsc-lite-max-readers-macro-update/script.sh
