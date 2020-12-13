@@ -1,4 +1,5 @@
 # Open Platform for Multiparty Signatures with Smartcards
+[![Build Status](https://travis-ci.org/KristianMika/MPC-Open-Platform.svg?branch=main)](https://travis-ci.org/KristianMika/MPC-Open-Platform)
 
 This project aims to create an open platform that uses sets of smartcards connected to a Raspberry Pi and allows execution of several Secure Multiparty Computation protocols. 
 
