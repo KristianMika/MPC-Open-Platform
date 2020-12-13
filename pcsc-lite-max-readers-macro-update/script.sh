@@ -11,14 +11,15 @@ fi
 
 echo "Installing dependencies"
 apt-get install --assume-yes \
-			libudev-dev \
-			flex \
-			libsystemd-dev \
-			debhelper \
-			flex \
-			libtool \
-			libusb-1.0-0-dev \
-			pkg-config 
+                libudev-dev \
+                flex \
+                libsystemd-dev \
+                debhelper \
+                flex \
+                libtool \
+                libusb-1.0-0-dev \
+                pkg-config \
+                fakeroot
 
 
 PCSC_PREFIX="flex" 
