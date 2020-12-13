@@ -126,6 +126,6 @@ dpkg-buildpackage -b -rfakeroot -us -uc
 cd .. 
 mv *.deb /release 
 rm -rf ./flex* ./ccid_* 
-rm /release/*dbgsym*
+rm -f /release/*dbgsym*
 
 echo "Build has finished successfully! Your packages are located in the /release folder."
