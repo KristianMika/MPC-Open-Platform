@@ -7,6 +7,8 @@ jobs:
 
         steps:
         - name: Run script
-          run: cd pcsc-lite-max-readers-macro-update;
+          run: pwd;
+               ls; 
+               cd pcsc-lite-max-readers-macro-update;
                chmod +x script.sh;
                ./script.sh;
