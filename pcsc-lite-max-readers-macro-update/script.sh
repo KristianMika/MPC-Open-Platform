@@ -11,15 +11,14 @@ fi
 
 echo "Installing dependencies"
 apt-get install --assume-yes \
-                libudev-dev \
-                flex \
-                libsystemd-dev \
-                debhelper \
-                flex \
-                libtool \
-                libusb-1.0-0-dev \
-                pkg-config \
-                fakeroot
+			libudev-dev \
+			flex \
+			libsystemd-dev \
+			debhelper \
+			flex \
+			libtool \
+			libusb-1.0-0-dev \
+			pkg-config 
 
 
 PCSC_PREFIX="flex" 
@@ -126,6 +125,6 @@ dpkg-buildpackage -b -rfakeroot -us -uc
 cd .. 
 mv *.deb /release 
 rm -rf ./flex* ./ccid_* 
-rm -f /release/*dbgsym*
+rm /release/*dbgsym*
 
 echo "Build has finished successfully! Your packages are located in the /release folder."
