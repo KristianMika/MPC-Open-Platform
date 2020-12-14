@@ -1,0 +1,17 @@
+os: linux
+dist: Focal
+language: java
+sudo: required
+
+stages:
+    - test-PCSC-packaging
+
+jobs:
+    include:
+    - stage: test-PCSC-packaging
+      before_script:
+          - sudo apt update
+      script:
+          - cd pcsc-lite-max-readers-macro-update/
+          - chmod +x script.sh
+          - sudo ./script.sh
