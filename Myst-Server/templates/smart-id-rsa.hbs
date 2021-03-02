@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MPC Open Platform - Smart-ID RSA</title>
+    <link rel="stylesheet" href="/resources/css/normalize.css">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/resources/css/main.css">
+
+    <script src="https://npmcdn.com/@reactivex/rxjs@5.0.0-beta.6/dist/global/Rx.umd.js"></script>
+          
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.0/dist/sockjs.min.js"></script>
+
+    <script src='/resources/js/vertx-eventbus.js'></script>
+    
+</head>
+
+<body>
+    <div class="MPC-OpenPlatform-header">
+        <a href="/">
+            <h3>MPC Open Platform</h3>
+        </a>
+        <div class="protocols">
+            <a href="myst">
+                <h4>Myst</h4>
+            </a>
+            <a href="smart-id-rsa">
+                <h4>Smart-ID RSA</h4>
+            </a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="pubKey">
+            <b>Public Key</b>: <br>
+            <textarea id="yagg-value" readonly>(Not known yet)</textarea>
+        </div>
+
+    <form class="pseudo-form" id="pseudo-form">
+        <label for="operation">Operation</label> <br>
+        <select name="operation" id="operation">
+          <option value="Info">Get info</option>
+          <option value="Keygen">Generate keys</option>
+          <option value="Reset">Reset</option>
+          <option value="GetPubkey">Get Public key</option>
+          <option value="Sign">Sign</option>
+        </select> <br>
+
+        <label for="data">Data</label><br>
+        <input type="text" id="data" name="data"><br>
+        <button type="submit" id="sendRequest">SEND</button>
+    </form>   
+
+    <br>         
+    <button id="enableDebug">TOGGLE DEBUG</button>
+    </div>
+
+    <div class="response">
+        <textarea name="response" id="responseArea" cols="30" rows="10" readonly></textarea>
+    </div>
+    
+    <div id="footerLogger">
+        <textarea id="footerLoggerTextArea" readonly> </textarea>
+    </div>
+
+    <script type="text/javascript" src="/resources/js/common.js"></script>
+
+</body>
+</html>
