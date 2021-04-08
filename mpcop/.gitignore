@@ -48,12 +48,6 @@ gradle-app.setting
 # gradle/wrapper/gradle-wrapper.properties
 # endof GRADLE .gitignore
 
-# Myst
-lib/Myst
-
-# Smart-ID RSA
-lib/javacard-smpc-rsa
-
 # perfolgs
 *.csv
 

@@ -1,3 +1,9 @@
 [submodule "mpcop/libs-sdks"]
 	path = mpcop/libs-sdks
 	url = https://github.com/martinpaljak/oracle_javacard_sdks.git
+[submodule "mpcop/lib/javacard-smpc-rsa"]
+	path = mpcop/lib/javacard-smpc-rsa
+	url = https://github.com/lzaoral/javacard-smpc-rsa
+[submodule "mpcop/lib/Myst"]
+	path = mpcop/lib/Myst
+	url = https://github.com/KristianMika/Myst.git

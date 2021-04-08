@@ -30,16 +30,6 @@ dependencies {
 
 mainClassName = 'com.mpcopenplatform.controller.DeployerVerticle'
 
-// Git dependencies
-git {
-    implementation 'https://github.com/KristianMika/Myst', {
-        name 'Myst'
-    }
-    implementation 'https://github.com/lzaoral/javacard-smpc-rsa', {
-        name 'javacard-smpc-rsa'
-    }
-}
-
 repositories {
     mavenCentral()
 
