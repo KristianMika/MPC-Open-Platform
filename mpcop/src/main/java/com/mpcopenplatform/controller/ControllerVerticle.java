@@ -3,6 +3,7 @@ package com.mpcopenplatform.controller;
 import com.mpcopenplatform.controller.myst.MystVerticle;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.http.HttpServer;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.bridge.PermittedOptions;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.TemplateHandler;
@@ -14,7 +15,10 @@ import io.vertx.ext.web.templ.handlebars.HandlebarsTemplateEngine;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
+import static com.mpcopenplatform.controller.Util.getProtocol;
+
 /**
+ * TODO: refactor
  * The {@link ControllerVerticle} carries communication between the UI controller and
  * the backend verticles.
  *
@@ -22,16 +26,18 @@ import java.util.logging.Logger;
  */
 public class ControllerVerticle extends AbstractVerticle {
     public static final String CONTROLLER_ADDRESS = "service.controller";
-    public static final String SMARD_ID_RSA_CONTROLLER_ADDRESS = "service.controller.smart-id-rsa";
-    public static final String MYST_CONTROLLER_ADDRESS = "service.controller.myst";
     public static final String CONTROLLER_REGISTER_ADDRESS = "service.controller-register";
     public static final String CONTROLLER_BRIDGE_PATH = "/mpcop-event-bus";
     private static final Logger logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
     private static final int CONTROLLER_PORT = 8080;
     private static final String HANDLER_HBS_PATH = ".+\\.hbs";
     private static final String HANDLER_RESOURCES_PATH = "/resources/*";
+    private static final int NOT_FOUND_ERROR_CODE = 404;
+    private static final int HEART_BEAT_INTERVAL = 2000;
+    public static final String ROOT_PATH = "/index.hbs";
+    public static final String MYST_PATH = "/myst.hbs";
+    public static final String SMART_ID_RSA_PATH = "/smart-id-rsa.hbs";
 
-    // Consts
     static AtomicInteger connectionCounter = new AtomicInteger();
     TemplateHandler hbsTemplateHandler;
 
@@ -45,43 +51,38 @@ public class ControllerVerticle extends AbstractVerticle {
 
         setHandlers(router);
 
-        SockJSHandlerOptions options = new SockJSHandlerOptions().setHeartbeatInterval(2000);
+        SockJSHandlerOptions options = new SockJSHandlerOptions().setHeartbeatInterval(HEART_BEAT_INTERVAL);
         SockJSHandler sockJSHandler = SockJSHandler.create(vertx, options);
         SockJSBridgeOptions bo = new SockJSBridgeOptions()
                 .addInboundPermitted(new PermittedOptions().setAddress(CONTROLLER_ADDRESS))
-                // TODO: only one address should be permitted
-                .addInboundPermitted(new PermittedOptions().setAddress(SMARD_ID_RSA_CONTROLLER_ADDRESS))
-                .addInboundPermitted(new PermittedOptions().setAddress(MYST_CONTROLLER_ADDRESS))
                 .addInboundPermitted(new PermittedOptions().setAddress(CONTROLLER_REGISTER_ADDRESS))
                 .addOutboundPermitted(new PermittedOptions().setAddress(CONTROLLER_REGISTER_ADDRESS));
 
 
-        vertx.eventBus().consumer(MYST_CONTROLLER_ADDRESS, msg -> {
+        vertx.eventBus().consumer(CONTROLLER_ADDRESS, msg -> {
             vertx.eventBus()
-                    .request(MystVerticle.CONSUMER_ADDRESS, msg.body())
+                    .request("service." + getProtocol((JsonObject) msg.body()), msg.body())
                     .onSuccess(data -> {
                         logger.info("Received from " + MystVerticle.CONSUMER_ADDRESS + ": " + data.body().toString());
-
                         msg.reply(data.body().toString());
                     }).onFailure(thrwbl -> {
-                logger.info("Failed to reply: " + thrwbl.toString());
-                msg.reply("An error occurred");
+                logger.info(Messages.REPLY_FAIL_MESSAGE + thrwbl.toString());
+                msg.reply(Messages.ERROR_MESSAGE);
             }).onComplete(msgComp -> {
-                logger.info("Successfully replied");
+                logger.info(Messages.REPLY_SUCCESS_MESSAGE);
             });
         });
-
 
         sockJSHandler.bridge(bo, event -> {
 
             switch (event.type()) {
                 case REGISTER:
-                    logger.info("New connection from " + event.socket().remoteAddress().toString()
-                            + "\nTotal number of connections: " + connectionCounter.incrementAndGet());
+                    logNewConnection(event.socket().remoteAddress().toString());
+
                     break;
                 case UNREGISTER:
-                    logger.info("Connection from " + event.socket().remoteAddress().toString() + " has been terminated."
-                            + "\nTotal number of connections: " + connectionCounter.decrementAndGet());
+                    logClosedConnection(event.socket().remoteAddress().toString());
+
                     break;
             }
             event.complete(true);
@@ -94,6 +95,17 @@ public class ControllerVerticle extends AbstractVerticle {
     }
 
 
+    private void logNewConnection(String address) {
+        logger.info("New connection from " + address
+                + "\nTotal number of connections: " + connectionCounter.incrementAndGet());
+    }
+
+    private void logClosedConnection(String address) {
+        logger.info("Connection from " + address + " has been terminated."
+                + "\nTotal number of connections: " + connectionCounter.decrementAndGet());
+    }
+
+
     void setHandlers(Router router) {
         // A handler for serving css and js resources
         router.get(HANDLER_RESOURCES_PATH).handler(context -> {
@@ -103,7 +115,7 @@ public class ControllerVerticle extends AbstractVerticle {
                     context.response().sendFile(filename);
                 } else {
                     logger.info("An attempt was made to access '" + context.request().path() + "'.");
-                    context.fail(404);
+                    context.fail(NOT_FOUND_ERROR_CODE);
                 }
             });
         });
@@ -112,15 +124,15 @@ public class ControllerVerticle extends AbstractVerticle {
         router.getWithRegex(HANDLER_HBS_PATH).handler(hbsTemplateHandler);
 
         router.get("/").handler(ctx -> {
-            ctx.reroute("/index.hbs");
+            ctx.reroute(ROOT_PATH);
         });
 
         router.get("/myst").handler(ctx -> {
-            ctx.reroute("/myst.hbs");
+            ctx.reroute(MYST_PATH);
         });
 
         router.get("/smart-id-rsa").handler(ctx -> {
-            ctx.reroute("/smart-id-rsa.hbs");
+            ctx.reroute(SMART_ID_RSA_PATH);
         });
     }
 }

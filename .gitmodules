@@ -1,0 +1,3 @@
+[submodule "mpcop/libs-sdks"]
+	path = mpcop/libs-sdks
+	url = https://github.com/martinpaljak/oracle_javacard_sdks.git

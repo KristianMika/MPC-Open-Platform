@@ -43,6 +43,10 @@ function log(message) {
     updateLoggerPosition();
 }
 
+function logRequest(headers, body) {
+    log("Sending request: headers = " + JSON.stringify(headers) + " body = " + JSON.stringify(body));
+}
+
 // On load
 window.onload = function() {
     debugFooter.style.display = 'none';
@@ -53,14 +57,22 @@ var protocol = window.location.href.split("/").pop();
 
 requestForm.onsubmit = function(event) {
     event.preventDefault();
-    var message = {
+    var body = {
         "operation": operation.value,
-        "data": data.value
+        "data": data.value,
+        "protocol": protocol
     };
 
-    log("Sending request: " + JSON.stringify(message))
+    //TODO: operation validation
 
-    eventBus.send("service.controller." + protocol, message, null, function(a, msg) {
+    var headers = {
+        "protocol": protocol
+    };
+
+    logRequest(headers, body);
+
+    //eventBus.send("service.controller." + protocol, body, headers, function(a, msg) {
+    eventBus.send("service.controller", body, headers, function(a, msg) {
         if (msg == null) {
             responceArea.textContent = "ERROR: response null";
             log("An error occured: the back-end hasn't responded")

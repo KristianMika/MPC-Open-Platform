@@ -1,5 +1,7 @@
 package com.mpcopenplatform.controller;
 
+import io.vertx.core.json.JsonObject;
+
 import java.math.BigInteger;
 
 
@@ -15,5 +17,7 @@ public class Util {
         return new BigInteger(1, input.getBytes());
     }
 
-
+    public static String getProtocol(JsonObject message) {
+        return message.getString("protocol");
+    }
 }

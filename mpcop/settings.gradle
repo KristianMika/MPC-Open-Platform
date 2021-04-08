@@ -2,14 +2,15 @@ plugins{
     id 'com.alexvasilkov.git-dependencies' version '2.0.2'
 }
 
-rootProject.name = 'Myst-Server'
+rootProject.name = 'mpcop'
 apply plugin: 'com.alexvasilkov.git-dependencies'
 
 git {
     dir 'lib'
 }
 
-include ':MPCApplet', ':MPCTestClient'
+include ':MPCApplet', ':MPCTestClient', ':javacard-smpc-rsa'
 
 project(':MPCApplet').projectDir=new File(settingsDir, 'lib/Myst/MPCApplet')
 project(':MPCTestClient').projectDir=new File(settingsDir, 'lib/Myst/MPCTestClient')
+project(':javacard-smpc-rsa').projectDir=new File(settingsDir, 'lib/javacard-smpc-rsa/applet')

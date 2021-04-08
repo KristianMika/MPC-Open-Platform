@@ -1,15 +1,13 @@
 package com.mpcopenplatform.controller.myst;
 
+import com.mpcopenplatform.controller.AbstractProtocolVerticle;
 import com.mpcopenplatform.controller.ControllerVerticle;
 import com.mpcopenplatform.controller.Util;
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.json.JsonObject;
 import mpctestclient.MPCRun;
 import mpctestclient.MPCRunConfig;
 import org.bouncycastle.util.encoders.Hex;
 
 import java.util.Locale;
-import java.util.logging.Logger;
 
 
 /**
@@ -18,73 +16,37 @@ import java.util.logging.Logger;
  *
  * @author Kristian Mika
  */
-public class MystVerticle extends AbstractVerticle {
-    private static final Logger logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
-    private MPCRun run;
+public class MystVerticle extends AbstractProtocolVerticle {
     public static final String CONSUMER_ADDRESS = "service.myst";
+    private MPCRun run;
 
 
     public MystVerticle() {
+        super(CONSUMER_ADDRESS);
         try {
             this.run = new MPCRun(MPCRunConfig.getDefaultConfig());
             run.connectAll();
 
-            // TODO: the operator will setup cards
+            // TODO: will do the operator
             run.performSetupAll(run.hostFullPriv);
 
         } catch (Exception e) {
             logger.severe("Can not instantiate MPC run");
         }
+
+
     }
 
     @Override
-    public void start() {
-        vertx.eventBus().consumer(CONSUMER_ADDRESS, msg -> {
-            logger.info("Received: " + msg.toString());
-            String response = process((JsonObject) msg.body());
-            msg.reply(response);
-            logger.info("Replying: " + response);
-        });
+    protected String getInfo() {
+
+        return "Number of players: " + run.runCfg.numPlayers + "\n" +
+                "Number of hosts: " + run.hosts.size() + "\n" +
+                "Yagg: " + getPubKey() + "\n";
     }
 
-    private String process(JsonObject request) {
-
-        switch (request.getString("operation")) {
-
-            case "Info":
-                return getInfo();
-
-            case "Keygen":
-                return keygen();
-
-            case "Reset":
-                return reset();
-
-            case "GetYagg":
-                return getYagg();
-
-            case "Decrypt":
-                return decrypt(request.getString("data"));
-
-            case "Sign":
-                return sign(request.getString("data"));
-
-
-            default:
-                return "Unknown operation";
-        }
-    }
-
-    private String getInfo() {
-        StringBuilder response = new StringBuilder();
-        response.append("Number of players: ").append(run.runCfg.numPlayers).append("\n");
-        response.append("Number of hosts: ").append(run.hosts.size()).append("\n");
-        response.append("Yagg: ").append(getYagg()).append("\n");
-
-        return response.toString();
-    }
-
-    private String keygen() {
+    @Override
+    protected String keygen() {
         try {
             run.performKeyGen(run.hostKeyGen);
 
@@ -98,10 +60,12 @@ public class MystVerticle extends AbstractVerticle {
             return "An error occured";
         }
 
-        return getYagg();
+        return getPubKey();
     }
 
-    private String reset() {
+    @Override
+    protected String reset() {
+
         try {
             run.resetAll(run.hostFullPriv);
             return "OK";
@@ -112,7 +76,8 @@ public class MystVerticle extends AbstractVerticle {
     }
 
 
-    private String getYagg() {
+    @Override
+    protected String getPubKey() {
         try {
             return Hex.toHexString(run.getYagg().getEncoded(false)).toUpperCase(Locale.ROOT);
         } catch (Exception e) {
@@ -122,7 +87,8 @@ public class MystVerticle extends AbstractVerticle {
         }
     }
 
-    private String sign(String data) {
+    @Override
+    protected String sign(String data) {
         try {
 
             return run.signAll(Util.BigIntegerFromString(data), run.hostDecryptSign).toString(16);
@@ -132,7 +98,8 @@ public class MystVerticle extends AbstractVerticle {
         }
     }
 
-    private String decrypt(String data) {
+    @Override
+    protected String decrypt(String data) {
         return "Not implemented yet";
     }
 }

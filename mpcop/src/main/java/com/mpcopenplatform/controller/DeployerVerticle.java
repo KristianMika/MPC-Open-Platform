@@ -1,6 +1,7 @@
 package com.mpcopenplatform.controller;
 
 import com.mpcopenplatform.controller.myst.MystVerticle;
+import com.mpcopenplatform.controller.smpcrsa.SmpcRsaVerticle;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Launcher;
 
@@ -22,6 +23,7 @@ public class DeployerVerticle extends AbstractVerticle {
     protected void deployVerticles() {
         deployVerticle(MystVerticle.class.getName());
         deployVerticle(ControllerVerticle.class.getName());
+        deployVerticle(SmpcRsaVerticle.class.getName());
     }
 
     @Override
