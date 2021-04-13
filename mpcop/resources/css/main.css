@@ -8,6 +8,9 @@ html {
     height: 100%;
 }
 
+.hidden {
+   visibility: hidden
+}
 
 /*
 Top bar
@@ -64,7 +67,7 @@ textarea {
     width: 60%;
     margin-left: 50%;
     margin-right: 50%;
-    margin-top: 120pt;
+    margin-top: 180pt;
     transform: translate(-50%, -50%);
     align-items: center;
     text-align: center;
@@ -147,4 +150,31 @@ a:hover {
 
 a:active {
     text-decoration: none;
+}
+
+/*
+Loader
+(stolen from https://www.w3schools.com/howto/howto_css_loader.asp)
+*/
+
+.loader {
+    border: 16px solid rgb(212, 212, 212);
+    border-top: 16px solid #3498db;
+    border-radius: 50%;
+    width: 120px;
+    height: 120px;
+    animation: spin 2s linear infinite;
+
+    top: 50%;
+    left: 50%;
+    margin-top: -60px;
+    margin-left: -60px;
+    position: absolute;
+    z-index: 100;
+    pointer-events:none;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }

@@ -2,6 +2,7 @@ package com.mpcopenplatform.controller.myst;
 
 import com.mpcopenplatform.controller.AbstractProtocolVerticle;
 import com.mpcopenplatform.controller.ControllerVerticle;
+import com.mpcopenplatform.controller.GeneralMPCOPException;
 import com.mpcopenplatform.controller.Util;
 import mpctestclient.MPCRun;
 import mpctestclient.MPCRunConfig;
@@ -46,7 +47,7 @@ public class MystVerticle extends AbstractProtocolVerticle {
     }
 
     @Override
-    protected String keygen() {
+    protected void keygen() throws GeneralMPCOPException {
         try {
             run.performKeyGen(run.hostKeyGen);
 
@@ -57,21 +58,19 @@ public class MystVerticle extends AbstractProtocolVerticle {
         } catch (Exception e) {
             e.printStackTrace();
             // TODO
-            return "An error occured";
+            throw new GeneralMPCOPException(e.toString());
         }
 
-        return getPubKey();
     }
 
     @Override
-    protected String reset() {
+    protected void reset() throws GeneralMPCOPException {
 
         try {
             run.resetAll(run.hostFullPriv);
-            return "OK";
         } catch (Exception e) {
-            e.printStackTrace();
-            return "An error occured";
+            logger.info(e.toString());
+            throw new GeneralMPCOPException(e.toString());
         }
     }
 
@@ -88,13 +87,15 @@ public class MystVerticle extends AbstractProtocolVerticle {
     }
 
     @Override
-    protected String sign(String data) {
+    protected String[] sign(String data) throws GeneralMPCOPException {
         try {
+            String sig = run.signAll(Util.BigIntegerFromString(data), run.hostDecryptSign).toString(16);
+            String sig_e = run.getE();
+            return new String[]{sig, sig_e};
 
-            return run.signAll(Util.BigIntegerFromString(data), run.hostDecryptSign).toString(16);
         } catch (Exception e) {
             logger.info(e.toString());
-            return "Error occured";
+            throw new GeneralMPCOPException(e.toString());
         }
     }
 

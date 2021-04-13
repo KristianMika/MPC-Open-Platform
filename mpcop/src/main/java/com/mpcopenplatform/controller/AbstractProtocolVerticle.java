@@ -3,7 +3,10 @@ package com.mpcopenplatform.controller;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.json.JsonObject;
 
+import java.util.Arrays;
 import java.util.logging.Logger;
+
+import static com.mpcopenplatform.controller.Util.toJson;
 
 /**
  * The {@link AbstractProtocolVerticle} class represents
@@ -24,15 +27,18 @@ public abstract class AbstractProtocolVerticle extends AbstractVerticle {
         vertx.eventBus().consumer(CONSUMER_ADDRESS, msg -> {
             logger.info("Received: " + msg.body().toString());
 
-            String response;
+            Response response;
             try {
                 response = process((JsonObject) msg.body());
             } catch (GeneralMPCOPException e) {
                 logger.warning(e.toString());
-                response = Messages.ERROR_MESSAGE;
+                response = new Response();
+                response.failed();
+                response.setErrMessage(e.getMessage());
             }
-            logger.info("Replying: " + response);
-            msg.reply(response);
+
+            logger.info("Replying: " + toJson(response));
+            msg.reply(toJson(response));
         });
     }
 
@@ -43,7 +49,7 @@ public abstract class AbstractProtocolVerticle extends AbstractVerticle {
      * @return the result of the correct operation in plaintext
      * @throws GeneralMPCOPException if the requested operation is not valid
      */
-    String process(JsonObject request) throws GeneralMPCOPException {
+    Response process(JsonObject request) throws GeneralMPCOPException {
 
         String rawOperation = request.getString("operation");
         Operation operation;
@@ -54,25 +60,35 @@ public abstract class AbstractProtocolVerticle extends AbstractVerticle {
             throw new GeneralMPCOPException("Invalid operation " + rawOperation);
         }
 
+        Response r = new Response();
+        r.setOperation(operation);
+
         switch (operation) {
 
             case INFO:
-                return getInfo();
+                return new Response(getInfo());
 
             case KEYGEN:
-                return keygen();
+                keygen();
+                r.setPublicKey(getPubKey());
+                return r;
 
             case RESET:
-                return reset();
+                r.setMessage("Cards have been successfully reset");
+                return r;
 
             case GET_PUBKEY:
-                return getPubKey();
+                r.setPublicKey(getPubKey());
+                return r;
 
             case DECRYPT:
-                return decrypt(request.getString("data"));
+                return new Response(decrypt(request.getString("data")));
 
             case SIGN:
-                return sign(request.getString("data"));
+                r.setOperation(Operation.SIGN);
+                r.setSignatures(sign(request.getString("data")));
+                return r;
+
 
             default:
                 throw new RuntimeException("Unreachable code");
@@ -80,21 +96,20 @@ public abstract class AbstractProtocolVerticle extends AbstractVerticle {
         }
     }
 
-    protected abstract String sign(String data);
+    protected abstract String[] sign(String data) throws GeneralMPCOPException;
 
     protected abstract String decrypt(String data);
 
-    protected abstract String getPubKey();
+    protected abstract String getPubKey() throws GeneralMPCOPException;
 
-    protected abstract String reset();
+    protected abstract void reset() throws GeneralMPCOPException;
 
     /**
      * Generates keys
-     * TODO: consider modifying the return type to void
      *
      * @return
      */
-    protected abstract String keygen();
+    protected abstract void keygen() throws GeneralMPCOPException;
 
     /**
      * Returns information about the protocol run, e.g. a number of participants, current state, etc.

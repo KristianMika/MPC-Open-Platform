@@ -31,13 +31,13 @@ public class SmpcRsaVerticle extends AbstractProtocolVerticle {
 
 
     @Override
-    protected String sign(String data) {
+    protected String[] sign(String data) {
         try {
-            return server.signMessage(data, client.signMessage(data));
+            return new String[]{server.signMessage(data, client.signMessage(data))};
 
         } catch (Exception e) {
             e.printStackTrace();
-            return Messages.ERROR_MESSAGE;
+            return new String[]{Messages.ERROR_MESSAGE};
         }
 
     }
@@ -47,7 +47,7 @@ public class SmpcRsaVerticle extends AbstractProtocolVerticle {
     }
 
     @Override
-    protected String getPubKey() {
+    protected String getPubKey() throws GeneralMPCOPException {
         List<ResponseAPDU> serverPublicModulus;
 
         try {
@@ -56,12 +56,11 @@ public class SmpcRsaVerticle extends AbstractProtocolVerticle {
         } catch (Exception e) {
             e.printStackTrace();
             logger.warning("Couldn't get the public key.");
-            //throw new GeneralMPCOPException("Couldn't get the public key.");
-            return Messages.ERROR_MESSAGE;
+            throw new GeneralMPCOPException("Couldn't get the public key.");
         }
 
         if (serverPublicModulus.get(0).getSW() != AbstractMgr.SW_NO_ERROR) {
-            throw new IllegalArgumentException("not good");
+            throw new GeneralMPCOPException(String.format("Card returned an error: 0x%04X", serverPublicModulus.get(0).getSW()));
         }
 
         StringBuilder modulus = new StringBuilder();
@@ -72,20 +71,18 @@ public class SmpcRsaVerticle extends AbstractProtocolVerticle {
     }
 
     @Override
-    protected String reset() {
+    protected void reset() throws GeneralMPCOPException {
         try {
             client.reset();
             server.reset();
 
         } catch (Exception e) {
-            e.printStackTrace();
-            return Messages.ERROR_MESSAGE;
+            throw new GeneralMPCOPException(e.toString());
         }
-        return "Cards have been successfully reset";
     }
 
     @Override
-    protected String keygen() {
+    protected void keygen() {
 
         // TODO: use worker node
         ResponseAPDU res;
@@ -97,7 +94,7 @@ public class SmpcRsaVerticle extends AbstractProtocolVerticle {
 
             try {
                 client.reset();
-                server.reset();
+                // server.reset();
 
                 resClient = client.generateKeys();
 
@@ -111,7 +108,6 @@ public class SmpcRsaVerticle extends AbstractProtocolVerticle {
                 server.reset();
                 server.generateKeys();
                 server.setClientKeys(clientKeys);
-                pubkey = getPubKey();
                 generated = true;
             } catch (Exception e) {
                 e.printStackTrace();
@@ -119,7 +115,6 @@ public class SmpcRsaVerticle extends AbstractProtocolVerticle {
 
         }
 
-        return pubkey;
     }
 
     @Override

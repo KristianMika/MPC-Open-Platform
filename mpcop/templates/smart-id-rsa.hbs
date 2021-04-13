@@ -14,8 +14,8 @@
           
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.0/dist/sockjs.min.js"></script>
 
-    <script src='/resources/js/vertx-eventbus.js'></script>
-    
+    <script src='/resources/js/libs/vertx-eventbus.js'></script>
+
 </head>
 
 <body>
@@ -58,11 +58,12 @@
     <button id="enableDebug">TOGGLE DEBUG</button>
     </div>
 
+    <div class="loader hidden" id="loader"></div>
     <div class="response">
         <textarea name="response" id="responseArea" cols="30" rows="10" readonly></textarea>
     </div>
     
-    <div id="footerLogger">
+    <div class="hidden" id="footerLogger">
         <textarea id="footerLoggerTextArea" readonly> </textarea>
     </div>
 

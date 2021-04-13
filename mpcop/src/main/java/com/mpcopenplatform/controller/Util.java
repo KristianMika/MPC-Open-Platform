@@ -1,5 +1,7 @@
 package com.mpcopenplatform.controller;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import io.vertx.core.json.JsonObject;
 
 import java.math.BigInteger;
@@ -19,5 +21,9 @@ public class Util {
 
     public static String getProtocol(JsonObject message) {
         return message.getString("protocol");
+    }
+
+    public static String toJson(Object src) {
+        return new GsonBuilder().create().toJson(src);
     }
 }
