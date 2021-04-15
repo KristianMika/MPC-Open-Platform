@@ -1,10 +1,13 @@
 package com.mpcopenplatform.controller;
 
-import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import io.vertx.core.json.JsonObject;
 
 import java.math.BigInteger;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 
 
 public class Util {
@@ -25,5 +28,18 @@ public class Util {
 
     public static String toJson(Object src) {
         return new GsonBuilder().create().toJson(src);
+    }
+
+    /**
+     * Returns the private IP address of the preferred interface.
+     * @return ip address
+     * @throws SocketException if a socket can't be open
+     * @throws UnknownHostException if the IP address can't be determined
+     */
+    public static String getPrivateIp() throws SocketException, UnknownHostException {
+        try (final DatagramSocket socket = new DatagramSocket()) {
+            socket.connect(InetAddress.getByName("8.8.8.8"), 10002);
+            return socket.getLocalAddress().getHostAddress();
+        }
     }
 }

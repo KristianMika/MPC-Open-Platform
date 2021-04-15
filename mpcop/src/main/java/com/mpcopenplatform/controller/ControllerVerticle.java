@@ -12,6 +12,8 @@ import io.vertx.ext.web.handler.sockjs.SockJSHandler;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.templ.handlebars.HandlebarsTemplateEngine;
 
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
@@ -28,16 +30,15 @@ public class ControllerVerticle extends AbstractVerticle {
     public static final String CONTROLLER_ADDRESS = "service.controller";
     public static final String CONTROLLER_REGISTER_ADDRESS = "service.controller-register";
     public static final String CONTROLLER_BRIDGE_PATH = "/mpcop-event-bus";
+    public static final String ROOT_PATH = "/index.hbs";
+    public static final String MYST_PATH = "/myst.hbs";
+    public static final String SMART_ID_RSA_PATH = "/smart-id-rsa.hbs";
     private static final Logger logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
     private static final int CONTROLLER_PORT = 8080;
     private static final String HANDLER_HBS_PATH = ".+\\.hbs";
     private static final String HANDLER_RESOURCES_PATH = "/resources/*";
     private static final int NOT_FOUND_ERROR_CODE = 404;
     private static final int HEART_BEAT_INTERVAL = 2000;
-    public static final String ROOT_PATH = "/index.hbs";
-    public static final String MYST_PATH = "/myst.hbs";
-    public static final String SMART_ID_RSA_PATH = "/smart-id-rsa.hbs";
-
     static AtomicInteger connectionCounter = new AtomicInteger();
     TemplateHandler hbsTemplateHandler;
 
@@ -92,8 +93,24 @@ public class ControllerVerticle extends AbstractVerticle {
 
         server.requestHandler(router).listen(CONTROLLER_PORT);
         logger.info("Controller has been successfully deployed and is now running on port " + CONTROLLER_PORT + ".");
+        logger.info(getPrivateIpAnnouncement());
+
     }
 
+    /**
+     * Creates an announcement containing the host's private IP address and instructions on accessing
+     * the control panel from other computers.
+     */
+    private String getPrivateIpAnnouncement() {
+        String message = "You can access the control panel from computers within this LAN at ";
+        try {
+            String privateIp = Util.getPrivateIp();
+            message += privateIp + ":" + CONTROLLER_PORT + ".";
+        } catch (UnknownHostException | SocketException ignored) {
+            message += "port " + CONTROLLER_PORT + " of this computer.";
+        }
+        return message;
+    }
 
     private void logNewConnection(String address) {
         logger.info("New connection from " + address
