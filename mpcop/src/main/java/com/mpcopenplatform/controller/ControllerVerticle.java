@@ -2,6 +2,7 @@ package com.mpcopenplatform.controller;
 
 import com.mpcopenplatform.controller.myst.MystVerticle;
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.eventbus.Message;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.bridge.PermittedOptions;
@@ -19,7 +20,6 @@ import java.util.logging.Logger;
 
 
 /**
- * TODO: refactor
  * The {@link ControllerVerticle} carries communication between the UI controller and
  * the backend verticles.
  *
@@ -41,6 +41,7 @@ public class ControllerVerticle extends AbstractVerticle {
     static AtomicInteger connectionCounter = new AtomicInteger();
     TemplateHandler hbsTemplateHandler;
 
+
     @Override
     public void start() {
         hbsTemplateHandler = TemplateHandler.create(HandlebarsTemplateEngine.create(vertx));
@@ -60,12 +61,12 @@ public class ControllerVerticle extends AbstractVerticle {
 
         vertx.eventBus().consumer(CONTROLLER_ADDRESS, msg -> {
             vertx.eventBus()
-                    .request("service." + getProtocol((JsonObject) msg.body()), msg.body())
+                    .request(getProtocolAddress(msg), msg.body())
                     .onSuccess(data -> {
                         logger.info("Received from " + MystVerticle.CONSUMER_ADDRESS + ": " + data.body().toString());
                         msg.reply(data.body().toString());
-                    }).onFailure(thrwbl -> {
-                logger.info(Messages.REPLY_FAIL_MESSAGE + thrwbl.toString());
+                    }).onFailure(throwable -> {
+                logger.info(Messages.REPLY_FAIL_MESSAGE + throwable.toString());
                 msg.reply(Messages.ERROR_MESSAGE);
             }).onComplete(msgComp -> {
                 logger.info(Messages.REPLY_SUCCESS_MESSAGE);
@@ -73,15 +74,13 @@ public class ControllerVerticle extends AbstractVerticle {
         });
 
         sockJSHandler.bridge(bo, event -> {
-
             switch (event.type()) {
                 case REGISTER:
                     logNewConnection(event.socket().remoteAddress().toString());
-
                     break;
+
                 case UNREGISTER:
                     logClosedConnection(event.socket().remoteAddress().toString());
-
                     break;
             }
             event.complete(true);
@@ -90,9 +89,9 @@ public class ControllerVerticle extends AbstractVerticle {
         router.route(CONTROLLER_BRIDGE_PATH + "/*").handler(sockJSHandler);
 
         server.requestHandler(router).listen(CONTROLLER_PORT);
+
         logger.info("Controller has been successfully deployed and is now running on port " + CONTROLLER_PORT + ".");
         logger.info(getPrivateIpAnnouncement());
-
     }
 
     /**
@@ -110,21 +109,47 @@ public class ControllerVerticle extends AbstractVerticle {
         return message;
     }
 
+    /**
+     * Extracts the protocol from the message
+     * @param message to be used for extraction
+     * @return the protocol
+     */
+    private static String getProtocol(JsonObject message) {
+        return message.getString("protocol");
+    }
+
+    /**
+     * Returns the protocol address
+     * @param message containing the protocol
+     * @return the protocol address in form "service.[protocol]"
+     */
+    private String getProtocolAddress(Message<Object> message) {
+        return "service." + getProtocol((JsonObject) message.body());
+    }
+
+
+    /**
+     * Logs a new connection and increments the connection counter
+     * @param address of the new connection
+     */
     private void logNewConnection(String address) {
         logger.info("New connection from " + address
                 + "\nTotal number of connections: " + connectionCounter.incrementAndGet());
     }
 
+    /**
+     * Logs a terminated connection and decrements the connection counter
+     * @param address of the terminated connection
+     */
     private void logClosedConnection(String address) {
         logger.info("Connection from " + address + " has been terminated."
                 + "\nTotal number of connections: " + connectionCounter.decrementAndGet());
     }
 
-
-    public static String getProtocol(JsonObject message) {
-        return message.getString("protocol");
-    }
-
+    /**
+     * Sets the required handlers for the router
+     * @param router which requests will be set for
+     */
     void setHandlers(Router router) {
         // A handler for serving css and js resources
         router.get(HANDLER_RESOURCES_PATH).handler(context -> {
@@ -133,7 +158,7 @@ public class ControllerVerticle extends AbstractVerticle {
                 if (b.result()) {
                     context.response().sendFile(filename);
                 } else {
-                    logger.info("An attempt was made to access '" + context.request().path() + "'.");
+                    logger.warning("An attempt was made to access '" + context.request().path() + "'.");
                     context.fail(NOT_FOUND_ERROR_CODE);
                 }
             });
