@@ -3,14 +3,13 @@ package com.mpcopenplatform.controller;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.json.JsonObject;
 
-import java.util.Arrays;
 import java.util.logging.Logger;
 
 import static com.mpcopenplatform.controller.Util.toJson;
 
 /**
  * The {@link AbstractProtocolVerticle} class represents
- * a base class for all crypto schemas included in the MPC OP.
+ * a base class for all protocols included in the MPC OP.
  *
  * @author Kristian Mika
  */
@@ -32,21 +31,19 @@ public abstract class AbstractProtocolVerticle extends AbstractVerticle {
                 response = process((JsonObject) msg.body());
             } catch (GeneralMPCOPException e) {
                 logger.warning(e.toString());
-                response = new Response();
-                response.failed();
-                response.setErrMessage(e.getMessage());
+                response = new Response().failed().setErrMessage(e.getMessage());
             }
-
-            logger.info("Replying: " + toJson(response));
-            msg.reply(toJson(response));
+            String serializedResponse = toJson(response);
+            logger.info("Replying: " + serializedResponse);
+            msg.reply(serializedResponse);
         });
     }
 
     /**
      * Processes a request and calls the correct method.
      *
-     * @param request as a JsonObject to be processed
-     * @return the result of the correct operation in plaintext
+     * @param request to be processed
+     * @return the result of the requested operation
      * @throws GeneralMPCOPException if the requested operation is not valid
      */
     Response process(JsonObject request) throws GeneralMPCOPException {
@@ -60,8 +57,7 @@ public abstract class AbstractProtocolVerticle extends AbstractVerticle {
             throw new GeneralMPCOPException("Invalid operation " + rawOperation);
         }
 
-        Response r = new Response();
-        r.setOperation(operation);
+        Response r = new Response().setOperation(operation);
 
         switch (operation) {
 
@@ -70,51 +66,71 @@ public abstract class AbstractProtocolVerticle extends AbstractVerticle {
 
             case KEYGEN:
                 keygen();
-                r.setPublicKey(getPubKey());
-                return r;
+                return r.setPublicKey(getPubKey());
 
             case RESET:
-                r.setMessage("Cards have been successfully reset");
-                return r;
+                return r.setMessage(Messages.CARDS_RESET_SUCCESSFUL);
 
             case GET_PUBKEY:
-                r.setPublicKey(getPubKey());
-                return r;
+                return r.setPublicKey(getPubKey());
 
             case DECRYPT:
-                return new Response(decrypt(request.getString("data")));
+                String data = request.getString("data");
+                return new Response(decrypt(data));
 
             case SIGN:
-                r.setOperation(Operation.SIGN);
-                r.setSignatures(sign(request.getString("data")));
-                return r;
-
+                return r.setSignatures(sign(request.getString("data")));
 
             default:
                 throw new RuntimeException("Unreachable code");
-
         }
     }
 
+    /**
+     * Serves the sign request - signs the input data string
+     *
+     * @param data to be signed
+     * @return all parts of the signature in a string array
+     * @throws GeneralMPCOPException if signing fails
+     */
     protected abstract String[] sign(String data) throws GeneralMPCOPException;
 
-    protected abstract String decrypt(String data);
+    /**
+     * Servers the decrypt request - decrypts the encrypted data
+     *
+     * @param data to be decrypted
+     * @return the plaintext
+     * @throws GeneralMPCOPException if decryption fails
+     */
+    protected abstract String decrypt(String data) throws GeneralMPCOPException;
 
+    /**
+     * Servers the "get public key" request - returns the public key
+     *
+     * @return the public key of the protocol
+     * @throws GeneralMPCOPException if fails
+     */
     protected abstract String getPubKey() throws GeneralMPCOPException;
 
+    /**
+     * Serves the reset request - reset the protocol and invalidates all cryptographic secrets
+     *
+     * @throws GeneralMPCOPException if resetting fails
+     */
     protected abstract void reset() throws GeneralMPCOPException;
 
     /**
-     * Generates keys
+     * Serves the "generate keys" request - generates keys.
      *
-     * @return
+     * @throws GeneralMPCOPException if generation fails
      */
     protected abstract void keygen() throws GeneralMPCOPException;
 
     /**
-     * Returns information about the protocol run, e.g. a number of participants, current state, etc.
+     * Serves the "get info" request - Returns information about the protocol run,
+     * e.g. the number of participants, the current protocol state, etc.
      *
-     * @return information in plain text
+     * @return protocol information
      */
     protected abstract String getInfo();
 }

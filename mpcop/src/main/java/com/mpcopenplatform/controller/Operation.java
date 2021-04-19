@@ -1,7 +1,7 @@
 package com.mpcopenplatform.controller;
 
 /**
- * The {@link Operation} class represents all supported operation provided by MPC OP.
+ * The {@link Operation} class represents all supported operation provided by MPCOP.
  *
  * @author Kristian Mika
  */

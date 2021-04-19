@@ -17,7 +17,6 @@ import java.net.UnknownHostException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
-import static com.mpcopenplatform.controller.Util.getProtocol;
 
 /**
  * TODO: refactor
@@ -58,7 +57,6 @@ public class ControllerVerticle extends AbstractVerticle {
                 .addInboundPermitted(new PermittedOptions().setAddress(CONTROLLER_ADDRESS))
                 .addInboundPermitted(new PermittedOptions().setAddress(CONTROLLER_REGISTER_ADDRESS))
                 .addOutboundPermitted(new PermittedOptions().setAddress(CONTROLLER_REGISTER_ADDRESS));
-
 
         vertx.eventBus().consumer(CONTROLLER_ADDRESS, msg -> {
             vertx.eventBus()
@@ -122,6 +120,10 @@ public class ControllerVerticle extends AbstractVerticle {
                 + "\nTotal number of connections: " + connectionCounter.decrementAndGet());
     }
 
+
+    public static String getProtocol(JsonObject message) {
+        return message.getString("protocol");
+    }
 
     void setHandlers(Router router) {
         // A handler for serving css and js resources

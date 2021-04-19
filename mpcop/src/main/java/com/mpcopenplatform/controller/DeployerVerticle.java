@@ -9,7 +9,7 @@ import java.util.logging.Logger;
 
 
 /**
- * The {@link DeployerVerticle} class is responsible only for deploying other verticles
+ * The {@link DeployerVerticle} class is responsible only for deploying other verticles.
  *
  * @author Kristian Mika
  */
@@ -20,10 +20,13 @@ public class DeployerVerticle extends AbstractVerticle {
         Launcher.main(new String[]{"run", DeployerVerticle.class.getName()});
     }
 
+    /**
+     * A wrapper method that deploys all the verticles
+     */
     protected void deployVerticles() {
         deployVerticle(MystVerticle.class.getName());
-        deployVerticle(ControllerVerticle.class.getName());
         deployVerticle(SmpcRsaVerticle.class.getName());
+        deployVerticle(ControllerVerticle.class.getName());
     }
 
     @Override
@@ -32,14 +35,17 @@ public class DeployerVerticle extends AbstractVerticle {
         deployVerticles();
     }
 
+    /**
+     * Deploys the verticle specified in the argument and logs the result
+     * @param className of the verticle to be deployed
+     */
     protected void deployVerticle(String className) {
         vertx.deployVerticle(className, result -> {
             if (result.succeeded()) {
                 logger.info("Successfully deployed " + className + ".");
             } else {
-                logger.severe("Couldn't deploy " + className + ". Cause: " + result.cause());
+                logger.severe("Couldn't deploy " + className + ": " + result.cause());
             }
         });
-
     }
 }
