@@ -75,6 +75,34 @@ public class Response {
         return this;
     }
 
+    public Boolean getSuccess() {
+        return success;
+    }
+
+    public String getOperation() {
+        return operation;
+    }
+
+    public String getErrMessage() {
+        return errMessage;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public String getSig1() {
+        return sig1;
+    }
+
+    public String getSig2() {
+        return sig2;
+    }
+
+    public String getPublicKey() {
+        return publicKey;
+    }
+
     /**
      * Sets signatures from the input array. The maximum number of signatures is 2.
      *
