@@ -62,7 +62,7 @@ public abstract class AbstractProtocolVerticle extends AbstractVerticle {
         switch (operation) {
 
             case INFO:
-                return new Response(getInfo());
+                return r.setMessage(getInfo());
 
             case KEYGEN:
                 keygen();
@@ -76,7 +76,7 @@ public abstract class AbstractProtocolVerticle extends AbstractVerticle {
 
             case DECRYPT:
                 String data = request.getString("data");
-                return new Response(decrypt(data));
+                return r.setMessage(decrypt(data));
 
             case SIGN:
                 return r.setSignatures(sign(request.getString("data")));
