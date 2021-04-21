@@ -1,8 +1,12 @@
 package com.mpcopenplatform.controller.myst;
 
-import com.mpcopenplatform.controller.*;
+import com.mpcopenplatform.controller.AbstractProtocolVerticle;
+import com.mpcopenplatform.controller.GeneralMPCOPException;
+import com.mpcopenplatform.controller.Messages;
+import com.mpcopenplatform.controller.Util;
 import mpctestclient.MPCRun;
 import mpctestclient.MPCRunConfig;
+import org.bouncycastle.math.ec.ECPoint;
 import org.bouncycastle.util.encoders.Hex;
 
 import java.util.Locale;
@@ -34,8 +38,7 @@ public class MystVerticle extends AbstractProtocolVerticle {
     @Override
     protected String getInfo() {
         return "Number of players: " + run.runCfg.numPlayers + "\n" +
-                "Number of hosts: " + run.hosts.size() + "\n" +
-                "Yagg: " + getPubKey() + "\n";
+                "Number of hosts: " + run.hosts.size() + "\n";
     }
 
     @Override
@@ -66,13 +69,12 @@ public class MystVerticle extends AbstractProtocolVerticle {
 
 
     @Override
-    protected String getPubKey() {
-        try {
-            return Hex.toHexString(run.getYagg().getEncoded(false)).toUpperCase(Locale.ROOT);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "Not known yet";
+    protected String getPubKey() throws GeneralMPCOPException {
+        ECPoint pubkey = run.getYagg();
+        if (pubkey == null) {
+            throw new GeneralMPCOPException("The public key has not been computed yet.");
         }
+        return Hex.toHexString(run.getYagg().getEncoded(false)).toUpperCase(Locale.ROOT);
     }
 
     @Override
