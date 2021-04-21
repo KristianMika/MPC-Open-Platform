@@ -1,8 +1,9 @@
 package com.mpcopenplatform.controller;
 
-import com.mpcopenplatform.controller.myst.MystVerticle;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.eventbus.Message;
+import io.vertx.core.eventbus.ReplyException;
+import io.vertx.core.eventbus.ReplyFailure;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.bridge.PermittedOptions;
@@ -17,6 +18,8 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
+
+import static com.mpcopenplatform.controller.Util.toJson;
 
 
 /**
@@ -38,9 +41,19 @@ public class ControllerVerticle extends AbstractVerticle {
     private static final String HANDLER_RESOURCES_PATH = "/resources/*";
     private static final int NOT_FOUND_ERROR_CODE = 404;
     private static final int HEART_BEAT_INTERVAL = 2000;
+    public static final int REPLY_TIMEOUT = 60000;
     static AtomicInteger connectionCounter = new AtomicInteger();
     TemplateHandler hbsTemplateHandler;
 
+    /**
+     * Extracts the protocol from the message
+     *
+     * @param message to be used for extraction
+     * @return the protocol
+     */
+    private static String getProtocol(JsonObject message) {
+        return message.getString("protocol");
+    }
 
     @Override
     public void start() {
@@ -57,17 +70,18 @@ public class ControllerVerticle extends AbstractVerticle {
         SockJSBridgeOptions bo = new SockJSBridgeOptions()
                 .addInboundPermitted(new PermittedOptions().setAddress(CONTROLLER_ADDRESS))
                 .addInboundPermitted(new PermittedOptions().setAddress(CONTROLLER_REGISTER_ADDRESS))
-                .addOutboundPermitted(new PermittedOptions().setAddress(CONTROLLER_REGISTER_ADDRESS));
+                .addOutboundPermitted(new PermittedOptions().setAddress(CONTROLLER_REGISTER_ADDRESS))
+                .setReplyTimeout(REPLY_TIMEOUT);
 
         vertx.eventBus().consumer(CONTROLLER_ADDRESS, msg -> {
             vertx.eventBus()
                     .request(getProtocolAddress(msg), msg.body())
                     .onSuccess(data -> {
-                        logger.info("Received from " + MystVerticle.CONSUMER_ADDRESS + ": " + data.body().toString());
+                        logger.info("Received from " + getProtocolAddress(msg) + ": " + data.body().toString());
                         msg.reply(data.body().toString());
                     }).onFailure(throwable -> {
                 logger.info(Messages.REPLY_FAIL_MESSAGE + throwable.toString());
-                msg.reply(Messages.ERROR_MESSAGE);
+                msg.reply(toJson(new Response().failed().setErrMessage(getErrMessage(throwable))));
             }).onComplete(msgComp -> {
                 logger.info(Messages.REPLY_SUCCESS_MESSAGE);
             });
@@ -110,16 +124,8 @@ public class ControllerVerticle extends AbstractVerticle {
     }
 
     /**
-     * Extracts the protocol from the message
-     * @param message to be used for extraction
-     * @return the protocol
-     */
-    private static String getProtocol(JsonObject message) {
-        return message.getString("protocol");
-    }
-
-    /**
      * Returns the protocol address
+     *
      * @param message containing the protocol
      * @return the protocol address in form "service.[protocol]"
      */
@@ -130,6 +136,7 @@ public class ControllerVerticle extends AbstractVerticle {
 
     /**
      * Logs a new connection and increments the connection counter
+     *
      * @param address of the new connection
      */
     private void logNewConnection(String address) {
@@ -139,6 +146,7 @@ public class ControllerVerticle extends AbstractVerticle {
 
     /**
      * Logs a terminated connection and decrements the connection counter
+     *
      * @param address of the terminated connection
      */
     private void logClosedConnection(String address) {
@@ -148,6 +156,7 @@ public class ControllerVerticle extends AbstractVerticle {
 
     /**
      * Sets the required handlers for the router
+     *
      * @param router which requests will be set for
      */
     void setHandlers(Router router) {
@@ -178,5 +187,26 @@ public class ControllerVerticle extends AbstractVerticle {
         router.get("/smart-id-rsa").handler(ctx -> {
             ctx.reroute(SMART_ID_RSA_PATH);
         });
+    }
+
+    /**
+     * Attempts to return an error message with hints on how to resolve the issue based on the throwable
+     *
+     * @param throwable used for deduction
+     * @return error message with hints
+     */
+    String getErrMessage(Throwable throwable) {
+        if (throwable instanceof ReplyException) {
+            ReplyException e = (ReplyException) throwable;
+            if (e.failureType() == ReplyFailure.NO_HANDLERS) {
+                return Messages.NO_HANDLERS_ERROR;
+            }
+
+            if (e.failureType() == ReplyFailure.TIMEOUT) {
+                return Messages.TIMEOUT_ERROR;
+            }
+
+        }
+        return (Messages.GENERIC_ERROR_MESSAGE + " " + throwable.toString());
     }
 }
