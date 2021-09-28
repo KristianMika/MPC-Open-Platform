@@ -1,7 +1,0 @@
-rootProject.name = 'mpcop'
-
-include ':MPCApplet', ':MPCTestClient', ':javacard-smpc-rsa'
-
-project(':MPCApplet').projectDir=new File(settingsDir, 'lib/Myst/MPCApplet')
-project(':MPCTestClient').projectDir=new File(settingsDir, 'lib/Myst/MPCTestClient')
-project(':javacard-smpc-rsa').projectDir=new File(settingsDir, 'lib/javacard-smpc-rsa/applet')
