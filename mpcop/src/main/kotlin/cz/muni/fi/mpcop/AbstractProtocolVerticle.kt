@@ -1,5 +1,7 @@
 package cz.muni.fi.mpcop
 
+import com.google.gson.JsonElement
+import com.google.gson.JsonParser
 import cz.muni.fi.mpcop.Utils.toJsonObject
 
 import io.vertx.core.AbstractVerticle
@@ -7,6 +9,8 @@ import io.vertx.core.eventbus.Message
 import io.vertx.core.json.JsonObject
 import java.util.logging.Logger
 
+// TODO: remove @param and @return tags
+// TODO: unify vertx.json and google.gson usage
 /**
  * The [AbstractProtocolVerticle] class represents
  * a base class for all MPCOP protocols.
@@ -57,14 +61,22 @@ abstract class AbstractProtocolVerticle(protected val CONSUMER_ADDRESS: String) 
                 keygen()
                 r.setPublicKey(getPubKey())
             }
-            Operation.RESET -> r.setMessage(Messages.CARDS_RESET_SUCCESSFUL)
+            Operation.RESET -> {
+                reset()
+                r.setMessage(Messages.CARDS_RESET_SUCCESSFUL)
+            }
             Operation.GET_PUBKEY -> r.setPublicKey(getPubKey())
             Operation.DECRYPT -> {
                 val data: String = request.getString("data")
                 r.setMessage(decrypt(data))
             }
+            Operation.ENCRYPT -> {
+                val data: String = request.getString("data")
+                r.setMessage(encrypt(data))
+            }
             Operation.SIGN -> r.setSignatures(sign(request.getString("data")))
-
+            Operation.CONFIGURE -> r.setMessage(configure(JsonParser.parseString(request.getString("data"))))
+            Operation.GET_CONFIG -> r.setMessage(getConfig())
         }
     }
 
@@ -87,6 +99,10 @@ abstract class AbstractProtocolVerticle(protected val CONSUMER_ADDRESS: String) 
      */
     @Throws(GeneralMPCOPException::class)
     protected abstract fun decrypt(data: String): String
+
+
+    @Throws(GeneralMPCOPException::class)
+    protected abstract fun encrypt(data: String): String
 
     /**
      * Servers the "get public key" request - returns the public key
@@ -120,6 +136,20 @@ abstract class AbstractProtocolVerticle(protected val CONSUMER_ADDRESS: String) 
      * @return protocol information
      */
     protected abstract fun getInfo(): String
+
+    /**
+     * Configures the protocol - e.g. sets the number of participants
+     *
+     * @return protocol configuration
+     */
+    @Throws(GeneralMPCOPException::class)
+    protected abstract fun configure(conf: JsonElement): String
+
+    /**
+     * Returns the current protocol configuration
+     */
+    @Throws(GeneralMPCOPException::class)
+    protected abstract fun getConfig(): String
 
     init {
         logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME)

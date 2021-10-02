@@ -55,7 +55,7 @@ public class SmpcRsa {
             }
         }
         if (!generated) {
-            throw new GeneralMPCOPException("Couldn't generate keys: $lastE");
+            throw new GeneralMPCOPException("Couldn't generate keys: " + lastE);
         }
     }
 }

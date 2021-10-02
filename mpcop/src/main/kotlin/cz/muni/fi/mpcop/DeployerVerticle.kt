@@ -20,6 +20,7 @@ class DeployerVerticle : AbstractVerticle() {
         deployVerticle(MystVerticle::class.java.name)
         deployVerticle(SmpcRsaVerticle::class.java.name)
         deployVerticle(ControllerVerticle::class.java.name)
+        deployVerticle(StaticServerVerticle::class.java.name)
     }
 
     override fun start() {

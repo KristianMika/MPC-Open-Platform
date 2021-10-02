@@ -7,11 +7,13 @@ import io.vertx.core.Handler
 import io.vertx.core.eventbus.Message
 import io.vertx.core.eventbus.ReplyException
 import io.vertx.core.eventbus.ReplyFailure
+import io.vertx.core.http.HttpMethod
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.bridge.BridgeEventType
 import io.vertx.ext.bridge.PermittedOptions
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.RoutingContext
+import io.vertx.ext.web.handler.CorsHandler
 import io.vertx.ext.web.handler.TemplateHandler
 import io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions
 import io.vertx.ext.web.handler.sockjs.SockJSHandler
@@ -57,7 +59,11 @@ class ControllerVerticle : AbstractVerticle() {
                     msg.reply(data.body().toString())
                 }).onFailure(Handler { throwable: Throwable ->
                     logger.info(Messages.REPLY_FAIL_MESSAGE + throwable.toString())
-                    msg.reply(Utils.toJsonObject(Response("Forward equest").failed().setErrMessage(getErrMessage(throwable))))
+                    msg.reply(
+                        Utils.toJsonObject(
+                            Response("Forward equest").failed().setErrMessage(getErrMessage(throwable))
+                        )
+                    )
                 })
 
         }

@@ -52,9 +52,9 @@ public class ServerMgr extends AbstractMgr {
 
     public void reset() throws Exception {
         ResponseAPDU res = transmit(new CommandAPDU(
-                CLA_RSA_SMPC_SERVER, INS_RESET, NONE, NONE
+                    CLA_RSA_SMPC_SERVER, INS_RESET, NONE, NONE
         ));
-        handleError(res, "Keygen");
+        handleError(res, "Reset");
     }
 
     /**

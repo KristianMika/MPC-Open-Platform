@@ -13,3 +13,8 @@ bin/
 
 # perflogs
 *.csv
+*.tex
+
+# this folder contains static website files that are build from 
+# the ../mpcop-web project
+static/

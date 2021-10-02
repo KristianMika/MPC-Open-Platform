@@ -12,8 +12,7 @@ data class Response(var operation: String) {
     var success: Boolean = true
     var errMessage: String? = null
     var message: String? = null
-    private var sig1: String? = null
-    private var sig2: String? = null
+    private var signature: String? = null
     private var publicKey: String? = null
 
     constructor(operation: Operation) : this(operation.toString())
@@ -53,8 +52,7 @@ data class Response(var operation: String) {
     }
 
     fun setSignatures(sigs: List<String>):Response {
-        this.sig1 = sigs[0]
-        this.sig2 = sigs[1]
+        this.signature = sigs.joinToString(";")
         return this
     }
 }

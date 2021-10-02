@@ -1,0 +1,26 @@
+@import url("https://pagecdn.io/lib/normalize/8.0.1/normalize.min.css");
+
+html,
+body,
+#root,
+.App {
+	height: 100vh;
+}
+
+.App {
+	/*background-image: url("./background.svg");*/
+	background-color: #2e2e2e;
+	background-image: linear-gradient(
+		rgb(182, 182, 182),
+		rgb(131, 131, 131),
+		rgb(61, 61, 61),
+		rgb(0, 0, 0)
+	);
+	/*TODO: attribute author: https://www.freepik.com/free-vector/dark-polygonal-background_6076273.htm#page=1&query=black%20polygon&position=0&from_view=keyword */
+	background-image: url("./background.svg");
+	
+}
+
+.top-react-icons {
+	font-size: 1.5em;
+}

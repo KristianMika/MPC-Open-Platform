@@ -1,12 +1,15 @@
 package cz.muni.fi.mpcop.smpcrsa
 
+import com.google.gson.Gson
+import com.google.gson.JsonElement
+import com.google.gson.JsonSyntaxException
 import cz.muni.cz.mpcop.smpcrsa.SmpcRsa
 import cz.muni.cz.mpcop.smpcrsa.SmpcRsa.getPubkey
 import cz.muni.cz.mpcop.smpcrsa.client_full.ClientFullMgr
 import cz.muni.cz.mpcop.smpcrsa.server.ServerMgr
 import cz.muni.fi.mpcop.AbstractProtocolVerticle
 import cz.muni.fi.mpcop.GeneralMPCOPException
-
+import cz.muni.fi.mpcop.Utils
 
 
 /**
@@ -17,8 +20,9 @@ import cz.muni.fi.mpcop.GeneralMPCOPException
 class SmpcRsaVerticle :
     AbstractProtocolVerticle(CONSUMER_ADDRESS) {
 
-    private val server: ServerMgr
-    private val client: ClientFullMgr
+    private var server: ServerMgr
+    private var client: ClientFullMgr
+    private var config: SmpcRsaConfiguration
 
 
     @Throws(GeneralMPCOPException::class)
@@ -32,13 +36,25 @@ class SmpcRsaVerticle :
 
 
     override fun decrypt(data: String): String {
-        TODO("Not yet implemented")
+        throw GeneralMPCOPException("Not implemented yet")
+    }
+
+    override fun encrypt(data: String): String {
+        throw GeneralMPCOPException("Not implemented yet")
     }
 
 
     @Throws(GeneralMPCOPException::class)
     override fun getPubKey(): String {
-        return getPubkey(server)
+        val response: String =
+
+            try {
+                getPubkey(server)
+            } catch (e: java.lang.Exception) {
+                logger.warning(e.toString())
+                throw GeneralMPCOPException("The public key has not been computed yet.")
+            }
+        return response
     }
 
     @Throws(GeneralMPCOPException::class)
@@ -51,13 +67,39 @@ class SmpcRsaVerticle :
         }
     }
 
+    override fun getConfig(): String {
+        return Utils.toJson(config)
+    }
+
     @Throws(GeneralMPCOPException::class)
     override fun keygen() {
         return SmpcRsa.keygen(client, server)
     }
 
     override fun getInfo(): String {
-        return "Correct operation, but not implemented yet (getInfo)"
+        return config.toString()
+    }
+
+    override fun configure(conf: JsonElement): String {
+        val newConfig: SmpcRsaConfiguration = try {
+            Gson().fromJson(conf, SmpcRsaConfiguration::class.java)
+        } catch (e: JsonSyntaxException) {
+            throw GeneralMPCOPException("Invalid format")
+        }
+
+
+        if (config.isServerSimulated != newConfig.isServerSimulated) {
+            server.reset()
+            server = ServerMgr(!newConfig.isServerSimulated)
+        }
+
+        if (config.isClientSimulated != newConfig.isClientSimulated) {
+            server.reset()
+            client = ClientFullMgr(!newConfig.isClientSimulated)
+        }
+        config = newConfig
+
+        return getInfo()
     }
 
     companion object {
@@ -67,8 +109,12 @@ class SmpcRsaVerticle :
     }
 
     init {
+        config = SmpcRsaConfiguration(isServerSimulated = true, isClientSimulated = false)
+
         // Either the server or the client must run on a real card, only one simulator can be initialized at a time!
-        server = ServerMgr(false)
-        client = ClientFullMgr(true)
+        server = ServerMgr(!config.isServerSimulated)
+        client = ClientFullMgr(!config.isClientSimulated)
+
+
     }
 }
