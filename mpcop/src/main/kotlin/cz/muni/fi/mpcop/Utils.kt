@@ -4,6 +4,13 @@ package cz.muni.fi.mpcop
 import com.google.gson.GsonBuilder
 import io.vertx.core.json.JsonObject
 import java.math.BigInteger
+import java.net.DatagramSocket
+import java.net.InetAddress
+
+import java.net.SocketException
+
+
+
 
 
 /**
@@ -49,5 +56,16 @@ object Utils {
         return GsonBuilder().create().toJson(src) ?: ""
     }
 
-
+    /**
+     * Returns the private IP address of the preferred interface.
+     */
+    @Throws(SocketException::class)
+    fun getPrivateIp(): String {
+        val targetAddress = "8.8.8.8"
+        val destinationPort = 10002
+        DatagramSocket().use { socket ->
+            socket.connect(InetAddress.getByName(targetAddress), destinationPort)
+            return socket.localAddress.hostAddress
+        }
+    }
 }
