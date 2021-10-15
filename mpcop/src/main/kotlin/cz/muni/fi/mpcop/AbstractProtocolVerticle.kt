@@ -19,6 +19,7 @@ import java.util.logging.Logger
  */
 abstract class AbstractProtocolVerticle(protected val CONSUMER_ADDRESS: String) : AbstractVerticle() {
     protected val logger: Logger
+    protected val state: ProtocolState = ProtocolState()
 
     private fun requestHandler(msg: Message<JsonObject>) {
         logger.info("Received: " + msg.body().toString())
@@ -58,14 +59,20 @@ abstract class AbstractProtocolVerticle(protected val CONSUMER_ADDRESS: String) 
         return when (operation) {
             Operation.INFO -> r.setMessage(getInfo())
             Operation.KEYGEN -> {
+                state.pubKey = null
                 keygen()
                 r.setPublicKey(getPubKey())
             }
             Operation.RESET -> {
+                state.pubKey = null
                 reset()
                 r.setMessage(Messages.CARDS_RESET_SUCCESSFUL)
             }
-            Operation.GET_PUBKEY -> r.setPublicKey(getPubKey())
+            Operation.GET_PUBKEY -> {
+                val pubkey = state.pubKey ?: getPubKey()
+                state.pubKey = pubkey
+                r.setPublicKey(pubkey)
+            }
             Operation.DECRYPT -> {
                 val data: String = request.getString("data")
                 r.setMessage(decrypt(data))
