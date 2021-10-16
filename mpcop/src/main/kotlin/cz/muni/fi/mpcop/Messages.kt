@@ -14,5 +14,5 @@ object Messages {
     const val NO_HANDLERS_ERROR = "The protocol is not running. Please, make sure you have connected" +
             " smart cards with the correct applets installed"
     const val TIMEOUT_ERROR = "The request has timed out - the operation took too long." +
-            " In case you requested key generation, try request the public key."
+            " In case you requested key generation, try refreshing the website."
 }

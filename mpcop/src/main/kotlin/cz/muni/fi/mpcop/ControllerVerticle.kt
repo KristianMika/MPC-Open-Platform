@@ -54,11 +54,10 @@ class ControllerVerticle : AbstractVerticle() {
                     logger.info(Messages.REPLY_FAIL_MESSAGE + throwable.toString())
                     msg.reply(
                         Utils.toJsonObject(
-                            Response("Forward equest").failed().setErrMessage(getErrMessage(throwable))
-                        )
+                            Response("Forward request").failed().setErrMessage(getErrMessage(throwable))
+                        ).toString()
                     )
                 })
-
         }
         sockJSHandler.bridge(bo) { event ->
             when (event.type()) {
