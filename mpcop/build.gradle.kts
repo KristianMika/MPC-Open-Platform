@@ -1,13 +1,17 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
     // Apply the org.jetbrains.kotlin.jvm Plugin to add support for Kotlin.
     id("org.jetbrains.kotlin.jvm") version "1.5.0"
+    id("com.github.johnrengelman.shadow") version "7.0.0"
     // Apply the application plugin to add support for building a CLI application in Java.
     application
     java
 }
 
+version = "0.1.0"
+group = "cz.muni.fi"
 repositories {
     mavenCentral()
 
@@ -82,4 +86,11 @@ tasks.withType<Test> {
 
 tasks.withType<Wrapper> {
     gradleVersion = "7.2"
+}
+
+tasks.withType<ShadowJar>() {
+    archiveFileName.set("mpcop.jar")
+    manifest {
+        attributes["Main-Class"] = "cz.muni.fi.mpcop.MpcopKt"
+    }
 }
