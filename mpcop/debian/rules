@@ -1,0 +1,10 @@
+#!/usr/bin/make -f
+
+APP_DIR:="./mpcop"
+
+%:
+	dh $@
+
+override_dh_auto_build:
+	./gradlew shadowJar
+	

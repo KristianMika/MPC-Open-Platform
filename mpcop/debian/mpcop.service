@@ -1,0 +1,15 @@
+[Unit]
+Description=Open Platform for Multiparty Signatures with Smartcards
+
+[Service]
+SuccessExitStatus=143
+
+User=nobody
+Group=nogroup 
+
+Type=simple 
+WorkingDirectory=/www/mpcop
+ExecStart= java -Xms256m -Xmx512m -noverify -jar /www/mpcop/bin/mpcop.jar
+
+[Install]
+WantedBy=multi-user.target
