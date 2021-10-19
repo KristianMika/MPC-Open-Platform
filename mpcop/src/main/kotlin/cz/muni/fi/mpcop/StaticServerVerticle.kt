@@ -21,7 +21,8 @@ class StaticServerVerticle : AbstractVerticle() {
     companion object {
         private val logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME)
         private const val SERVER_PORT: Int = 8083
-        private const val staticContentDir: String = "./static"
+        // TODO: tmp fix, use config
+        private const val staticContentDir: String = "../../../../../../www/mpcop/static"
     }
 
     /**
