@@ -18,3 +18,13 @@ bin/
 # this folder contains static website files that are build from 
 # the ../mpcop-web project
 static/
+
+# Debian packaging
+*.changes
+*.build
+*.buildinfo
+.debhelper/
+debian/mpcop/*
+debhelper-build-stamp
+files
+*.substvars
