@@ -5,11 +5,7 @@ import {
 	DialogContent,
 	DialogContentText,
 	DialogTitle,
-	FormControl,
-	FormControlLabel,
 	Grid,
-	Radio,
-	RadioGroup,
 	Switch,
 	Tooltip,
 	Typography,
@@ -113,7 +109,7 @@ export const SmpcRsaSetup: React.FC = () => {
 	const [debugMessages, setDebugMessages] =
 		useRecoilState(debugMessagesState);
 	const logDebugMessage = (msg: any) => {
-		let res = msg.success ? OperationResult.Success : OperationResult.Error;
+		const res = msg.success ? OperationResult.Success : OperationResult.Error;
 
 		const prevMessages = debugMessages.messages;
 		setDebugMessages({

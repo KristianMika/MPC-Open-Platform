@@ -1,12 +1,9 @@
 import {
 	Grid,
 	makeStyles,
-	TextField,
-	Tooltip,
 	Typography,
 } from "@material-ui/core";
 
-import { useEffect, useState } from "react";
 import { useRecoilState } from "recoil";
 import { eventbusSocketState } from "../store/atom";
 import { useProtocolStyles } from "../styles/protocol";
@@ -31,8 +28,6 @@ const useStyles = makeStyles(() => ({
 export const Home: React.FC = () => {
 	const [socketState, setSocketState] = useRecoilState(eventbusSocketState);
 	const { protocol, protocol_grid } = useProtocolStyles();
-	const { protocol_form__switch_label_grid, protocol_form__switch_grid } =
-		useProtocolSetupStyles();
 	const { status_page, status_page_grid, status_label, status_value } =
 		useStyles();
 

@@ -1,5 +1,5 @@
 import * as elliptic from "elliptic";
-let ec = new elliptic.ec("p256");
+const ec = new elliptic.ec("p256");
 export const verifyMystCipher = (
 	decryptedCiphertext: string,
 	plaintext: string

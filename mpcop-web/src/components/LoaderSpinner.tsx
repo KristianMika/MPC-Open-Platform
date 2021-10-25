@@ -1,15 +1,10 @@
-import { Box, CircularProgress } from "@material-ui/core";
+import { CircularProgress } from "@material-ui/core";
 import { makeStyles } from "@material-ui/styles";
-import React, { useState } from "react";
-import { isPropertySignature } from "typescript";
-
-
-
-
+import React from "react";
 
 export interface ILoaderSpinner {
 	isVisible: boolean;
-	color: string
+	color: string;
 }
 export const LoaderSpinner: React.FC<ILoaderSpinner> = (props) => {
 	const useStyles = makeStyles(() => ({
@@ -23,10 +18,10 @@ export const LoaderSpinner: React.FC<ILoaderSpinner> = (props) => {
 			left: "50%",
 			zIndex: 100,
 			pointerEvents: "none",
-			color: props.color
+			color: props.color,
 		},
 	}));
-	//TODO: show after 0.5s
+
 	const { spinner } = useStyles();
 	const loader = props.isVisible ? (
 		<CircularProgress className={spinner} />

@@ -1,5 +1,5 @@
 const getTime = () => {
-	let currentDate = new Date();
+	const currentDate = new Date();
 	return (
 		toTwoPlaces(currentDate.getHours()) +
 		":" +
@@ -24,17 +24,17 @@ export enum OperationResult {
 export const formatLog = (
 	res: OperationResult = OperationResult.Info,
 	msg: string,
-	protocol: string = "MPCOP"
+	protocol = "MPCOP"
 ) => `[${res}] ${getTime()} - ${protocol}: ${msg}`;
 
-export const checkResponseStatus = (body: any) => {
-	return body.success === true;
+export const checkResponseStatus = (body: any): boolean => {
+	return body.success;
 };
 export const timeout = (delay: number) => {
 	return new Promise((res) => setTimeout(res, delay));
 };
 
-export const verifyHexString = (hex: string) => {
+export const verifyHexString = (hex: string): boolean => {
 	return (
 		typeof hex === "string" &&
 		hex.length % 2 === 0 &&
@@ -43,7 +43,7 @@ export const verifyHexString = (hex: string) => {
 };
 
 export const capitalize = (str: string): string => {
-	let result: string = "";
+	let result = "";
 	if (str.length > 0) {
 		result = str.charAt(0).toUpperCase();
 	}

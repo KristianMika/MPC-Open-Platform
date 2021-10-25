@@ -14,7 +14,7 @@ export const send = (
 			console.log("An error occured: the back-end hasn't responded");
 		} else {
 			
-			let bodyJson = JSON.parse(msg.body);
+			const bodyJson = JSON.parse(msg.body);
 			if (logDebugMessage) {
 				logDebugMessage(bodyJson);
 			}

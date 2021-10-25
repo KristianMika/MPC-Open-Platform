@@ -5,14 +5,13 @@ import { BsFillBugFill } from "react-icons/bs";
 import { IoIosHelpBuoy } from "react-icons/io";
 import { IconContext } from "react-icons";
 import { useRecoilState } from "recoil";
-import { debugMessagesState, headerIntroducedState } from "../store/atom";
+import { debugMessagesState } from "../store/atom";
 import introJs from "intro.js";
 import { IntroMessage } from "../constants/Intro";
 
 const useStyles = makeStyles(() => ({
 	debugArea__debugButton: {
 		margin: "0.5em 0.5em 0.5em auto",
-		
 	},
 	container_grid: { width: "100%", position: "absolute", bottom: 0, left: 0 },
 	reactIcon: {
@@ -23,7 +22,7 @@ const useStyles = makeStyles(() => ({
 export const DebugAreaButton: React.FC = () => {
 	const [debugMessages, setDebugMessages] =
 		useRecoilState(debugMessagesState);
-		const [wasHeaderIntroduced, setWasHeaderIntroduced] = useRecoilState(headerIntroducedState)
+
 	const { debugArea__debugButton, container_grid, reactIcon } = useStyles();
 	const [isVisible, setIsVisible] = useState(false);
 	const toggleDebug = () => {
@@ -48,7 +47,9 @@ export const DebugAreaButton: React.FC = () => {
 						variant="contained"
 						color="primary"
 						onClick={() => {
-							introJs().setOption("disableInteraction", false).start();
+							introJs()
+								.setOption("disableInteraction", false)
+								.start();
 						}}
 						className={debugArea__debugButton}
 					>

@@ -6,7 +6,6 @@ import {
 	DialogContentText,
 	DialogTitle,
 	Grid,
-	makeStyles,
 	Slider,
 	Tooltip,
 	Typography,
@@ -21,7 +20,11 @@ import { IMessage } from "../store/models/IMessage";
 import IProtocolInfoArea from "../store/models/IProtocolInfoArea";
 import { IResponse } from "../store/models/IResponse";
 import { useProtocolSetupStyles } from "../styles/protocolSetup";
-import { checkResponseStatus, formatLog, OperationResult } from "../utils/utils";
+import {
+	checkResponseStatus,
+	formatLog,
+	OperationResult,
+} from "../utils/utils";
 import { ProtocolInfoArea } from "./ProtocolInfoArea";
 
 interface FormValues {
@@ -102,7 +105,7 @@ export const MystSetup: React.FC = () => {
 	const [debugMessages, setDebugMessages] =
 		useRecoilState(debugMessagesState);
 	const logDebugMessage = (msg: any) => {
-		let res = msg.success ? OperationResult.Success : OperationResult.Error;
+		const res = msg.success ? OperationResult.Success : OperationResult.Error;
 
 		const prevMessages = debugMessages.messages;
 		setDebugMessages({

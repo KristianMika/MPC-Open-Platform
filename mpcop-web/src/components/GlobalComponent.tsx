@@ -1,7 +1,6 @@
 import EventBus from "@vertx/eventbus-bridge-client.js";
 import { useRecoilState } from "recoil";
 import { eventbusSocketState } from "../store/atom";
-import { timeout } from "../utils/utils";
 
 const host = window.location.hostname;
 export const eventBus = new EventBus(`http://${host}:8082/mpcop-event-bus`);

@@ -73,7 +73,7 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 	};
 
 	const logDebugMessage = (msg: any) => {
-		let res = msg.success ? OperationResult.Success : OperationResult.Error;
+		const res = msg.success ? OperationResult.Success : OperationResult.Error;
 
 		const prevMessages = debugMessages.messages;
 		setDebugMessages({
@@ -164,7 +164,7 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 		setOutputField(defaultOutputFieldValue);
 		const inputField = formValues.data.trim();
 
-		let operation = event.nativeEvent.submitter.name;
+		const operation = event.nativeEvent.submitter.name;
 		if (operation === Operation.Reset) {
 			setPubKey(defaultPubKeyValue);
 		}
@@ -199,7 +199,7 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 					message: "An error occured: the back-end hasn't responded",
 				});
 			} else {
-				let bodyJson = JSON.parse(msg.body);
+				const bodyJson = JSON.parse(msg.body);
 				logDebugMessage(bodyJson);
 				handleResponse(bodyJson);
 			}

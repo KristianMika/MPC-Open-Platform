@@ -51,7 +51,7 @@ export const protocolButtons: IProtocolButton[] = [
 	},
 ];
 
-export const CONTROLLER_ADDRESS: string = "service.controller";
+export const CONTROLLER_ADDRESS = "service.controller";
 
 export const enum InfoSeverity {
 	Error = "error",
@@ -60,4 +60,4 @@ export const enum InfoSeverity {
 	Success = "success",
 }
 
-export const COLOR_PRIMARY: string = "#3f51b5";
+export const COLOR_PRIMARY = "#3f51b5";

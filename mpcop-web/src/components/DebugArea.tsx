@@ -1,6 +1,5 @@
-import { Button, makeStyles, TextField } from "@material-ui/core";
-
-import React, { useEffect, useState } from "react";
+import { makeStyles, TextField } from "@material-ui/core";
+import React from "react";
 import { IDebugMessages } from "../store/models/IDebugMessages";
 
 const useStyles = makeStyles(() => ({
