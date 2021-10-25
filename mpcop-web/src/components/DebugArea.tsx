@@ -4,12 +4,12 @@ import { IDebugMessages } from "../store/models/IDebugMessages";
 
 const useStyles = makeStyles(() => ({
 	debug_area: {
-		padding: "1em",
 		background: "rgba(47, 52, 58, 0.9)",
-		width: "calc(100vw - 2em)", // TODO: fix,
+		padding: "0.3em 74pt 0 0.3em",
 	},
 	debug_area__textField: {
 		width: "100%",
+		padding: "0.3em 0.3em 0.3em 0.3em",
 	},
 }));
 

@@ -10,76 +10,82 @@ import introJs from "intro.js";
 import { IntroMessage } from "../constants/Intro";
 
 const useStyles = makeStyles(() => ({
-	debugArea__debugButton: {
-		margin: "0.5em 0.5em 0.5em auto",
+	debugArea__debugButtons: {
+		position: "fixed",
+		right: 5,
+		bottom: 5,
+		margin: "auto 0.5em 1em auto",
+		float: "right",
+		display: "block",
 	},
-	container_grid: { width: "100%", position: "absolute", bottom: 0, left: 0 },
+	debugArea__debugButton: {
+		marginTop: "0.5em",
+	},
 	reactIcon: {
 		fontSize: "50rem",
 	},
+	debugArea: { position: "fixed", width: "100%", bottom: 0 },
 }));
-// TODO: can't click through the invisible button parent
+
 export const DebugAreaButton: React.FC = () => {
 	const [debugMessages, setDebugMessages] =
 		useRecoilState(debugMessagesState);
 
-	const { debugArea__debugButton, container_grid, reactIcon } = useStyles();
+	const {
+		debugArea__debugButtons,
+		debugArea__debugButton,
+		reactIcon,
+		debugArea,
+	} = useStyles();
 	const [isVisible, setIsVisible] = useState(false);
 	const toggleDebug = () => {
 		setIsVisible(!isVisible);
 		console.log(isVisible);
 	};
 
-	const debugArea = isVisible ? (
+	const debugAreaElement = isVisible ? (
 		<DebugArea {...debugMessages}></DebugArea>
 	) : null;
 	return (
-		<footer>
-			<Grid
-				container
-				alignItems="center"
-				justify="flex-end"
-				direction="column"
-				className={container_grid}
-			>
-				<Tooltip title="Help">
-					<Button
-						variant="contained"
-						color="primary"
-						onClick={() => {
-							introJs()
-								.setOption("disableInteraction", false)
-								.start();
-						}}
-						className={debugArea__debugButton}
-					>
-						<IconContext.Provider
-							value={{ className: "top-react-icons" }}
+		<footer className={debugArea}>
+			<div className={debugArea__debugButtons}>
+				<div className={debugArea__debugButton}>
+					<Tooltip title="Help">
+						<Button
+							variant="contained"
+							color="primary"
+							onClick={() => {
+								introJs()
+									.setOption("disableInteraction", false)
+									.start();
+							}}
 						>
-							<IoIosHelpBuoy />
-						</IconContext.Provider>
-					</Button>
-				</Tooltip>
-				<Tooltip title="Show/hide debug area">
-					<Button
-						variant="contained"
-						color="primary"
-						onClick={toggleDebug}
-						className={debugArea__debugButton}
-						data-intro={IntroMessage.DEBUG_BUTTON}
-					>
-						<IconContext.Provider
-							value={{ className: "top-react-icons" }}
+							<IconContext.Provider
+								value={{ className: "top-react-icons" }}
+							>
+								<IoIosHelpBuoy />
+							</IconContext.Provider>
+						</Button>
+					</Tooltip>
+				</div>
+				<div className={debugArea__debugButton}>
+					<Tooltip title="Show/hide debug area">
+						<Button
+							variant="contained"
+							color="primary"
+							onClick={toggleDebug}
+							data-intro={IntroMessage.DEBUG_BUTTON}
 						>
-							<BsFillBugFill />
-						</IconContext.Provider>
-					</Button>
-				</Tooltip>
-
-				<Grid item xs={12}>
-					{debugArea}
-				</Grid>
-			</Grid>
+							<IconContext.Provider
+								value={{ className: "top-react-icons" }}
+							>
+								<BsFillBugFill />
+							</IconContext.Provider>
+						</Button>
+					</Tooltip>
+				</div>
+			</div>
+			{debugAreaElement}
 		</footer>
 	);
 };
