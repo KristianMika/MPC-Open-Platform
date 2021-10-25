@@ -11,11 +11,9 @@ import io.vertx.ext.bridge.BridgeEventType
 import io.vertx.ext.bridge.PermittedOptions
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.RoutingContext
-import io.vertx.ext.web.handler.TemplateHandler
 import io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions
 import io.vertx.ext.web.handler.sockjs.SockJSHandler
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions
-import io.vertx.ext.web.templ.handlebars.HandlebarsTemplateEngine
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.logging.Logger
 
@@ -27,10 +25,8 @@ import java.util.logging.Logger
  * @author Kristian Mika
  */
 class ControllerVerticle : AbstractVerticle() {
-    var hbsTemplateHandler: TemplateHandler? = null
 
     override fun start() {
-        hbsTemplateHandler = TemplateHandler.create(HandlebarsTemplateEngine.create(vertx))
         val server = vertx.createHttpServer()
         val router: Router = Router.router(vertx)
         val options: SockJSHandlerOptions = SockJSHandlerOptions().setHeartbeatInterval(HEART_BEAT_INTERVAL)

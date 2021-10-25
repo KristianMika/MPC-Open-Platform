@@ -44,9 +44,6 @@ dependencies {
     // https://mvnrepository.com/artifact/io.vertx/vertx-web
     implementation("io.vertx:vertx-web:$vertxVersion")
 
-    // https://mvnrepository.com/artifact/io.vertx/vertx-web-templ-handlebars
-    implementation("io.vertx:vertx-web-templ-handlebars:$vertxVersion")
-
     // Protocols
     implementation(project(":MPCTestClient"))
     implementation(project(":MPCApplet"))
