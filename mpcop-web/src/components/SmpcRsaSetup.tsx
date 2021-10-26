@@ -5,6 +5,7 @@ import {
 	DialogContent,
 	DialogContentText,
 	DialogTitle,
+	FormControlLabel,
 	Grid,
 	Switch,
 	Tooltip,
@@ -46,6 +47,7 @@ export const SmpcRsaSetup: React.FC = () => {
 		protocol_setup__setup_button,
 		protocol_form__switch_grid,
 		protocol_form__switch_label_grid,
+		switch_label,
 	} = useProtocolSetupStyles();
 	const [protocolInfo, setProtocolInfo] =
 		useState<IProtocolInfoArea>(defaultProtocolInfo);
@@ -109,7 +111,9 @@ export const SmpcRsaSetup: React.FC = () => {
 	const [debugMessages, setDebugMessages] =
 		useRecoilState(debugMessagesState);
 	const logDebugMessage = (msg: any) => {
-		const res = msg.success ? OperationResult.Success : OperationResult.Error;
+		const res = msg.success
+			? OperationResult.Success
+			: OperationResult.Error;
 
 		const prevMessages = debugMessages.messages;
 		setDebugMessages({
@@ -151,33 +155,40 @@ export const SmpcRsaSetup: React.FC = () => {
 						Setup
 					</Typography>
 				</Grid>
-				<Grid item xs={6} className={protocol_form__switch_label_grid}>
-					<Typography gutterBottom>Emulate server:</Typography>
-				</Grid>
-				<Grid item xs={6} className={protocol_form__switch_grid}>
+				<Grid item xs={10} className={protocol_form__switch_label_grid}>
 					<Tooltip title="The server will run in an emulated card.">
-						<Switch
-							checked={formValues.isServerSimulated}
-							name="isServerSimulated"
-							onChange={eventSwitchChange}
-							color="primary"
+						<FormControlLabel
+							control={
+								<Switch
+									checked={formValues.isServerSimulated}
+									name="isServerSimulated"
+									onChange={eventSwitchChange}
+									color="primary"
+								/>
+							}
+							label="Emulate server"
+							labelPlacement="start"
 						/>
 					</Tooltip>
-				</Grid>
-				<Grid item xs={6} className={protocol_form__switch_label_grid}>
-					<Typography gutterBottom>Emulate client:</Typography>
 				</Grid>
 
-				<Grid item xs={6} className={protocol_form__switch_grid}>
+				<Grid item xs={10} className={protocol_form__switch_label_grid}>
 					<Tooltip title="The client will run in an emulated card.">
-						<Switch
-							checked={formValues.isClientSimulated}
-							name="isClientSimulated"
-							onChange={eventSwitchChange}
-							color="primary"
+						<FormControlLabel
+							control={
+								<Switch
+									checked={formValues.isClientSimulated}
+									name="isClientSimulated"
+									onChange={eventSwitchChange}
+									color="primary"
+								/>
+							}
+							label="Emulate client"
+							labelPlacement="start"
 						/>
 					</Tooltip>
 				</Grid>
+
 				<Grid item xs={7}></Grid>
 
 				<Grid item xs={12} className={protocol_setup__setup_button}>

@@ -45,6 +45,7 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 		protocol_grid,
 		protocol_form__protocol_name,
 		protocol_form__data_input_grid,
+		protocol_form__protocol_buttons_grid,
 		protocol_form__data_input,
 	} = useProtocolStyles();
 
@@ -294,7 +295,7 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 					<Grid
 						item
 						xs={12}
-						className={protocol_form__data_input_grid}
+						className={protocol_form__protocol_buttons_grid}
 					>
 						<ProtocolButtons />
 					</Grid>

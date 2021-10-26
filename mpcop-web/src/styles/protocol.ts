@@ -21,11 +21,11 @@ export const useProtocolStyles = makeStyles(() => ({
 	protocol_form__data_input: {
 		width: "80%",
 	},
+	protocol_form__protocol_buttons_grid: {
+		textAlign: "center",
+		margin: "1em auto 0.5em auto",
+	},
 	protocol_form__protocol_button: {
-		margin: "2em 0.5em",
-		// background: "#DDDDDD",
-		// color: "#2F343A",
+		margin: "0.5em 0.5em 1em 0.5em",
 	},
 }));
-
-
