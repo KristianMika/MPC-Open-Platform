@@ -1,6 +1,7 @@
 export class IntroMessage {
 	static HEADER_BUTTONS =
 		"These are the MPC protocols that are currently supported by MPCOP. To suggest support of a new one, create an issue on GitHub.";
+	static HEADER_DRAWER = "You can select protocols by tapping this button."
 	static HOME_PAGE_STATUS =
 		"This page contains information about the MPCOP state.";
 	static PUBLIC_KEY_FIELD =

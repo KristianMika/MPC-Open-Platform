@@ -61,3 +61,5 @@ export const enum InfoSeverity {
 }
 
 export const COLOR_PRIMARY = "#3f51b5";
+
+export const MOBILE_WIDTH_BREAKPOINT = 800; //pt

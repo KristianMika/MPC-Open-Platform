@@ -1,11 +1,42 @@
-// The header component was inpired by Anh's tutorial
+// The header component is inpired by Anh's tutorial
 // https://betterprogramming.pub/building-a-basic-header-with-materialui-and-react-js-d650f75b4b0a
-import React, { useState } from "react";
-import { AppBar, Button, Toolbar, Typography } from "@material-ui/core";
-import { makeStyles } from "@material-ui/styles";
-
+import React, { useEffect, useState } from "react";
+import {
+	AppBar,
+	Toolbar,
+	Typography,
+	makeStyles,
+	Button,
+	IconButton,
+	Drawer,
+	Link,
+	MenuItem,
+} from "@material-ui/core";
+import MenuIcon from "@material-ui/icons/Menu";
+import CloseIcon from "@material-ui/icons/Close";
 import { Link as RouterLink } from "react-router-dom";
 import { IntroMessage } from "../constants/Intro";
+import { MOBILE_WIDTH_BREAKPOINT } from "../constants/Constants";
+
+interface IHeaderData {
+	label: string;
+	href: string;
+}
+
+const headerData: IHeaderData[] = [
+	{
+		label: "Home",
+		href: "/",
+	},
+	{
+		label: "Myst",
+		href: "/protocols/myst",
+	},
+	{
+		label: "Smart-ID RSA",
+		href: "/protocols/smpcrsa",
+	},
+];
 
 const useStyles = makeStyles(() => ({
 	header: {
@@ -13,6 +44,9 @@ const useStyles = makeStyles(() => ({
 		paddingRight: "5em",
 		paddingLeft: "3em",
 		zIndex: 500,
+		"@media (max-width: 800px)": {
+			paddingLeft: 0,
+		},
 	},
 	logo: {
 		fontFamily: "Work Sans, sans-serif",
@@ -20,7 +54,7 @@ const useStyles = makeStyles(() => ({
 		color: "white",
 		textAlign: "left",
 	},
-	menuButton: {
+	menu_button: {
 		fontFamily: "Open Sans, sans-serif",
 		fontWeight: 700,
 		size: "1.2em",
@@ -30,13 +64,51 @@ const useStyles = makeStyles(() => ({
 		display: "flex",
 		justifyContent: "space-between",
 	},
+	drawer_container: {
+		padding: "20px 30px",
+	},
+	drawer_container__exit_button: {
+		position: "absolute",
+		bottom: 10,
+		right: 20,
+	},
 }));
 
-// TODO: responsiveness
 export const Header: React.FC = () => {
-	const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
-	const menuOpen = Boolean(anchorEl);
-	const { header, logo, menuButton, toolbar } = useStyles();
+	const [state, setState] = useState({
+		mobileView: false,
+		drawerOpen: false,
+	});
+
+	const { mobileView, drawerOpen } = state;
+
+	useEffect(() => {
+		const setResponsiveness = () => {
+			return window.innerWidth < MOBILE_WIDTH_BREAKPOINT
+				? setState((prevState) => ({ ...prevState, mobileView: true }))
+				: setState((prevState) => ({
+						...prevState,
+						mobileView: false,
+				  }));
+		};
+
+		setResponsiveness();
+		window.addEventListener("resize", () => setResponsiveness());
+
+		return () => {
+			window.removeEventListener("resize", () => setResponsiveness());
+		};
+	}, []);
+
+	const {
+		header,
+		logo,
+		menu_button,
+		toolbar,
+		drawer_container,
+		drawer_container__exit_button,
+	} = useStyles();
+
 	const mpcopLogo = (
 		<Typography variant="h5" component="h1" className={logo}>
 			MPCOP
@@ -51,54 +123,98 @@ export const Header: React.FC = () => {
 			</Toolbar>
 		);
 	};
+	const handleDrawerOpen = () =>
+		setState((prevState) => ({ ...prevState, drawerOpen: true }));
+	const handleDrawerClose = () =>
+		setState((prevState) => ({ ...prevState, drawerOpen: false }));
+	const displayMobile = () => {
+		return (
+			<Toolbar>
+				<IconButton
+					{...{
+						edge: "start",
+						color: "inherit",
+						"aria-label": "menu",
+						"aria-haspopup": "true",
+						onClick: handleDrawerOpen,
+					}}
+				>
+					<MenuIcon data-intro={IntroMessage.HEADER_DRAWER} />
+				</IconButton>
 
-	// TODO: make protocols as a menu dropdown: protocols -> {MediaKeyStatusMap, ECDSA, ...}
+				<Drawer
+					{...{
+						anchor: "left",
+						open: drawerOpen,
+						onClose: handleDrawerClose,
+					}}
+				>
+					<div className={drawer_container}>
+						<div className={drawer_container__exit_button}>
+							<IconButton
+								{...{
+									edge: "end",
+									color: "inherit",
+									"aria-label": "menu",
+									"aria-haspopup": "true",
+									onClick: handleDrawerClose,
+								}}
+							>
+								<CloseIcon />
+							</IconButton>
+						</div>
+						{getDrawerChoices()}
+					</div>
+				</Drawer>
+
+				<div>{mpcopLogo}</div>
+			</Toolbar>
+		);
+	};
+
+	const getDrawerChoices = () => {
+		return headerData.map(({ label, href }) => {
+			return (
+				<Link
+					{...{
+						component: RouterLink,
+						to: href,
+						color: "inherit",
+						style: { textDecoration: "none" },
+						key: label,
+						onClick: handleDrawerClose,
+					}}
+				>
+					<MenuItem>{label}</MenuItem>
+				</Link>
+			);
+		});
+	};
 
 	const getMenuButtons = () => {
-		return (
-			<div data-intro={IntroMessage.HEADER_BUTTONS}>
+		const buttons = headerData.map(({ label, href }) => {
+			return (
 				<Button
 					{...{
-						key: "Home",
+						key: label,
 						color: "inherit",
-						to: "/",
+						to: href,
 						component: RouterLink,
-						className: menuButton,
+						className: menu_button,
 					}}
 				>
-					{"Home"}
+					{label}
 				</Button>
-
-				<Button
-					{...{
-						key: "Myst",
-						color: "inherit",
-						to: "/protocols/myst",
-						component: RouterLink,
-						className: menuButton,
-					}}
-				>
-					{"Myst"}
-				</Button>
-
-				<Button
-					{...{
-						key: "Smart-ID RSA",
-						color: "inherit",
-						to: "/protocols/smpcrsa",
-						component: RouterLink,
-						className: menuButton,
-					}}
-				>
-					{"Smart-ID RSA"}
-				</Button>
-			</div>
-		);
+			);
+		});
+		return <div data-intro={IntroMessage.HEADER_BUTTONS}>{buttons}</div>;
 	};
 
 	return (
 		<header>
-			<AppBar className={header}>{displayDesktop()}</AppBar>
+			<AppBar className={header}>
+				{mobileView ? displayMobile() : displayDesktop()}
+			</AppBar>
 		</header>
 	);
 };
