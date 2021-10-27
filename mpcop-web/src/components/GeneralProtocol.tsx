@@ -42,7 +42,6 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 	// Styles
 	const {
 		protocol_form,
-		protocol_grid,
 		protocol_form__protocol_name,
 		protocol_form__data_input_grid,
 		protocol_form__protocol_buttons_grid,
@@ -74,7 +73,9 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 	};
 
 	const logDebugMessage = (msg: any) => {
-		const res = msg.success ? OperationResult.Success : OperationResult.Error;
+		const res = msg.success
+			? OperationResult.Success
+			: OperationResult.Error;
 
 		const prevMessages = debugMessages.messages;
 		setDebugMessages({
@@ -210,16 +211,11 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 
 	const protocolName = capitalize(props.protocol);
 	return (
-		<div >
+		<div>
 			<LoaderSpinner {...{ isVisible: loading, color: COLOR_PRIMARY }} />
 
 			<form onSubmit={handleSubmit} className={protocol_form}>
-				<Grid
-					container
-					alignItems="center"
-					justify="center"
-					className={protocol_grid}
-				>
+				<Grid container alignItems="center" justify="center">
 					<Grid item xs={12} className={protocol_form__protocol_name}>
 						<Typography variant="h5" component="h1">
 							{protocolName}

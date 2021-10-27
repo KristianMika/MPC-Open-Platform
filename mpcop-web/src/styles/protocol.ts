@@ -8,12 +8,11 @@ export const useProtocolStyles = makeStyles(() => ({
 		margin: "0 auto",
 	},
 	protocol_form: {
-		padding: "3em 0 0 0",
-	},
-	protocol_grid: {
 		width: "80%",
-		margin: "2em auto 0 auto",
+		padding: "5em 0 0 0",
+		margin: "0 auto",
 	},
+
 	protocol_form__protocol_name: {
 		margin: "0.5em auto 1em auto",
 	},
