@@ -1,13 +1,7 @@
-import {
-	Grid,
-	makeStyles,
-	Typography,
-} from "@material-ui/core";
+import { Grid, makeStyles, Typography } from "@material-ui/core";
 
 import { useRecoilState } from "recoil";
 import { eventbusSocketState } from "../store/atom";
-import { useProtocolStyles } from "../styles/protocol";
-import { useProtocolSetupStyles } from "../styles/protocolSetup";
 import statusOffline from "../status_offline.svg";
 import statusOnline from "../status_online.svg";
 import { IntroMessage } from "../constants/Intro";
@@ -17,19 +11,35 @@ const useStyles = makeStyles(() => ({
 	},
 	status_page_grid: { width: "80%", margin: "2em auto 0 auto" },
 
-	status_label: { textAlign: "right" },
-	status_value: {
+	status_page_wrapper: {
+		background: "#dddddd",
+		width: "100%",
+		["@media (min-width:800px)"]: { width: "50%" },
+		margin: "0 auto",
+	},
+
+	status_row: {
 		textAlign: "left",
-		padding: "0 0 0 0.5em",
 		verticalAlign: "center",
+		margin: "2em  auto 1em auto",
+	},
+
+	online_indicator: {
+		display: "inline-block",
+		verticalAlign: "middle",
+		margin: "0 0 .2em 0",
 	},
 }));
 
 export const Home: React.FC = () => {
 	const [socketState, setSocketState] = useRecoilState(eventbusSocketState);
-	const { protocol, protocol_grid } = useProtocolStyles();
-	const { status_page, status_page_grid, status_label, status_value } =
-		useStyles();
+	const {
+		status_page,
+		status_page_grid,
+		status_page_wrapper,
+		status_row,
+		online_indicator,
+	} = useStyles();
 
 	const getStatus = () => {
 		let statusMessage = "";
@@ -42,14 +52,15 @@ export const Home: React.FC = () => {
 			statusImg = statusOffline;
 		}
 		return (
-			<div>
-				<img src={statusImg} alt={statusMessage} />
-				<span>{statusMessage}</span>
-			</div>
+			<img
+				src={statusImg}
+				alt={statusMessage}
+				className={online_indicator}
+			/>
 		);
 	};
 	return (
-		<main className={protocol}>
+		<main className={status_page_wrapper}>
 			<div className={status_page}>
 				<Grid
 					container
@@ -63,23 +74,17 @@ export const Home: React.FC = () => {
 							Status
 						</Typography>
 					</Grid>
-					<Grid item xs={6} className={status_label}>
-						<Typography gutterBottom>Server IP:</Typography>
-					</Grid>
-					<Grid item xs={6} className={status_value}>
-						<Typography>{window.location.hostname}</Typography>
-					</Grid>
-					<Grid item xs={6} className={status_label}>
-						<Typography>Status:</Typography>
-					</Grid>
-					<Grid item xs={6} className={status_value}>
-						{getStatus()}
-					</Grid>
-					<Grid item xs={6} className={status_label}>
-						<Typography>RTT:</Typography>
-					</Grid>
-					<Grid item xs={6} className={status_value}>
-						TODO ms
+
+					<Grid item className={status_row}>
+						<Typography gutterBottom>
+							<b>Server IP:</b> {window.location.hostname}
+						</Typography>
+						<Typography gutterBottom>
+							<b>Status:</b> {getStatus()}
+						</Typography>
+						<Typography gutterBottom>
+							<b>RTT:</b> TODO ms
+						</Typography>
 					</Grid>
 				</Grid>
 			</div>
