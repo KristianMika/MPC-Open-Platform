@@ -22,7 +22,7 @@ function App() {
 					<Route exact path="/">
 						<Home />
 					</Route>
-					<Route exact path="/protocols/Myst">
+					<Route exact path="/protocols/myst">
 						<Myst />
 					</Route>
 					<Route exact path="/protocols/smpcrsa">
