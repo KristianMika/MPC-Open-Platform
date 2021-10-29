@@ -108,7 +108,7 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
         return Util.toHex(run?.decryptAll(Util.hexStringToByteArray(data), run?.hostDecryptSign)?.getEncoded(false))
     }
 
-    override fun encrypt(data: String): String {
+    override fun encrypt(data: String, pubKey:String): String {
 
         return Util.toHex(run?.encrypt(BigInteger(1, Util.hexStringToByteArray(data)), run?.hostFullPriv))
     }

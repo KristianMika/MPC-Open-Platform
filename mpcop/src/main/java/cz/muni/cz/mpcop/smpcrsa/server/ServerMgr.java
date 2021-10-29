@@ -148,6 +148,7 @@ public class ServerMgr extends AbstractMgr {
         transmitNumber(clientSigCmd, "Set client signature");
 
         ResponseAPDU res = transmit(new CommandAPDU(CLA_RSA_SMPC_SERVER, INS_SIGNATURE, NONE, NONE));
+        handleError(res, "Sign message");
 
         //response check
         ArrayList<ResponseAPDU> responses = new ArrayList<>();
@@ -157,6 +158,7 @@ public class ServerMgr extends AbstractMgr {
         StringBuilder signature = new StringBuilder();
 
         for (ResponseAPDU r : responses) {
+            handleError(r, "Get signature");
             signature.append(Util.toHex(r.getData()));
         }
         return signature.toString();

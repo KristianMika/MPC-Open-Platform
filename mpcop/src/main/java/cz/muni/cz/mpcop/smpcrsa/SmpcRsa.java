@@ -1,11 +1,12 @@
 package cz.muni.cz.mpcop.smpcrsa;
 
+import cz.muni.cz.mpcop.cardTools.Util;
 import cz.muni.cz.mpcop.smpcrsa.client_full.ClientFullMgr;
 import cz.muni.cz.mpcop.smpcrsa.server.ServerMgr;
 import cz.muni.fi.mpcop.GeneralMPCOPException;
 
 import javax.smartcardio.ResponseAPDU;
-import java.util.Collections;
+import java.math.BigInteger;
 import java.util.List;
 
 import static cz.muni.cz.mpcop.JavacardUtils.*;
@@ -25,7 +26,7 @@ public class SmpcRsa {
     }
 
     public static void keygen(ClientFullMgr client, ServerMgr server) throws Exception {
-        List<ResponseAPDU> resClient;
+        ResponseAPDU clientResponse;
         List<ResponseAPDU> serverApdus;
         String[] clientKeys;
         boolean generated = false;
@@ -36,11 +37,13 @@ public class SmpcRsa {
             try {
                 client.reset();
                 server.reset();
-                resClient = Collections.singletonList(client.generateKeys());
-                checkSw(resClient);
+
+                client.generateKeys();
                 clientKeys = client.getKeys();
+
                 server.generateKeys();
                 server.setClientKeys(clientKeys);
+
                 serverApdus = server.getPublicModulus();
 
                 // the "4k" check
@@ -57,5 +60,14 @@ public class SmpcRsa {
         if (!generated) {
             throw new GeneralMPCOPException("Couldn't generate keys: " + lastE);
         }
+    }
+
+    public static String encrypt(String message, String publicModulus) {
+
+        BigInteger e = new BigInteger(1, new byte[]{0x01, 0x00, 0x01}); //65537
+        BigInteger n = new BigInteger(1, Util.hexStringToByteArray(publicModulus));
+        BigInteger m = new BigInteger(1, Util.hexStringToByteArray(message));
+
+        return m.modPow(e, n).toString(16);
     }
 }

@@ -61,7 +61,9 @@ abstract class AbstractProtocolVerticle(protected val CONSUMER_ADDRESS: String) 
             Operation.KEYGEN -> {
                 state.pubKey = null
                 keygen()
-                r.setPublicKey(getPubKey())
+                val pubkey = getPubKey()
+                state.pubKey = pubkey
+                r.setPublicKey(pubkey)
             }
             Operation.RESET -> {
                 state.pubKey = null
@@ -79,7 +81,8 @@ abstract class AbstractProtocolVerticle(protected val CONSUMER_ADDRESS: String) 
             }
             Operation.ENCRYPT -> {
                 val data: String = request.getString("data")
-                r.setMessage(encrypt(data))
+                // TODO: pubkey can't be empty
+                r.setMessage(encrypt(data, state.pubKey?:""))
             }
             Operation.SIGN -> r.setSignatures(sign(request.getString("data")))
             Operation.CONFIGURE -> r.setMessage(configure(JsonParser.parseString(request.getString("data"))))
@@ -109,7 +112,7 @@ abstract class AbstractProtocolVerticle(protected val CONSUMER_ADDRESS: String) 
 
 
     @Throws(GeneralMPCOPException::class)
-    protected abstract fun encrypt(data: String): String
+    protected abstract fun encrypt(data: String, pubKey: String): String
 
     /**
      * Servers the "get public key" request - returns the public key

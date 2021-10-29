@@ -34,15 +34,18 @@ class SmpcRsaVerticle :
         }
     }
 
-
+    @Throws(GeneralMPCOPException::class)
     override fun decrypt(data: String): String {
-        throw GeneralMPCOPException("Not implemented yet")
+        return try {
+            server.signMessage(data, client.signMessage(data))
+        } catch (e: Exception) {
+            throw GeneralMPCOPException(e.toString())
+        }
     }
 
-    override fun encrypt(data: String): String {
-        throw GeneralMPCOPException("Not implemented yet")
+    override fun encrypt(data: String, pubKey: String): String {
+        return SmpcRsa.encrypt(data, pubKey)
     }
-
 
     @Throws(GeneralMPCOPException::class)
     override fun getPubKey(): String {
