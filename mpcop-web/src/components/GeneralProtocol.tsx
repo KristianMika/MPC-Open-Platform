@@ -233,8 +233,12 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 			<form onSubmit={handleSubmit} className={protocol_form}>
 				<Grid container alignItems="center" justify="center">
 					<Grid item xs={12} className={protocol_form__protocol_name}>
-						<Typography variant="h5" component="h1">
-							{props.protocolDiplayName}
+						<Typography
+							variant="h5"
+							component="h1"
+							
+						>
+							<span data-intro={IntroMessage.PROTOCOL_NAME}> {props.protocolDiplayName}</span>
 						</Typography>
 					</Grid>
 					<Grid
