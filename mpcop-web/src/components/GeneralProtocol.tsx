@@ -226,8 +226,6 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 		});
 	};
 
-	// TODO: Use another property (add to props)
-	const protocolName = capitalize(props.protocol);
 	return (
 		<div>
 			<LoaderSpinner {...{ isVisible: loading, color: COLOR_PRIMARY }} />
@@ -236,7 +234,7 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 				<Grid container alignItems="center" justify="center">
 					<Grid item xs={12} className={protocol_form__protocol_name}>
 						<Typography variant="h5" component="h1">
-							{protocolName}
+							{props.protocolDiplayName}
 						</Typography>
 					</Grid>
 					<Grid

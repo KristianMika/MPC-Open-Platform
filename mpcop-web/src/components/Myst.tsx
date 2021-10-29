@@ -10,6 +10,7 @@ export const Myst: React.FC = () => {
 	const { protocol } = useProtocolStyles();
 	const protocolProps: IGeneralProtocol = {
 		protocol: Protocol.Myst,
+		protocolDiplayName: "Myst", 
 		verifySignature: verifySchnorrSignature,
 		verifyDecryption: verifyMystCipher,
 	};
