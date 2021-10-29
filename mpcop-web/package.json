@@ -20,7 +20,6 @@
     "crypto-js": "^4.1.1",
     "elliptic": "^6.5.4",
     "intro.js": "^4.2.2",
-    "js-crypto-rsa": "^1.0.2",
     "jsrsasign": "^10.4.1",
     "node-rsa": "^1.1.1",
     "queue": "^6.0.2",
