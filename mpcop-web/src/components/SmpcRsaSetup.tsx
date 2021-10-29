@@ -22,7 +22,13 @@ import { IResponse } from "../store/models/IResponse";
 import { useRecoilState } from "recoil";
 import { debugMessagesState, eventbusSocketState } from "../store/atom";
 import { IntroMessage } from "../constants/Intro";
-import { formatLog, OperationResult } from "../utils/utils";
+import {
+	checkResponseStatus,
+	composeRequestInfoAlert,
+	formatLog,
+	OperationResult,
+} from "../utils/utils";
+import { defaultProtocolInfo } from "../constants/DefaultValues";
 
 interface IFormValues {
 	isServerSimulated: boolean;
@@ -36,51 +42,63 @@ const defaultFormValues: IFormValues = {
 export const SmpcRsaSetup: React.FC = () => {
 	const [formValues, setFormValues] =
 		useState<IFormValues>(defaultFormValues);
-	const defaultProtocolInfo: IProtocolInfoArea = {
-		severity: InfoSeverity.Info,
-		message: null,
-	};
+
 	const {
 		protocol_setup_form,
 		protocol_form__setup_header,
 		container_grid,
 		protocol_setup__setup_button,
-		protocol_form__switch_grid,
 		protocol_form__switch_label_grid,
-		switch_label,
 	} = useProtocolSetupStyles();
 	const [protocolInfo, setProtocolInfo] =
 		useState<IProtocolInfoArea>(defaultProtocolInfo);
 
+	const addDebugMessage = (severity: InfoSeverity, message: string) => {
+		setProtocolInfo({
+			messages: [
+				...protocolInfo.messages,
+				{ message, severity, key: Date.now() },
+			],
+		});
+	};
+
+	const received_response_log = () => {
+		addDebugMessage(InfoSeverity.Info, `Received response`);
+	};
+
 	const handleResponse = (body: IResponse) => {
+		if (!checkResponseStatus(body)) {
+			addDebugMessage(InfoSeverity.Error, body.errMessage);
+			return;
+		}
+
 		switch (body.operation) {
 			case Operation.GetConfig:
 				setFormValues(JSON.parse(body.message));
 				break;
+			case Operation.Configure:
+				addDebugMessage(
+					InfoSeverity.Success,
+					`The protocol has been successully configured`
+				);
+				break;
 
 			default:
 				if (body.success) {
-					setProtocolInfo({
-						severity: InfoSeverity.Success,
-						message: body.message,
-					});
+					addDebugMessage(InfoSeverity.Success, body.message);
 				} else {
-					setProtocolInfo({
-						severity: InfoSeverity.Error,
-						message: body.errMessage,
-					});
+					addDebugMessage(InfoSeverity.Error, body.errMessage);
 				}
 		}
 	};
 	const handleSubmit = (event: any) => {
 		event.preventDefault();
 
-		setProtocolInfo(defaultProtocolInfo);
 		if (formValues.isClientSimulated && formValues.isServerSimulated) {
-			setProtocolInfo({
-				severity: InfoSeverity.Warning,
-				message: "The server and the client can't be both simulated",
-			});
+			addDebugMessage(
+				InfoSeverity.Warning,
+				"The server and the client can't be both simulated"
+			);
 			return;
 		}
 
@@ -90,7 +108,9 @@ export const SmpcRsaSetup: React.FC = () => {
 			protocol: Protocol.SmartIdRsa,
 		};
 
-		send(body, handleResponse);
+		addDebugMessage(InfoSeverity.Info, composeRequestInfoAlert("CONFIG"));
+
+		send(body, handleResponse, received_response_log);
 	};
 
 	const eventSwitchChange = (e: any) => {

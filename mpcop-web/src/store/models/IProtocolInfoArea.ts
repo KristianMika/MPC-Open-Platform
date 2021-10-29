@@ -1,6 +1,11 @@
+import React from "react";
 import { InfoSeverity } from "../../constants/Constants";
 
-export default interface IProtocolInfoArea {
+export interface IProtocolInfo {
 	severity: InfoSeverity;
-	message: string | null;
+	message: string;
+	key: React.Key;
+}
+export default interface IProtocolInfoArea {
+	messages: IProtocolInfo[];
 }

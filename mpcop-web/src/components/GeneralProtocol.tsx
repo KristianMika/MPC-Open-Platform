@@ -9,6 +9,7 @@ import {
 } from "../constants/Constants";
 import {
 	checkResponseStatus,
+	composeRequestInfoAlert,
 	formatLog,
 	OperationResult,
 	verifyHexString,
@@ -64,6 +65,14 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 	const [debugMessages, setDebugMessages] =
 		useRecoilState(debugMessagesState);
 
+	const addDebugMessage = (severity: InfoSeverity, message: string) => {
+		setProtocolInfo({
+			messages: [
+				...protocolInfo.messages,
+				{ message, severity, key: Date.now() },
+			],
+		});
+	};
 	const handleInputChange = (e: any) => {
 		const { name, value } = e.target;
 		setFormValues({
@@ -86,12 +95,8 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 	};
 
 	const handleResponse = (body: IResponse) => {
-		setProtocolInfo(defaultProtocolInfo);
 		if (!checkResponseStatus(body)) {
-			setProtocolInfo({
-				severity: InfoSeverity.Error,
-				message: body.errMessage,
-			});
+			addDebugMessage(InfoSeverity.Error, body.errMessage);
 			return;
 		}
 		switch (body.operation) {
@@ -104,15 +109,15 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 				);
 
 				if (wasSigVerificationSuccessfull) {
-					setProtocolInfo({
-						severity: InfoSeverity.Success,
-						message: "The signature has been verified successfully",
-					});
+					addDebugMessage(
+						InfoSeverity.Success,
+						"The signature has been verified successfully"
+					);
 				} else {
-					setProtocolInfo({
-						severity: InfoSeverity.Warning,
-						message: "Signature verification has failed",
-					});
+					addDebugMessage(
+						InfoSeverity.Warning,
+						"Signature verification has failed"
+					);
 				}
 
 				break;
@@ -123,27 +128,33 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 
 			case Operation.Keygen:
 				setPubKey(body.publicKey);
+				addDebugMessage(
+					InfoSeverity.Success,
+					"Keys have been generated successfully!"
+				);
 				break;
 
 			case Operation.Reset:
-				setProtocolInfo({
-					severity: InfoSeverity.Success,
-					message: body.message,
-				});
+				addDebugMessage(InfoSeverity.Success, body.message);
 				break;
 			case Operation.Encrypt:
 				setOutputField(body.message);
+				addDebugMessage(
+					InfoSeverity.Success,
+					"The messages has been encrypted successfully!"
+				);
 				break;
 
 			case Operation.Decrypt:
 				setOutputField(body.message);
 				props.verifyDecryption(body.message, lastPlaintext);
+				addDebugMessage(
+					InfoSeverity.Success,
+					"The messages has been decrypted successfully!"
+				);
 				break;
 			default:
-				setProtocolInfo({
-					severity: InfoSeverity.Info,
-					message: body.message,
-				});
+				addDebugMessage(InfoSeverity.Info, body.message);
 		}
 	};
 
@@ -175,16 +186,20 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 			setLastPlaintext(inputField);
 		}
 
-		if (
-			!verifyHexString(inputField) &&
-			operationsWithInput.includes(operation)
-		) {
-			setProtocolInfo({
-				severity: InfoSeverity.Error,
-				message: "Input is not a valid hex string",
-			});
-			setLoading(false);
-			return;
+		if (operationsWithInput.includes(operation)) {
+			if (verifyHexString(inputField)) {
+				addDebugMessage(
+					InfoSeverity.Success,
+					"Input is a valid hex string"
+				);
+			} else {
+				addDebugMessage(
+					InfoSeverity.Error,
+					"Input is not a valid hex string"
+				);
+				setLoading(false);
+				return;
+			}
 		}
 
 		const body: IMessage = {
@@ -193,15 +208,17 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 			protocol: props.protocol,
 		};
 
+		addDebugMessage(InfoSeverity.Info, composeRequestInfoAlert(operation));
 		// TODO: use a function for this (duplicate)
 		eventBus.send(CONTROLLER_ADDRESS, body, (a: any, msg: any) => {
 			if (msg == null) {
-				setProtocolInfo({
-					severity: InfoSeverity.Error,
-					message: "An error occured: the back-end hasn't responded",
-				});
+				addDebugMessage(
+					InfoSeverity.Error,
+					"An error occured: the back-end hasn't responded"
+				);
 			} else {
 				const bodyJson = JSON.parse(msg.body);
+				addDebugMessage(InfoSeverity.Info, `Received response`);
 				logDebugMessage(bodyJson);
 				handleResponse(bodyJson);
 			}
@@ -209,6 +226,7 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 		});
 	};
 
+	// TODO: Use another property (add to props)
 	const protocolName = capitalize(props.protocol);
 	return (
 		<div>

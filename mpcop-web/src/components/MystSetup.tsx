@@ -13,6 +13,7 @@ import {
 import { useEffect, useState } from "react";
 import { useRecoilState } from "recoil";
 import { InfoSeverity, Operation, Protocol } from "../constants/Constants";
+import { defaultProtocolInfo } from "../constants/DefaultValues";
 import { IntroMessage } from "../constants/Intro";
 import { send } from "../eventbus/eventbus";
 import { debugMessagesState, eventbusSocketState } from "../store/atom";
@@ -22,6 +23,7 @@ import { IResponse } from "../store/models/IResponse";
 import { useProtocolSetupStyles } from "../styles/protocolSetup";
 import {
 	checkResponseStatus,
+	composeRequestInfoAlert,
 	formatLog,
 	OperationResult,
 } from "../utils/utils";
@@ -45,10 +47,6 @@ export const MystSetup: React.FC = () => {
 	interface IFormValues {
 		data: string;
 	}
-	const defaultProtocolInfo: IProtocolInfoArea = {
-		severity: InfoSeverity.Info,
-		message: null,
-	};
 	const handleSliderChange = (name: any) => (_e: any, value: any) => {
 		setFormValues({
 			...formValues,
@@ -58,6 +56,15 @@ export const MystSetup: React.FC = () => {
 	const [formValues, setFormValues] = useState(defaultValues);
 	const [protocolInfo, setProtocolInfo] =
 		useState<IProtocolInfoArea>(defaultProtocolInfo);
+
+	const addDebugMessage = (severity: InfoSeverity, message: string) => {
+		setProtocolInfo({
+			messages: [
+				...protocolInfo.messages,
+				{ message, severity, key: Date.now() },
+			],
+		});
+	};
 	const {
 		protocol_setup_form,
 		protocol_form__setup_header,
@@ -66,25 +73,28 @@ export const MystSetup: React.FC = () => {
 		protocol_form__slider,
 	} = useProtocolSetupStyles();
 
+	const received_response_log = () => {
+		addDebugMessage(InfoSeverity.Info, `Received response`);
+	}
+
 	const handleResponse = (body: IResponse) => {
-		setProtocolInfo(defaultProtocolInfo);
+		
 		if (!checkResponseStatus(body)) {
-			setProtocolInfo({
-				severity: InfoSeverity.Error,
-				message: body.errMessage,
-			});
+			addDebugMessage(InfoSeverity.Error, body.errMessage);
 			return;
 		}
 		switch (body.operation) {
 			case Operation.GetConfig:
 				setFormValues(JSON.parse(body.message));
 				break;
-
+			case Operation.Configure:
+				addDebugMessage(
+					InfoSeverity.Success,
+					`The protocol has been successully configured`
+				);
+				break;
 			default:
-				setProtocolInfo({
-					severity: InfoSeverity.Info,
-					message: body.message,
-				});
+				addDebugMessage(InfoSeverity.Info, body.message);
 		}
 	};
 	const handleSubmit = (event: any) => {
@@ -99,13 +109,15 @@ export const MystSetup: React.FC = () => {
 			data: JSON.stringify(configValues),
 			protocol: Protocol.Myst,
 		};
-
-		send(body, handleResponse);
+		addDebugMessage(InfoSeverity.Info, composeRequestInfoAlert("CONFIG"));
+		send(body, handleResponse, received_response_log);
 	};
 	const [debugMessages, setDebugMessages] =
 		useRecoilState(debugMessagesState);
 	const logDebugMessage = (msg: any) => {
-		const res = msg.success ? OperationResult.Success : OperationResult.Error;
+		const res = msg.success
+			? OperationResult.Success
+			: OperationResult.Error;
 
 		const prevMessages = debugMessages.messages;
 		setDebugMessages({

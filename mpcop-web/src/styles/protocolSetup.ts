@@ -9,10 +9,11 @@ export const useProtocolSetupStyles = makeStyles(() => ({
 	},
 	protocol_form__setup_header: { margin: "1em auto 2em auto" },
 	container_grid: { width: "80%", margin: "0 auto" },
-	protocol_setup__setup_button: { textAlign: "center", margin:"0.5em 0" },
+	protocol_setup__setup_button: { textAlign: "center", margin: "0.5em 0" },
 	protocol_form__slider: { width: "100%" },
 	protocol_form__switch_grid: { textAlign: "left" },
-	protocol_form__switch_label_grid: { textAlign: "center", display: "inline-block" },
-	switch_label:{width: "auto"}
-
+	protocol_form__switch_label_grid: {
+		textAlign: "center",
+		display: "inline-block",
+	},
 }));

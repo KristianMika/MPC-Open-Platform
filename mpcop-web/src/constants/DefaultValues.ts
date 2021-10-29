@@ -7,6 +7,6 @@ export const defaultProtocolFormValues: IProtocolFormValues = {
 };
 
 export const defaultProtocolInfo: IProtocolInfoArea = {
-	severity: InfoSeverity.Info,
-	message: null,
+	messages:[]
+	
 };

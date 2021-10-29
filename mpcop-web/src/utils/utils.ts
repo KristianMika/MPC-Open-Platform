@@ -1,3 +1,5 @@
+const VOWELS = ["a", "e", "i", "o", "u", "y"];
+
 const getTime = () => {
 	const currentDate = new Date();
 	return (
@@ -51,4 +53,13 @@ export const capitalize = (str: string): string => {
 		result += str.slice(1);
 	}
 	return result;
+};
+
+const getIndefiniteArticle = (noun: string): string => {
+	return VOWELS.includes(noun.toLowerCase()[0]) ? "an" : "a";
+};
+
+export const composeRequestInfoAlert = (operation: string): string => {
+	const article = getIndefiniteArticle(operation);
+	return `Sending ${article} "${operation}" request to the server...`;
 };
