@@ -20,24 +20,26 @@ import cz.muni.fi.mpcop.Utils
 class SmpcRsaVerticle :
     AbstractProtocolVerticle(CONSUMER_ADDRESS) {
 
-    private var server: ServerMgr
-    private var client: ClientFullMgr
+    private var server: ServerMgr?
+    private var client: ClientFullMgr?
     private var config: SmpcRsaConfiguration
 
 
     @Throws(GeneralMPCOPException::class)
     override fun sign(data: String): List<String> {
-        return try {
-            listOf(server.signMessage(data, client.signMessage(data)))
-        } catch (e: Exception) {
-            throw GeneralMPCOPException(e.toString())
-        }
+        return requireNotNull(
+            try {
+                listOf(server?.signMessage(data, client?.signMessage(data)))
+            } catch (e: Exception) {
+                throw GeneralMPCOPException(e.toString())
+            }
+        ) as List<String>
     }
 
     @Throws(GeneralMPCOPException::class)
     override fun decrypt(data: String): String {
         return try {
-            server.signMessage(data, client.signMessage(data))
+            server?.signMessage(data, client?.signMessage(data)) ?: ""
         } catch (e: Exception) {
             throw GeneralMPCOPException(e.toString())
         }
@@ -50,7 +52,6 @@ class SmpcRsaVerticle :
     @Throws(GeneralMPCOPException::class)
     override fun getPubKey(): String {
         val response: String =
-
             try {
                 getPubkey(server)
             } catch (e: java.lang.Exception) {
@@ -63,8 +64,8 @@ class SmpcRsaVerticle :
     @Throws(GeneralMPCOPException::class)
     override fun reset() {
         try {
-            client.reset()
-            server.reset()
+            client?.reset()
+            server?.reset()
         } catch (e: Exception) {
             throw GeneralMPCOPException(e.toString())
         }
@@ -90,34 +91,26 @@ class SmpcRsaVerticle :
             throw GeneralMPCOPException("Invalid format")
         }
 
-
-        if (config.isServerSimulated != newConfig.isServerSimulated) {
-            server.reset()
+        try {
             server = ServerMgr(!newConfig.isServerSimulated)
-        }
-
-        if (config.isClientSimulated != newConfig.isClientSimulated) {
-            server.reset()
             client = ClientFullMgr(!newConfig.isClientSimulated)
+        } catch (e: Exception) {
+            throw GeneralMPCOPException(e.message ?: "Configuration has failed")
         }
         config = newConfig
-
         return getInfo()
     }
 
     companion object {
         const val CONSUMER_ADDRESS = "service.smart-id-rsa"
-        const val KEY_GENERATION_MAX_ATTEMPTS = 10
 
     }
 
     init {
+        // Either the server or the client must run on a real card, only one simulator can be initialized at a time!
         config = SmpcRsaConfiguration(isServerSimulated = true, isClientSimulated = false)
 
-        // Either the server or the client must run on a real card, only one simulator can be initialized at a time!
-        server = ServerMgr(!config.isServerSimulated)
-        client = ClientFullMgr(!config.isClientSimulated)
-
-
+        server = null
+        client = null
     }
 }

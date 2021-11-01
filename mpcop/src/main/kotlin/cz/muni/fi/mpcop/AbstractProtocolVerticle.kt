@@ -18,8 +18,9 @@ import java.util.logging.Logger
  * @author Kristian Mika
  */
 abstract class AbstractProtocolVerticle(protected val CONSUMER_ADDRESS: String) : AbstractVerticle() {
-    protected val logger: Logger
-    protected val state: ProtocolState = ProtocolState()
+    protected val logger: Logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME)
+    private val state: ProtocolState = ProtocolState()
+    var isProtocolConfigured: Boolean = false
 
     private fun requestHandler(msg: Message<JsonObject>) {
         logger.info("Received: " + msg.body().toString())
@@ -55,7 +56,14 @@ abstract class AbstractProtocolVerticle(protected val CONSUMER_ADDRESS: String) 
         } catch (e: IllegalArgumentException) {
             throw GeneralMPCOPException("Invalid operation $rawOperation")
         }
-        val r: Response = Response(operation)
+        val r = Response(operation)
+
+        // in case the protocol has not been configured yet,
+        // allow only CONFIGURE and GET_CONFIG operations
+        if (!isProtocolConfigured && (operation != Operation.CONFIGURE && operation != Operation.GET_CONFIG)) {
+            return r.failed().setErrMessage("The protocol has not been configured yet.")
+        }
+
         return when (operation) {
             Operation.INFO -> r.setMessage(getInfo())
             Operation.KEYGEN -> {
@@ -82,10 +90,15 @@ abstract class AbstractProtocolVerticle(protected val CONSUMER_ADDRESS: String) 
             Operation.ENCRYPT -> {
                 val data: String = request.getString("data")
                 // TODO: pubkey can't be empty
-                r.setMessage(encrypt(data, state.pubKey?:""))
+                r.setMessage(encrypt(data, state.pubKey ?: ""))
             }
             Operation.SIGN -> r.setSignatures(sign(request.getString("data")))
-            Operation.CONFIGURE -> r.setMessage(configure(JsonParser.parseString(request.getString("data"))))
+            Operation.CONFIGURE -> {
+                val configuration = JsonParser.parseString(request.getString("data"))
+                val configResult = configure(configuration)
+                isProtocolConfigured = true
+                r.setMessage(configResult)
+            }
             Operation.GET_CONFIG -> r.setMessage(getConfig())
         }
     }
@@ -160,8 +173,4 @@ abstract class AbstractProtocolVerticle(protected val CONSUMER_ADDRESS: String) 
      */
     @Throws(GeneralMPCOPException::class)
     protected abstract fun getConfig(): String
-
-    init {
-        logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME)
-    }
 }

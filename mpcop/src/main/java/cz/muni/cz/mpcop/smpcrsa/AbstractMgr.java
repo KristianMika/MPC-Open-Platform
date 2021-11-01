@@ -1,7 +1,6 @@
 package cz.muni.cz.mpcop.smpcrsa;
 
 
-
 import cz.muni.cz.mpcop.cardTools.CardManager;
 import cz.muni.cz.mpcop.cardTools.RunConfig;
 import cz.muni.cz.mpcop.cardTools.Util;
@@ -19,6 +18,7 @@ import java.util.List;
  *
  * @author based on work by Petr Svenda, Dusan Klinec (ph4r05)
  * @author Lukas Zaoral
+ * modified by Kristian Mika
  */
 public abstract class AbstractMgr {
 
@@ -29,7 +29,6 @@ public abstract class AbstractMgr {
     public static final byte P2_DIVIDED = 0x10;
 
     public static final byte NONE = 0x00;
-
 
 
     public static final short ARR_LENGTH = 256;
@@ -43,7 +42,7 @@ public abstract class AbstractMgr {
      * Creates connection to the {@code applet} applet
      *
      * @param appletID applet ID
-     * @param applet applet class
+     * @param applet   applet class
      * @param realCard decides whether to use real card or emulator
      * @throws Exception if card error occurs
      */
@@ -62,11 +61,37 @@ public abstract class AbstractMgr {
 
         System.out.print("Connecting to card...");
         if (!cardMgr.Connect(runCfg)) {
-            System.err.println(" Fail.");
-            return;
+            throw new CardException("Couldn't connect to the card.");
         }
 
         System.out.println(" Done.");
+    }
+
+    /**
+     * Takes care of segmentation of given {@code num} byte array.
+     *
+     * @param num byte array
+     * @param cla cla byte
+     * @param ins ins byte
+     * @param p1  p1 byte
+     * @return list of commands
+     */
+    protected static List<CommandAPDU> setNumber(byte[] num, byte cla, byte ins, byte p1) {
+        List<CommandAPDU> cmds = new ArrayList<>();
+
+        if (num.length <= MAX_APDU_LENGTH) {
+            cmds.add(new CommandAPDU(cla, ins, p1, P2_PART_0 | P2_SINGLE, num));
+            return cmds;
+        }
+
+        for (int i = num.length; i > 0; i -= MAX_APDU_LENGTH) {
+            cmds.add(new CommandAPDU(
+                    cla, ins, p1, (i / MAX_APDU_LENGTH > 0 ? P2_PART_0 : P2_PART_1) | P2_DIVIDED,
+                    Arrays.copyOfRange(num, Math.max(i - MAX_APDU_LENGTH, 0), i)
+            ));
+        }
+
+        return cmds;
     }
 
     /**
@@ -92,7 +117,7 @@ public abstract class AbstractMgr {
     /**
      * Transmits given commands and check their result
      *
-     * @param cmd commands
+     * @param cmd       commands
      * @param operation name of the opration
      * @throws Exception if IO or card error occurs
      */
@@ -105,39 +130,12 @@ public abstract class AbstractMgr {
     /**
      * Checks the result of given response.
      *
-     * @param res response
+     * @param res       response
      * @param operation name fo the operation
      * @throws CardException if the command did not end successfully
      */
     protected void handleError(ResponseAPDU res, String operation) throws CardException {
         if (res.getSW() != SW_NO_ERROR)
             throw new CardException(String.format("%s: %d", operation, res.getSW()));
-    }
-
-    /**
-     * Takes care of segmentation of given {@code num} byte array.
-     *
-     * @param num byte array
-     * @param cla cla byte
-     * @param ins ins byte
-     * @param p1 p1 byte
-     * @return list of commands
-     */
-    protected static List<CommandAPDU> setNumber(byte[] num, byte cla, byte ins, byte p1) {
-        List<CommandAPDU> cmds = new ArrayList<>();
-
-        if (num.length <= MAX_APDU_LENGTH) {
-            cmds.add(new CommandAPDU(cla, ins, p1, P2_PART_0 | P2_SINGLE, num));
-            return cmds;
-        }
-
-        for (int i = num.length; i > 0; i -= MAX_APDU_LENGTH) {
-            cmds.add(new CommandAPDU(
-                    cla, ins, p1, (i / MAX_APDU_LENGTH > 0 ? P2_PART_0 : P2_PART_1) | P2_DIVIDED,
-                    Arrays.copyOfRange(num, i - MAX_APDU_LENGTH > 0 ? i - MAX_APDU_LENGTH : 0, i)
-            ));
-        }
-
-        return cmds;
     }
 }

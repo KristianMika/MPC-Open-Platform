@@ -10,7 +10,6 @@ import java.math.BigInteger;
 import java.util.List;
 
 import static cz.muni.cz.mpcop.JavacardUtils.*;
-import static cz.muni.fi.mpcop.smpcrsa.SmpcRsaVerticle.KEY_GENERATION_MAX_ATTEMPTS;
 
 public class SmpcRsa {
 
@@ -26,39 +25,27 @@ public class SmpcRsa {
     }
 
     public static void keygen(ClientFullMgr client, ServerMgr server) throws Exception {
-        ResponseAPDU clientResponse;
         List<ResponseAPDU> serverApdus;
         String[] clientKeys;
-        boolean generated = false;
-        int attemptsRemaining =
-                KEY_GENERATION_MAX_ATTEMPTS;
-        Exception lastE = null;
-        while (!generated && attemptsRemaining-- > 0) {
-            try {
-                client.reset();
-                server.reset();
+        try {
+            client.reset();
+            server.reset();
 
-                client.generateKeys();
-                clientKeys = client.getKeys();
+            client.generateKeys();
+            clientKeys = client.getKeys();
 
-                server.generateKeys();
-                server.setClientKeys(clientKeys);
+            server.generateKeys();
+            server.setClientKeys(clientKeys);
 
-                serverApdus = server.getPublicModulus();
+            serverApdus = server.getPublicModulus();
 
-                // the "4k" check
-                if (checkWrongLength(serverApdus.get(0))) {
-                    //logger.info("Generated moduli is not 4kb big, generating again.")
-                    continue;
-                }
-                generated = true;
-            } catch (Exception e) {
-                lastE = e;
-                //logger.warning(e.toString())
+            // the "4k" check
+            if (checkWrongLength(serverApdus.get(0))) {
+                //logger.info("Generated moduli is not 4kb big, generating again.")
+                throw new GeneralMPCOPException("Couldn't generate keys: The generated moduli is not 4kb in size.");
             }
-        }
-        if (!generated) {
-            throw new GeneralMPCOPException("Couldn't generate keys: " + lastE);
+        } catch (Exception e) {
+            throw new GeneralMPCOPException(e.getMessage());
         }
     }
 

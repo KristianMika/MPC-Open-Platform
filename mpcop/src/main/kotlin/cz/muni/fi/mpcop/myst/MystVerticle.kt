@@ -5,7 +5,9 @@ import com.google.gson.Gson
 import com.google.gson.JsonElement
 import com.google.gson.JsonSyntaxException
 import cz.muni.cz.mpcop.cardTools.Util
-import cz.muni.fi.mpcop.*
+import cz.muni.fi.mpcop.AbstractProtocolVerticle
+import cz.muni.fi.mpcop.GeneralMPCOPException
+import cz.muni.fi.mpcop.Utils
 import cz.muni.fi.mpcop.Utils.toJson
 import mpctestclient.MPCRun
 import mpctestclient.MPCRunConfig
@@ -108,7 +110,7 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
         return Util.toHex(run?.decryptAll(Util.hexStringToByteArray(data), run?.hostDecryptSign)?.getEncoded(false))
     }
 
-    override fun encrypt(data: String, pubKey:String): String {
+    override fun encrypt(data: String, pubKey: String): String {
 
         return Util.toHex(run?.encrypt(BigInteger(1, Util.hexStringToByteArray(data)), run?.hostFullPriv))
     }
@@ -118,17 +120,8 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
     }
 
     init {
-        try {
-            val runConfig = MPCRunConfig.getDefaultConfig()
-            // TODO: virtual cards count != all players
-            runConfig.numPlayers = config.virtualCardsCount
-            run = MPCRun(runConfig)
-            run?.connectAll()
-
-            // TODO: this should be done through the setup process
-            run?.performSetupAll(run?.hostFullPriv)
-        } catch (e: Exception) {
-            logger.severe(Messages.PROTOCOL_FAILURE)
-        }
+        val runConfig = MPCRunConfig.getDefaultConfig()
+        // TODO: virtual cards count != all players
+        runConfig.numPlayers = config.virtualCardsCount
     }
 }
