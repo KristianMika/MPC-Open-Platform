@@ -6,7 +6,7 @@ import { LoaderSpinner } from "./LoaderSpinner";
 
 const useStyles = makeStyles(() => ({
 	grey_filter: {
-		position: "absolute",
+		position: "fixed",
 		width: "100vw",
 		height: "100vh",
 		background: "rgba(22, 22, 22, 0.8)",
