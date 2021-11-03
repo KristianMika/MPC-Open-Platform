@@ -43,15 +43,10 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
 
         run?.resetAll(run?.hostFullPriv)
         config.numPlayers = mystConfig.virtualCardsCount
-
-
+        
         try {
             run = MPCRun(config)
             run?.connectAll()
-
-            // TODO: this should be done through the setup process
-            run?.performSetupAll(run?.hostFullPriv)
-
         } catch (e: Exception) {
             throw GeneralMPCOPException(e.toString())
         }
