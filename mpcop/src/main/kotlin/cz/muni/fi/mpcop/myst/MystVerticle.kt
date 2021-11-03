@@ -68,7 +68,6 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
         try {
             run?.performKeyGen(run?.hostKeyGen)
 
-            // TODO: only once
             run?.signCacheAll(run?.hostDecryptSign)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -99,10 +98,23 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
         return try {
             val sig: String = run?.signAll(Utils.bigIntegerFromString(data), run?.hostDecryptSign)?.toString(16) ?: ""
             val sig_e: String = (run?.e ?: "") as String
+            signCache()
             listOf(sig, sig_e)
         } catch (e: Exception) {
             logger.info(e.toString())
             throw GeneralMPCOPException(e.toString())
+        }
+    }
+
+
+    /**
+     * Generates random elements used in the signing phase in the background - does not block the main thread
+     */
+    private fun signCache() {
+        vertx.setTimer(1) { _ ->
+            if (run?.isCachingRequired == true) {
+                run?.signCacheAll(run?.hostFullPriv)
+            }
         }
     }
 
