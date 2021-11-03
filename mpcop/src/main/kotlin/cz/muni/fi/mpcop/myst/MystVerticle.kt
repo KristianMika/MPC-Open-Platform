@@ -43,10 +43,12 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
 
         run?.resetAll(run?.hostFullPriv)
         config.numPlayers = mystConfig.virtualCardsCount
-        
+
         try {
             run = MPCRun(config)
             run?.connectAll()
+            run?.performSetupAll(run?.hostFullPriv)
+
         } catch (e: Exception) {
             throw GeneralMPCOPException(e.toString())
         }
@@ -130,5 +132,6 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
         val runConfig = MPCRunConfig.getDefaultConfig()
         // TODO: virtual cards count != all players
         runConfig.numPlayers = config.virtualCardsCount
+
     }
 }
