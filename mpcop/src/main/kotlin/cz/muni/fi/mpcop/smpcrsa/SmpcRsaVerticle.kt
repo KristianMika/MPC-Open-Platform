@@ -75,6 +75,15 @@ class SmpcRsaVerticle :
         return Utils.toJson(config)
     }
 
+    override fun areKeysGenerated(): Boolean {
+        return try {
+            val _pubKey = getPubKey()
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
     @Throws(GeneralMPCOPException::class)
     override fun keygen() {
         return SmpcRsa.keygen(client, server)

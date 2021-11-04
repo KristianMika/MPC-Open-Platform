@@ -46,10 +46,14 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
         try {
             run = MPCRun(config)
             run?.connectAll()
+
+            if (run?.runCfg?.allPlayersCount == 0) {
+                throw GeneralMPCOPException("The protocol can't run with 0 players! Make sure you have connected cards.")
+            }
             run?.performSetupAll(run?.hostFullPriv)
 
         } catch (e: Exception) {
-            throw GeneralMPCOPException(e.toString())
+            throw GeneralMPCOPException(e.message ?: e.toString())
         }
         this.config = mystConfig
         return getInfo()
@@ -57,6 +61,10 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
 
     override fun getConfig(): String {
         return toJson(config)
+    }
+
+    override fun areKeysGenerated(): Boolean {
+        return run?.areKeysGenerated() == true
     }
 
     @Throws(GeneralMPCOPException::class)
@@ -130,7 +138,6 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
         }
     }
 
-
     companion object {
         const val CONSUMER_ADDRESS = "service.myst"
     }
@@ -138,6 +145,5 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
     init {
         val runConfig = MPCRunConfig.getDefaultConfig()
         runConfig.simulatedPlayersCount = config.virtualCardsCount
-
     }
 }

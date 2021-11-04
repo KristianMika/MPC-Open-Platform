@@ -21,6 +21,7 @@ abstract class AbstractProtocolVerticle(protected val CONSUMER_ADDRESS: String) 
     protected val logger: Logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME)
     private val state: ProtocolState = ProtocolState()
     var isProtocolConfigured: Boolean = false
+    var areKeysGenerated: Boolean = false
 
     private fun requestHandler(msg: Message<JsonObject>) {
         logger.info("Received: " + msg.body().toString())
@@ -71,11 +72,13 @@ abstract class AbstractProtocolVerticle(protected val CONSUMER_ADDRESS: String) 
                 keygen()
                 val pubkey = getPubKey()
                 state.pubKey = pubkey
+                areKeysGenerated = true
                 r.setPublicKey(pubkey)
             }
             Operation.RESET -> {
                 state.pubKey = null
                 reset()
+                areKeysGenerated = false
                 r.setMessage(Messages.CARDS_RESET_SUCCESSFUL)
             }
             Operation.GET_PUBKEY -> {
@@ -84,22 +87,35 @@ abstract class AbstractProtocolVerticle(protected val CONSUMER_ADDRESS: String) 
                 r.setPublicKey(pubkey)
             }
             Operation.DECRYPT -> {
+                checkAreKeysGenerated()
                 val data: String = request.getString("data")
                 r.setMessage(decrypt(data))
             }
             Operation.ENCRYPT -> {
+                checkAreKeysGenerated()
                 val data: String = request.getString("data")
                 // TODO: pubkey can't be empty
                 r.setMessage(encrypt(data, state.pubKey ?: ""))
             }
-            Operation.SIGN -> r.setSignatures(sign(request.getString("data")))
+            Operation.SIGN -> {
+                checkAreKeysGenerated()
+                r.setSignatures(sign(request.getString("data")))
+            }
             Operation.CONFIGURE -> {
                 val configuration = JsonParser.parseString(request.getString("data"))
                 val configResult = configure(configuration)
                 isProtocolConfigured = true
+                areKeysGenerated = areKeysGenerated()
                 r.setMessage(configResult)
             }
             Operation.GET_CONFIG -> r.setMessage(getConfig())
+        }
+    }
+
+    @Throws(GeneralMPCOPException::class)
+    private fun checkAreKeysGenerated() {
+        if (!areKeysGenerated) {
+            throw GeneralMPCOPException("The keys have not been generated yet")
         }
     }
 
@@ -173,4 +189,11 @@ abstract class AbstractProtocolVerticle(protected val CONSUMER_ADDRESS: String) 
      */
     @Throws(GeneralMPCOPException::class)
     protected abstract fun getConfig(): String
+
+    /**
+     * Is used to detect if the keys have been already generated and operations
+     * that require keys to be generated may be allowed. It is used especially for case when a newly connected
+     * cards have already performed key generation in one of the previous MPCOP runs
+     */
+    protected abstract fun areKeysGenerated(): Boolean
 }
