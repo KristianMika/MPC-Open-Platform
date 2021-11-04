@@ -4,6 +4,7 @@ import {
 	COLOR_PRIMARY,
 	CONTROLLER_ADDRESS,
 	InfoSeverity,
+	LATENCY_MEASUREMENT_COUNT,
 	Operation,
 	operationsWithInput,
 } from "../constants/Constants";
@@ -15,7 +16,11 @@ import {
 	verifyHexString,
 } from "../utils/utils";
 import { useRecoilState } from "recoil";
-import { debugMessagesState, eventbusSocketState } from "../store/atom";
+import {
+	debugMessagesState,
+	eventbusSocketState,
+	latencyState,
+} from "../store/atom";
 import { IMessage } from "../store/models/IMessage";
 import { IResponse } from "../store/models/IResponse";
 import { ProtocolInfoArea } from "./ProtocolInfoArea";
@@ -27,7 +32,6 @@ import { eventBus } from "./GlobalComponent";
 import { send } from "../eventbus/eventbus";
 import "intro.js/introjs.css";
 import { IntroMessage } from "../constants/Intro";
-import { capitalize } from "@mui/material";
 import { IProtocolFormValues } from "../store/models/IProtocolFormValues";
 import {
 	defaultProtocolFormValues,
@@ -55,6 +59,7 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 	const [formValues, setFormValues] = useState<IProtocolFormValues>(
 		defaultProtocolFormValues
 	);
+	const [latencies, setLatencies] = useRecoilState(latencyState);
 	const [pubKey, setPubKey] = useState(defaultPubKeyValue);
 	const [protocolInfo, setProtocolInfo] =
 		useState<IProtocolInfoArea>(defaultProtocolInfo);
@@ -94,7 +99,17 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 		});
 	};
 
+	const storeLatency = (latency: number) => {
+		setLatencies({
+			latencies: [
+				...latencies.latencies.slice(-LATENCY_MEASUREMENT_COUNT + 1),
+				latency,
+			],
+		});
+	};
+
 	const handleResponse = (body: IResponse) => {
+		// TODO: add operation to the error message
 		if (!checkResponseStatus(body)) {
 			addDebugMessage(InfoSeverity.Error, body.errMessage);
 			return;
@@ -210,7 +225,10 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 
 		addDebugMessage(InfoSeverity.Info, composeRequestInfoAlert(operation));
 		// TODO: use a function for this (duplicate)
+		const originTimestamp = Date.now();
 		eventBus.send(CONTROLLER_ADDRESS, body, (a: any, msg: any) => {
+			const operationDuration = Date.now() - originTimestamp;
+
 			if (msg == null) {
 				addDebugMessage(
 					InfoSeverity.Error,
@@ -218,6 +236,8 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 				);
 			} else {
 				const bodyJson = JSON.parse(msg.body);
+				const rtt = operationDuration - Number(bodyJson.duration);
+				storeLatency(rtt / 2);
 				addDebugMessage(InfoSeverity.Info, `Received response`);
 				logDebugMessage(bodyJson);
 				handleResponse(bodyJson);
@@ -233,12 +253,11 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 			<form onSubmit={handleSubmit} className={protocol_form}>
 				<Grid container alignItems="center" justify="center">
 					<Grid item xs={12} className={protocol_form__protocol_name}>
-						<Typography
-							variant="h5"
-							component="h1"
-							
-						>
-							<span data-intro={IntroMessage.PROTOCOL_NAME}> {props.protocolDiplayName}</span>
+						<Typography variant="h5" component="h1">
+							<span data-intro={IntroMessage.PROTOCOL_NAME}>
+								{" "}
+								{props.protocolDiplayName}
+							</span>
 						</Typography>
 					</Grid>
 					<Grid

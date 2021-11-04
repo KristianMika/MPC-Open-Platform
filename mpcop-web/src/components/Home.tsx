@@ -1,10 +1,11 @@
 import { Grid, makeStyles, Typography } from "@material-ui/core";
 
 import { useRecoilState } from "recoil";
-import { eventbusSocketState } from "../store/atom";
+import { eventbusSocketState, latencyState } from "../store/atom";
 import statusOffline from "../status_offline.svg";
 import statusOnline from "../status_online.svg";
 import { IntroMessage } from "../constants/Intro";
+import { computeAverage } from "../utils/utils";
 const useStyles = makeStyles(() => ({
 	status_page: {
 		padding: "3em 0 2em 0",
@@ -40,7 +41,7 @@ export const Home: React.FC = () => {
 		status_row,
 		online_indicator,
 	} = useStyles();
-
+	const [latencies, setLatencies] = useRecoilState(latencyState);
 	const getStatus = () => {
 		let statusMessage = "";
 		let statusImg = null;
@@ -59,6 +60,9 @@ export const Home: React.FC = () => {
 			/>
 		);
 	};
+
+	const latency = Math.round(computeAverage(latencies.latencies));
+
 	return (
 		<main className={status_page_wrapper}>
 			<div className={status_page}>
@@ -83,7 +87,7 @@ export const Home: React.FC = () => {
 							<b>Status:</b> {getStatus()}
 						</Typography>
 						<Typography gutterBottom>
-							<b>RTT:</b> TODO ms
+							<b>Latency:</b> {latency != 0 ? latency : "?"} ms
 						</Typography>
 					</Grid>
 				</Grid>

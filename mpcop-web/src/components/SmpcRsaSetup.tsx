@@ -11,7 +11,12 @@ import {
 	Tooltip,
 	Typography,
 } from "@material-ui/core";
-import { InfoSeverity, Operation, Protocol } from "../constants/Constants";
+import {
+	InfoSeverity,
+	LATENCY_MEASUREMENT_COUNT,
+	Operation,
+	Protocol,
+} from "../constants/Constants";
 import { IMessage } from "../store/models/IMessage";
 import { useProtocolSetupStyles } from "../styles/protocolSetup";
 import { send } from "../eventbus/eventbus";
@@ -20,7 +25,11 @@ import { ProtocolInfoArea } from "./ProtocolInfoArea";
 import IProtocolInfoArea from "../store/models/IProtocolInfoArea";
 import { IResponse } from "../store/models/IResponse";
 import { useRecoilState } from "recoil";
-import { debugMessagesState, eventbusSocketState } from "../store/atom";
+import {
+	debugMessagesState,
+	eventbusSocketState,
+	latencyState,
+} from "../store/atom";
 import { IntroMessage } from "../constants/Intro";
 import {
 	checkResponseStatus,
@@ -61,7 +70,15 @@ export const SmpcRsaSetup: React.FC = () => {
 			],
 		});
 	};
-
+	const [latencies, setLatencies] = useRecoilState(latencyState);
+	const storeLatency = (latency: number) => {
+		setLatencies({
+			latencies: [
+				...latencies.latencies.slice(-LATENCY_MEASUREMENT_COUNT + 1),
+				latency,
+			],
+		});
+	};
 	const received_response_log = () => {
 		addDebugMessage(InfoSeverity.Info, `Received response`);
 	};
@@ -110,7 +127,7 @@ export const SmpcRsaSetup: React.FC = () => {
 
 		addDebugMessage(InfoSeverity.Info, composeRequestInfoAlert("CONFIG"));
 
-		send(body, handleResponse, received_response_log);
+		send(body, handleResponse, received_response_log, null, storeLatency);
 	};
 
 	const eventSwitchChange = (e: any) => {
@@ -153,7 +170,13 @@ export const SmpcRsaSetup: React.FC = () => {
 			protocol: Protocol.SmartIdRsa,
 		};
 
-		send(getConfigMessage, handleResponse, logDebugMessage);
+		send(
+			getConfigMessage,
+			handleResponse,
+			logDebugMessage,
+			null,
+			storeLatency
+		);
 	}, [socketState]);
 
 	console.log(formValues);

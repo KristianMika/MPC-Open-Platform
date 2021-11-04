@@ -63,3 +63,8 @@ export const composeRequestInfoAlert = (operation: string): string => {
 	const article = getIndefiniteArticle(operation);
 	return `Sending ${article} "${operation}" request to the server...`;
 };
+
+export const computeAverage = (nums: Array<number>): number => {
+	const sum = nums.reduce((a: number, b: number) => a + b, 0);
+	return sum / nums.length || 0;
+};

@@ -12,11 +12,20 @@ import {
 } from "@material-ui/core";
 import { useEffect, useState } from "react";
 import { useRecoilState } from "recoil";
-import { InfoSeverity, Operation, Protocol } from "../constants/Constants";
+import {
+	InfoSeverity,
+	LATENCY_MEASUREMENT_COUNT,
+	Operation,
+	Protocol,
+} from "../constants/Constants";
 import { defaultProtocolInfo } from "../constants/DefaultValues";
 import { IntroMessage } from "../constants/Intro";
 import { send } from "../eventbus/eventbus";
-import { debugMessagesState, eventbusSocketState } from "../store/atom";
+import {
+	debugMessagesState,
+	eventbusSocketState,
+	latencyState,
+} from "../store/atom";
 import { IMessage } from "../store/models/IMessage";
 import IProtocolInfoArea from "../store/models/IProtocolInfoArea";
 import { IResponse } from "../store/models/IResponse";
@@ -56,7 +65,15 @@ export const MystSetup: React.FC = () => {
 	const [formValues, setFormValues] = useState(defaultValues);
 	const [protocolInfo, setProtocolInfo] =
 		useState<IProtocolInfoArea>(defaultProtocolInfo);
-
+	const [latencies, setLatencies] = useRecoilState(latencyState);
+	const storeLatency = (latency: number) => {
+		setLatencies({
+			latencies: [
+				...latencies.latencies.slice(-LATENCY_MEASUREMENT_COUNT + 1),
+				latency,
+			],
+		});
+	};
 	const addDebugMessage = (severity: InfoSeverity, message: string) => {
 		setProtocolInfo({
 			messages: [
@@ -75,10 +92,9 @@ export const MystSetup: React.FC = () => {
 
 	const received_response_log = () => {
 		addDebugMessage(InfoSeverity.Info, `Received response`);
-	}
+	};
 
 	const handleResponse = (body: IResponse) => {
-		
 		if (!checkResponseStatus(body)) {
 			addDebugMessage(InfoSeverity.Error, body.errMessage);
 			return;
@@ -110,7 +126,7 @@ export const MystSetup: React.FC = () => {
 			protocol: Protocol.Myst,
 		};
 		addDebugMessage(InfoSeverity.Info, composeRequestInfoAlert("CONFIG"));
-		send(body, handleResponse, received_response_log);
+		send(body, handleResponse, received_response_log, null, storeLatency);
 	};
 	const [debugMessages, setDebugMessages] =
 		useRecoilState(debugMessagesState);
@@ -137,7 +153,13 @@ export const MystSetup: React.FC = () => {
 			protocol: Protocol.Myst,
 		};
 
-		send(getConfigMessage, handleResponse, logDebugMessage);
+		send(
+			getConfigMessage,
+			handleResponse,
+			logDebugMessage,
+			null,
+			storeLatency
+		);
 	}, [socketState]);
 
 	return (

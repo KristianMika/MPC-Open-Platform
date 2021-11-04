@@ -2,6 +2,7 @@ import { IHeaderData } from "./models/IHeaderData";
 import { atom } from "recoil";
 import { IDebugMessages } from "./models/IDebugMessages";
 import { ISocketState } from "./models/ISocketState";
+import { ILatency } from "./models/ILatency";
 
 export const headersDataState = atom<IHeaderData[]>({
 	key: "headersData",
@@ -31,4 +32,11 @@ export const debugMessagesState = atom<IDebugMessages>({
 export const eventbusSocketState = atom<ISocketState>({
 	key: "socketState",
 	default: { isOpen: false },
+});
+
+export const latencyState = atom<ILatency>({
+	key: "latency",
+	default: {
+		latencies: [],
+	},
 });

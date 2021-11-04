@@ -65,3 +65,5 @@ export const COLOR_PRIMARY = "#3f51b5";
 export const MOBILE_WIDTH_BREAKPOINT = 800; //pt
 
 export const PROTOCOL_ALERT_VISIBILITY_TIME = 5000; //ms
+
+export const LATENCY_MEASUREMENT_COUNT = 5;

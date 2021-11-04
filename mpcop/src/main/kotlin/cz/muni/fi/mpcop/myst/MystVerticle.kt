@@ -116,13 +116,21 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
     }
 
     override fun decrypt(data: String): String {
-        return Util.toHex(run?.decryptAll(Util.hexStringToByteArray(data), run?.hostDecryptSign)?.getEncoded(false))
+        return try {
+            Util.toHex(run?.decryptAll(Util.hexStringToByteArray(data), run?.hostDecryptSign)?.getEncoded(false))
+        } catch (e: Exception) {
+            throw GeneralMPCOPException(e.message ?: "Decryption failed")
+        }
     }
 
     override fun encrypt(data: String, pubKey: String): String {
-
-        return Util.toHex(run?.encrypt(BigInteger(1, Util.hexStringToByteArray(data)), run?.hostFullPriv))
+        return try {
+            Util.toHex(run?.encrypt(BigInteger(1, Util.hexStringToByteArray(data)), run?.hostFullPriv))
+        } catch (e: Exception) {
+            throw GeneralMPCOPException(e.message ?: "Encryption failed")
+        }
     }
+
 
     companion object {
         const val CONSUMER_ADDRESS = "service.myst"

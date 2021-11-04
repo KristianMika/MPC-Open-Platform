@@ -39,18 +39,21 @@ class ControllerVerticle : AbstractVerticle() {
         vertx.eventBus().consumer(
             CONTROLLER_ADDRESS
         ) { msg: Message<JsonObject> ->
+            val originTime = System.currentTimeMillis()
             vertx.eventBus()
                 .request<JsonObject>(getProtocolAddress(msg), msg.body())
                 .onSuccess(Handler { data: Message<JsonObject> ->
                     logger.info(
                         "Received from " + getProtocolAddress(msg) + ": " + data.body().toString()
                     )
-                    msg.reply(data.body().toString())
+                    msg.reply(setDuration(data.body(), originTime).toString())
                 }).onFailure(Handler { throwable: Throwable ->
                     logger.info(Messages.REPLY_FAIL_MESSAGE + throwable.toString())
                     msg.reply(
-                        Utils.toJsonObject(
-                            Response("Forward request").failed().setErrMessage(getErrMessage(throwable))
+                        setDuration(
+                            Utils.toJsonObject(
+                                Response("Forward request").failed().setErrMessage(getErrMessage(throwable))
+                            ), originTime
                         ).toString()
                     )
                 })
@@ -75,6 +78,16 @@ class ControllerVerticle : AbstractVerticle() {
         server.requestHandler(router).listen(CONTROLLER_PORT)
         logger.info("Controller has been successfully deployed and is now running on port $CONTROLLER_PORT.")
 
+    }
+
+    /**
+     * Calculates the duration of the operation based on the [originTime] and the current time
+     * and sets the duration field in the [response] json object
+     */
+    private fun setDuration(response: JsonObject, originTime: Long): JsonObject {
+        val duration = System.currentTimeMillis() - originTime
+        response.put("duration", duration)
+        return response
     }
 
     /**
