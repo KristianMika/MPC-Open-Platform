@@ -26,7 +26,7 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
     private var config = MystConfiguration(virtualCardsCount = 5)
     override fun getInfo(): String {
         return """
-            Number of players: ${run?.runCfg?.numPlayers.toString()}
+            The current number of players: ${run?.runCfg?.allPlayersCount.toString()}
             """.trimIndent()
     }
 
@@ -39,10 +39,9 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
         } catch (e: JsonSyntaxException) {
             throw GeneralMPCOPException("Invalid format")
         }
-        // TODO: simualted players != all players
 
         run?.resetAll(run?.hostFullPriv)
-        config.numPlayers = mystConfig.virtualCardsCount
+        config.simulatedPlayersCount = mystConfig.virtualCardsCount
 
         try {
             run = MPCRun(config)
@@ -138,8 +137,7 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
 
     init {
         val runConfig = MPCRunConfig.getDefaultConfig()
-        // TODO: virtual cards count != all players
-        runConfig.numPlayers = config.virtualCardsCount
+        runConfig.simulatedPlayersCount = config.virtualCardsCount
 
     }
 }

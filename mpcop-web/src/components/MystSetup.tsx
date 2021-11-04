@@ -106,7 +106,7 @@ export const MystSetup: React.FC = () => {
 			case Operation.Configure:
 				addDebugMessage(
 					InfoSeverity.Success,
-					`The protocol has been successully configured`
+					body.message
 				);
 				break;
 			default:
