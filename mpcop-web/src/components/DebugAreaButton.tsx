@@ -9,6 +9,7 @@ import { debugMessagesState } from "../store/atom";
 import introJs from "intro.js";
 import { IntroMessage } from "../constants/Intro";
 
+
 const useStyles = makeStyles(() => ({
 	debugArea__debugButtons: {
 		position: "fixed",
@@ -28,12 +29,8 @@ export const DebugAreaButton: React.FC = () => {
 	const [debugMessages, setDebugMessages] =
 		useRecoilState(debugMessagesState);
 
-	const {
-		debugArea__debugButtons,
-		debugArea__debugButton,
-		
-		debugArea,
-	} = useStyles();
+	const { debugArea__debugButtons, debugArea__debugButton, debugArea } =
+		useStyles();
 	const [isVisible, setIsVisible] = useState(false);
 	const toggleDebug = () => {
 		setIsVisible(!isVisible);
