@@ -11,7 +11,7 @@ import { GreyFilter } from "./components/GreyFilter";
 import { GlobalComponent } from "./components/GlobalComponent";
 import { Ping } from "./components/Ping";
 
-function App() {
+const App=():JSX.Element=> {
 	return (
 		<RecoilRoot>
 			<div className="App">

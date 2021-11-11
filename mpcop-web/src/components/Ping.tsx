@@ -6,7 +6,6 @@ import {
 	PingOperation,
 } from "../constants/Constants";
 import { defaultProtocolInfo } from "../constants/DefaultValues";
-import { IMessage } from "../store/models/IMessage";
 import IProtocolInfoArea from "../store/models/IProtocolInfoArea";
 import { IResponse } from "../store/models/IResponse";
 import { checkResponseStatus, range, replicate } from "../utils/utils";

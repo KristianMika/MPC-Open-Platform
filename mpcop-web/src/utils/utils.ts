@@ -1,8 +1,9 @@
 import { IAppPerformanceTimestamps } from "../store/models/IAppPerformanceTimestamps";
+import { IResponse } from "../store/models/IResponse";
 
 const VOWELS = ["a", "e", "i", "o", "u", "y"];
 
-const getTime = () => {
+const getTime = ():string => {
 	const currentDate = new Date();
 	return (
 		toTwoPlaces(currentDate.getHours()) +
@@ -13,7 +14,7 @@ const getTime = () => {
 	);
 };
 
-const toTwoPlaces = (num: number) => {
+const toTwoPlaces = (num: number):string => {
 	return num.toLocaleString("en-US", {
 		minimumIntegerDigits: 2,
 		useGrouping: false,
@@ -29,12 +30,12 @@ export const formatLog = (
 	res: OperationResult = OperationResult.Info,
 	msg: string,
 	protocol = "MPCOP"
-) => `[${res}] ${getTime()} - ${protocol}: ${msg}`;
+):string => `[${res}] ${getTime()} - ${protocol}: ${msg}`;
 
-export const checkResponseStatus = (body: any): boolean => {
+export const checkResponseStatus = (body: IResponse): boolean => {
 	return body.success;
 };
-export const timeout = (delay: number) => {
+export const timeout = (delay: number):Promise<NodeJS.Timeout> => {
 	return new Promise((res) => setTimeout(res, delay));
 };
 

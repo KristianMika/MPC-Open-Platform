@@ -129,7 +129,7 @@ export const MystSetup: React.FC = () => {
 			mystVerticleAddress,
 			handleResponse,
 			received_response_log,
-			null,
+			undefined,
 			storeLatency
 		);
 	};
@@ -163,7 +163,7 @@ export const MystSetup: React.FC = () => {
 			mystVerticleAddress,
 			handleResponse,
 			logDebugMessage,
-			null,
+			undefined,
 			storeLatency
 		);
 	}, [socketState]);

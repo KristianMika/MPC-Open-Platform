@@ -1,5 +1,5 @@
 import { Grid, TextField, Tooltip, Typography } from "@material-ui/core";
-import { useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import {
 	COLOR_PRIMARY,
 	InfoSeverity,
@@ -76,7 +76,7 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 			],
 		});
 	};
-	const handleInputChange = (e: any) => {
+	const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
 		const { name, value } = e.target;
 		setFormValues({
 			...formValues,
@@ -84,7 +84,7 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 		});
 	};
 
-	const logDebugMessage = (msg: any) => {
+	const logDebugMessage = (msg: IResponse) => {
 		const res = msg.success
 			? OperationResult.Success
 			: OperationResult.Error;
@@ -228,7 +228,7 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 			props.protocolVerticleAddress,
 			handleResponse,
 			logDebugMessage,
-			setLoading,
+			() =>setLoading(false),
 			storeLatency
 		);
 	};

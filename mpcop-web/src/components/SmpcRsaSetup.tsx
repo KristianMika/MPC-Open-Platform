@@ -133,7 +133,7 @@ export const SmpcRsaSetup: React.FC = () => {
 			SmpcRsaVerticleAddress,
 			handleResponse,
 			received_response_log,
-			null,
+			undefined,
 			storeLatency
 		);
 	};
@@ -183,7 +183,7 @@ export const SmpcRsaSetup: React.FC = () => {
 			SmpcRsaVerticleAddress,
 			handleResponse,
 			logDebugMessage,
-			null,
+			undefined,
 			storeLatency
 		);
 	}, [socketState]);

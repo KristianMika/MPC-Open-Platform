@@ -9,18 +9,18 @@ import IProtocolInfoArea, {
 import { useProtocolSetupStyles } from "../styles/protocolSetup";
 import { AutoHideAlert } from "./AutoHideAlert";
 
-
 export const ProtocolInfoArea: React.FC<IProtocolInfoArea> = (props) => {
 	const [alerts, setAlerts] = useState<JSX.Element[]>([]);
 
-	
 	useEffect(() => {
 		if (props.messages.length > 0) {
-			const message: IProtocolInfo = props.messages.pop()!;
-			setAlerts([
-				...alerts,
-				<AutoHideAlert  {...message}></AutoHideAlert>,
-			]);
+			const message: IProtocolInfo | undefined = props.messages.pop();
+			if (message) {
+				setAlerts([
+					...alerts,
+					<AutoHideAlert {...message}></AutoHideAlert>,
+				]);
+			}
 		}
 	}, [props]);
 

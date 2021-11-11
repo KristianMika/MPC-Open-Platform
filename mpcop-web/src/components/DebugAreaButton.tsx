@@ -1,4 +1,4 @@
-import { Button, Grid, makeStyles, Tooltip } from "@material-ui/core";
+import { Button, makeStyles, Tooltip } from "@material-ui/core";
 import { useState } from "react";
 import { DebugArea } from "./DebugArea";
 import { BsFillBugFill } from "react-icons/bs";
@@ -21,9 +21,6 @@ const useStyles = makeStyles(() => ({
 	debugArea__debugButton: {
 		marginTop: "0.5em",
 	},
-	reactIcon: {
-		fontSize: "50rem",
-	},
 	debugArea: { position: "fixed", width: "100%", bottom: 0 },
 }));
 
@@ -34,7 +31,7 @@ export const DebugAreaButton: React.FC = () => {
 	const {
 		debugArea__debugButtons,
 		debugArea__debugButton,
-		reactIcon,
+		
 		debugArea,
 	} = useStyles();
 	const [isVisible, setIsVisible] = useState(false);

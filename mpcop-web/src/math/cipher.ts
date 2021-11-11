@@ -5,11 +5,11 @@ export const verifyMystCipher = (
 	plaintext: string
 ): boolean => {
 	const mG = ec.g.mul(plaintext);
-	const decryptedEc: any = ec
+	const decryptedEc = ec
 		.keyFromPublic(decryptedCiphertext, "hex")
 		.getPublic();
 	console.log(mG.encode("hex"));
-	console.log(decryptedEc.encode("hex"));
+	console.log(decryptedEc.encode("hex", false));
 	const wasVeirificationSuccessfull: boolean = mG.eq(decryptedEc);
 	if (wasVeirificationSuccessfull) {
 		alert(
