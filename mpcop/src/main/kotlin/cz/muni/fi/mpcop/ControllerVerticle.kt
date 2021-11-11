@@ -3,10 +3,12 @@ package cz.muni.fi.mpcop
 
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.Handler
+import io.vertx.core.VertxOptions
 import io.vertx.core.eventbus.Message
 import io.vertx.core.eventbus.ReplyException
 import io.vertx.core.eventbus.ReplyFailure
 import io.vertx.core.json.JsonObject
+import io.vertx.core.metrics.MetricsOptions
 import io.vertx.ext.bridge.BridgeEventType
 import io.vertx.ext.bridge.PermittedOptions
 import io.vertx.ext.web.Router
@@ -14,6 +16,7 @@ import io.vertx.ext.web.RoutingContext
 import io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions
 import io.vertx.ext.web.handler.sockjs.SockJSHandler
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions
+import io.vertx.kotlin.core.json.get
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.logging.Logger
 
@@ -34,39 +37,36 @@ class ControllerVerticle : AbstractVerticle() {
         val bo: SockJSBridgeOptions = SockJSBridgeOptions()
             .addInboundPermitted(PermittedOptions().setAddress(CONTROLLER_ADDRESS))
             .addInboundPermitted(PermittedOptions().setAddress(CONTROLLER_REGISTER_ADDRESS))
+            .addInboundPermitted(PermittedOptions().setAddress("service.ping"))
+            .addInboundPermitted(PermittedOptions().setAddress("service.myst"))
+            .addInboundPermitted(PermittedOptions().setAddress("service.smart-id-rsa"))
             .addOutboundPermitted(PermittedOptions().setAddress(CONTROLLER_REGISTER_ADDRESS))
             .setReplyTimeout(REPLY_TIMEOUT)
-        vertx.eventBus().consumer(
-            CONTROLLER_ADDRESS
-        ) { msg: Message<JsonObject> ->
-            val originTime = System.currentTimeMillis()
-            vertx.eventBus()
-                .request<JsonObject>(getProtocolAddress(msg), msg.body())
-                .onSuccess(Handler { data: Message<JsonObject> ->
-                    logger.info(
-                        "Received from " + getProtocolAddress(msg) + ": " + data.body().toString()
-                    )
-                    msg.reply(setDuration(data.body(), originTime).toString())
-                }).onFailure(Handler { throwable: Throwable ->
-                    logger.info(Messages.REPLY_FAIL_MESSAGE + throwable.toString())
-                    msg.reply(
-                        setDuration(
-                            Utils.toJsonObject(
-                                Response("Forward request").failed().setErrMessage(getErrMessage(throwable))
-                            ), originTime
-                        ).toString()
-                    )
-                })
-        }
+
         sockJSHandler.bridge(bo) { event ->
             when (event.type()) {
-                BridgeEventType.REGISTER -> logNewConnection(event.socket().remoteAddress().toString())
-                BridgeEventType.UNREGISTER -> logClosedConnection(event.socket().remoteAddress().toString())
-                else -> {
+                BridgeEventType.REGISTER -> {
+                    logNewConnection(event.socket().remoteAddress().toString())
+
+                }
+                BridgeEventType.UNREGISTER -> {
+                    logClosedConnection(event.socket().remoteAddress().toString())
+
+                }
+                BridgeEventType.SEND -> {
+                    event.rawMessage.get<JsonObject>("headers").put("backend_ingress", System.currentTimeMillis().toString())
+                }
+
+                BridgeEventType.RECEIVE -> {
+                    event.rawMessage.get<JsonObject>("headers").put("backend_egress", System.currentTimeMillis().toString())
+                }
+                else ->{
+
                 }
             }
             event.complete(true)
         }
+
         // for debug purposes only
         router.errorHandler(500) { rc: RoutingContext ->
             logger.severe("An internal error has occurred: $rc")
@@ -88,16 +88,6 @@ class ControllerVerticle : AbstractVerticle() {
         val duration = System.currentTimeMillis() - originTime
         response.put("duration", duration)
         return response
-    }
-
-    /**
-     * Returns the protocol address
-     *
-     * @param message containing the protocol
-     * @return the protocol address in form "service.[protocol]"
-     */
-    private fun getProtocolAddress(message: Message<JsonObject>): String {
-        return "service." + getProtocol(message.body())
     }
 
     /**

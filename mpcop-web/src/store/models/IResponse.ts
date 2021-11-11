@@ -5,4 +5,5 @@ export interface IResponse {
 	message: string;
 	signature: string;
 	publicKey: string;
+	data: string;
 }

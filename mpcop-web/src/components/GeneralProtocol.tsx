@@ -2,7 +2,6 @@ import { Grid, TextField, Tooltip, Typography } from "@material-ui/core";
 import { useEffect, useState } from "react";
 import {
 	COLOR_PRIMARY,
-	CONTROLLER_ADDRESS,
 	InfoSeverity,
 	LATENCY_MEASUREMENT_COUNT,
 	Operation,
@@ -28,7 +27,6 @@ import { ProtocolButtons } from "./ProtocolButtons";
 import { useProtocolStyles } from "../styles/protocol";
 import IProtocolInfoArea from "../store/models/IProtocolInfoArea";
 import { LoaderSpinner } from "./LoaderSpinner";
-import { eventBus } from "./GlobalComponent";
 import { send } from "../eventbus/eventbus";
 import "intro.js/introjs.css";
 import { IntroMessage } from "../constants/Intro";
@@ -183,7 +181,7 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 			protocol: props.protocol,
 		};
 
-		send(getPubkeyMessage, handleResponse);
+		send(getPubkeyMessage, props.protocolVerticleAddress, handleResponse);
 	}, [socketState]);
 
 	const handleSubmit = (event: any) => {
@@ -224,26 +222,15 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 		};
 
 		addDebugMessage(InfoSeverity.Info, composeRequestInfoAlert(operation));
-		// TODO: use a function for this (duplicate)
-		const originTimestamp = Date.now();
-		eventBus.send(CONTROLLER_ADDRESS, body, (a: any, msg: any) => {
-			const operationDuration = Date.now() - originTimestamp;
 
-			if (msg == null) {
-				addDebugMessage(
-					InfoSeverity.Error,
-					"An error occured: the back-end hasn't responded"
-				);
-			} else {
-				const bodyJson = JSON.parse(msg.body);
-				const rtt = operationDuration - Number(bodyJson.duration);
-				storeLatency(rtt / 2);
-				addDebugMessage(InfoSeverity.Info, `Received response`);
-				logDebugMessage(bodyJson);
-				handleResponse(bodyJson);
-			}
-			setLoading(false);
-		});
+		send(
+			body,
+			props.protocolVerticleAddress,
+			handleResponse,
+			logDebugMessage,
+			setLoading,
+			storeLatency
+		);
 	};
 
 	return (

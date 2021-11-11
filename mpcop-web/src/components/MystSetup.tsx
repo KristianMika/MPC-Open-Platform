@@ -45,6 +45,7 @@ const defaultValues: FormValues = {
 	virtualCardsCount: 0,
 };
 
+const mystVerticleAddress = "service.myst";
 export const MystSetup: React.FC = () => {
 	const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
 	const handleDialogClose = () => {
@@ -104,10 +105,7 @@ export const MystSetup: React.FC = () => {
 				setFormValues(JSON.parse(body.message));
 				break;
 			case Operation.Configure:
-				addDebugMessage(
-					InfoSeverity.Success,
-					body.message
-				);
+				addDebugMessage(InfoSeverity.Success, body.message);
 				break;
 			default:
 				addDebugMessage(InfoSeverity.Info, body.message);
@@ -126,7 +124,14 @@ export const MystSetup: React.FC = () => {
 			protocol: Protocol.Myst,
 		};
 		addDebugMessage(InfoSeverity.Info, composeRequestInfoAlert("CONFIG"));
-		send(body, handleResponse, received_response_log, null, storeLatency);
+		send(
+			body,
+			mystVerticleAddress,
+			handleResponse,
+			received_response_log,
+			null,
+			storeLatency
+		);
 	};
 	const [debugMessages, setDebugMessages] =
 		useRecoilState(debugMessagesState);
@@ -155,6 +160,7 @@ export const MystSetup: React.FC = () => {
 
 		send(
 			getConfigMessage,
+			mystVerticleAddress,
 			handleResponse,
 			logDebugMessage,
 			null,

@@ -3,13 +3,13 @@ package cz.muni.cz.mpcop.cardTools;
 import com.licel.jcardsim.io.CAD;
 import com.licel.jcardsim.io.JavaxSmartCardInterface;
 import javacard.framework.AID;
+import javacard.framework.ISO7816;
 
 import javax.smartcardio.*;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- *
  * @author Petr Svenda
  */
 public class CardManager {
@@ -18,6 +18,8 @@ public class CardManager {
     protected Long lastTransmitTime = (long) 0;
     protected CommandAPDU lastCommand = null;
     protected CardChannel channel = null;
+    private static final byte INS_SELECT   = (byte)0xA4;
+    private static final byte P1_SELECT_DFBYNAME = (byte) 0x04;
 
     /**
      * Add LC=0 byte to the APDU.
@@ -30,6 +32,7 @@ public class CardManager {
 
     /**
      * Card connect
+     *
      * @param runCfg run configuration
      * @return true if connected
      * @throws Exception exceptions from underlying connects
@@ -145,10 +148,69 @@ public class CardManager {
         }
     }
 
+    public ArrayList<CardChannel> connectToAllCardsByTerminalFactory(TerminalFactory factory) throws CardException {
+        Card card;
+        ArrayList<CardChannel> cardsList = new ArrayList<>();
+        List<CardTerminal> terminals;
+
+        try {
+            terminals = factory.terminals().list();
+        } catch (Exception e) {
+            throw new CardException("No card terminals have been found. Make sure you have connected a card reader.");
+        }
+
+        try {
+            for (CardTerminal t : terminals) {
+                if (t.isCardPresent()) {
+                    System.out.print("Connecting...");
+                    card = t.connect("*"); // Connect with the card
+
+                    System.out.println(" Done.");
+
+                    System.out.print("Establishing channel...");
+                    CardChannel channel = card.getBasicChannel();
+
+                    System.out.println(" Done.");
+
+                    // Select applet (mpcapplet)
+                    System.out.println("Smartcard: Selecting applet...");
+                    CommandAPDU cmd = new CommandAPDU(0x00, INS_SELECT, P1_SELECT_DFBYNAME, 0x00, appletId);
+                    ResponseAPDU response = transmit(channel, cmd);
+
+                    if (response.getSW() == (ISO7816.SW_NO_ERROR & 0xffff)) {
+                        cardsList.add(channel);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw new CardException(e.getMessage());
+        }
+
+        return cardsList;
+    }
+
+    public ResponseAPDU transmit(CardChannel channel, CommandAPDU cmd)
+            throws CardException {
+
+        lastCommand = cmd;
+        if (bDebug) {
+            log(cmd);
+        }
+
+        long elapsed = -System.currentTimeMillis();
+        ResponseAPDU response = channel.transmit(cmd);
+        elapsed += System.currentTimeMillis();
+        lastTransmitTime = elapsed;
+        if (bDebug) {
+            log(response, elapsed);
+        }
+        return response;
+    }
+
     public ResponseAPDU transmit(CommandAPDU cmd)
             throws CardException {
 
-        if (isFixLc()){
+        if (isFixLc()) {
             cmd = fixApduLc(cmd);
         }
 
@@ -185,17 +247,17 @@ public class CardManager {
         }
     }
 
-    private CommandAPDU fixApduLc(CommandAPDU cmd){
-        if (cmd.getNc() != 0){
+    private CommandAPDU fixApduLc(CommandAPDU cmd) {
+        if (cmd.getNc() != 0) {
             return cmd;
         }
 
-        byte[] apdu = new byte[] {
-                (byte)cmd.getCLA(),
-                (byte)cmd.getINS(),
-                (byte)cmd.getP1(),
-                (byte)cmd.getP2(),
-                (byte)0
+        byte[] apdu = new byte[]{
+                (byte) cmd.getCLA(),
+                (byte) cmd.getINS(),
+                (byte) cmd.getP1(),
+                (byte) cmd.getP2(),
+                (byte) 0
         };
         return new CommandAPDU(apdu);
     }
@@ -220,25 +282,13 @@ public class CardManager {
         return bDebug;
     }
 
-    public byte[] getAppletId() {
-        return appletId;
-    }
-
-    public Long getLastTransmitTime() {
-        return lastTransmitTime;
-    }
-
-    public CommandAPDU getLastCommand() {
-        return lastCommand;
-    }
-
-    public CardChannel getChannel() {
-        return channel;
-    }
-
     public CardManager setbDebug(boolean bDebug) {
         this.bDebug = bDebug;
         return this;
+    }
+
+    public byte[] getAppletId() {
+        return appletId;
     }
 
     public CardManager setAppletId(byte[] appletId) {
@@ -246,14 +296,26 @@ public class CardManager {
         return this;
     }
 
+    public Long getLastTransmitTime() {
+        return lastTransmitTime;
+    }
+
     public CardManager setLastTransmitTime(Long lastTransmitTime) {
         this.lastTransmitTime = lastTransmitTime;
         return this;
     }
 
+    public CommandAPDU getLastCommand() {
+        return lastCommand;
+    }
+
     public CardManager setLastCommand(CommandAPDU lastCommand) {
         this.lastCommand = lastCommand;
         return this;
+    }
+
+    public CardChannel getChannel() {
+        return channel;
     }
 
     public CardManager setChannel(CardChannel channel) {

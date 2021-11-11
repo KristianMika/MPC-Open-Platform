@@ -11,6 +11,7 @@ export const Myst: React.FC = () => {
 	const protocolProps: IGeneralProtocol = {
 		protocol: Protocol.Myst,
 		protocolDiplayName: "Myst", 
+		protocolVerticleAddress: "service.myst",
 		verifySignature: verifySchnorrSignature,
 		verifyDecryption: verifyMystCipher,
 	};

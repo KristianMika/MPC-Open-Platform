@@ -8,12 +8,14 @@ package cz.muni.fi.mpcop
  * @author Kristian Mika
  */
 // TODO: operation as an enum
+//TODO: consider removing signature & pubkey and use only data
 data class Response(var operation: String) {
     var success: Boolean = true
     var errMessage: String? = null
     var message: String? = null
     private var signature: String? = null
     private var publicKey: String? = null
+    var data: String? = null
 
     constructor(operation: Operation) : this(operation.toString())
 
@@ -24,6 +26,11 @@ data class Response(var operation: String) {
 
     fun succeeded(): Response {
         success = true
+        return this
+    }
+
+    fun setData(data: String): Response {
+        this.data = data
         return this
     }
 
@@ -46,12 +53,12 @@ data class Response(var operation: String) {
         return this
     }
 
-    fun setPublicKey(publicKey : String):Response {
+    fun setPublicKey(publicKey: String): Response {
         this.publicKey = publicKey
         return this
     }
 
-    fun setSignatures(sigs: List<String>):Response {
+    fun setSignatures(sigs: List<String>): Response {
         this.signature = sigs.joinToString(";")
         return this
     }

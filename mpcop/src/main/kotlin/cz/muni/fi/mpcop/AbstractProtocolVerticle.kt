@@ -5,6 +5,7 @@ import com.google.gson.JsonParser
 import cz.muni.fi.mpcop.Utils.toJsonObject
 
 import io.vertx.core.AbstractVerticle
+import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.Message
 import io.vertx.core.json.JsonObject
 import java.util.logging.Logger
@@ -25,15 +26,23 @@ abstract class AbstractProtocolVerticle(protected val CONSUMER_ADDRESS: String) 
 
     private fun requestHandler(msg: Message<JsonObject>) {
         logger.info("Received: " + msg.body().toString())
+        val operationOriginTimestamp = System.currentTimeMillis()
         val response: Response? = try {
             process(msg.body() as JsonObject)
         } catch (e: GeneralMPCOPException) {
             logger.warning(e.toString())
             Response("Protocol initialization").failed().setErrMessage(e.message)
         }
+        val operationFinalTimestamp = System.currentTimeMillis()
         val serializedResponse: JsonObject? = response?.let { toJsonObject(it) }
         logger.info("Replying: $serializedResponse")
-        msg.reply(serializedResponse)
+        val options = DeliveryOptions()
+        for ((key, value) in msg.headers()) {
+            options.addHeader(key, value)
+        }
+        options.addHeader("operation_origin", operationOriginTimestamp.toString())
+        options.addHeader("operation_done", operationFinalTimestamp.toString())
+        msg.reply(serializedResponse, options)
     }
 
     override fun start() {

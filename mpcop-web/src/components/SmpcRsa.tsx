@@ -11,6 +11,7 @@ export const SmpcRsa: React.FC = () => {
 	const protocolProps: IGeneralProtocol = {
 		protocol: Protocol.SmartIdRsa,
 		protocolDiplayName: "Smart-ID RSA",
+		protocolVerticleAddress: "service.smart-id-rsa",
 		verifySignature: verifyRsaSignature,
 		verifyDecryption: verifyRsaCipher,
 	};

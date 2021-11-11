@@ -12,6 +12,11 @@ export enum Operation {
 	GetConfig = "GET_CONFIG",
 }
 
+export enum PingOperation {
+	Connect = "CONNECT",
+	Ping = "PING",
+}
+
 export const operationsWithInput = [
 	Operation.Sign,
 	Operation.Encrypt,
@@ -50,8 +55,6 @@ export const protocolButtons: IProtocolButton[] = [
 		tooltipLabel: "Decrypt the supplied ciphertext.",
 	},
 ];
-
-export const CONTROLLER_ADDRESS = "service.controller";
 
 export const enum InfoSeverity {
 	Error = "error",

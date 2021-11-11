@@ -1,3 +1,5 @@
+import { IAppPerformanceTimestamps } from "../store/models/IAppPerformanceTimestamps";
+
 const VOWELS = ["a", "e", "i", "o", "u", "y"];
 
 const getTime = () => {
@@ -67,4 +69,23 @@ export const composeRequestInfoAlert = (operation: string): string => {
 export const computeAverage = (nums: Array<number>): number => {
 	const sum = nums.reduce((a: number, b: number) => a + b, 0);
 	return sum / nums.length || 0;
+};
+
+export const range = (n: number): number[] =>
+	Array.apply(0, Array(n)).map((_, b: number) => {
+		return b + 1;
+	});
+
+export const replicate = <T>(elem: T, count: number): T[] =>
+	Array(count).fill(elem);
+
+export const computeRtt = (
+	operationDuration: number,
+	appPerformanceHeaders: IAppPerformanceTimestamps
+): number => {
+	return (
+		operationDuration -
+		(appPerformanceHeaders.backend_egress -
+			appPerformanceHeaders.backend_ingress)
+	);
 };

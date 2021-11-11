@@ -36,6 +36,10 @@ const headerData: IHeaderData[] = [
 		label: "Smart-ID RSA",
 		href: "/protocols/smpcrsa",
 	},
+	{
+		label: "Ping",
+		href: "/ping",
+	},
 ];
 
 const useStyles = makeStyles(() => ({

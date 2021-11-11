@@ -49,6 +49,7 @@ const defaultFormValues: IFormValues = {
 	isClientSimulated: false,
 };
 export const SmpcRsaSetup: React.FC = () => {
+	const SmpcRsaVerticleAddress = "service.smart-id-rsa";
 	const [formValues, setFormValues] =
 		useState<IFormValues>(defaultFormValues);
 
@@ -127,7 +128,14 @@ export const SmpcRsaSetup: React.FC = () => {
 
 		addDebugMessage(InfoSeverity.Info, composeRequestInfoAlert("CONFIG"));
 
-		send(body, handleResponse, received_response_log, null, storeLatency);
+		send(
+			body,
+			SmpcRsaVerticleAddress,
+			handleResponse,
+			received_response_log,
+			null,
+			storeLatency
+		);
 	};
 
 	const eventSwitchChange = (e: any) => {
@@ -172,6 +180,7 @@ export const SmpcRsaSetup: React.FC = () => {
 
 		send(
 			getConfigMessage,
+			SmpcRsaVerticleAddress,
 			handleResponse,
 			logDebugMessage,
 			null,

@@ -9,6 +9,7 @@ import { Home } from "./components/Home";
 import { DebugAreaButton } from "./components/DebugAreaButton";
 import { GreyFilter } from "./components/GreyFilter";
 import { GlobalComponent } from "./components/GlobalComponent";
+import { Ping } from "./components/Ping";
 
 function App() {
 	return (
@@ -27,6 +28,9 @@ function App() {
 					</Route>
 					<Route exact path="/protocols/smpcrsa">
 						<SmpcRsa />
+					</Route>
+					<Route exact path="/ping">
+						<Ping />
 					</Route>
 				</Switch>
 				<DebugAreaButton />

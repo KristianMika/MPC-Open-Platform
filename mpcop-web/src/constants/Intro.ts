@@ -18,7 +18,7 @@ export class IntroMessage {
 	static DEBUG_BUTTON =
 		"You can open a debug console by clicking the `debug` buton. The debug console reveals what's going on under the hood and also shows a detailed history of operations.";
 	static PROTOCOL_INFO =
-		"The results of individual operations as well as any warnings and information messages will be displayed here. For example, you may have seen a warning stating the public key has not been generated yet, on the initial MPCOP run.";
+		"The results of individual operations as well as any warnings and information messages will be displayed here. For example, you may have seen a warning stating the protocol has not been configured yet, on the initial MPCOP run.";
 	static PROTOCOL_SETUP =
 		"The protocol can be customized using this setup area. Be careful, though. Customizing the protocol can irreversibly erase cryptographic secrets!";
 }
