@@ -1,4 +1,10 @@
-import { Button, Grid, makeStyles, Typography } from "@material-ui/core";
+import {
+	Button,
+	Grid,
+	makeStyles,
+	Tooltip,
+	Typography,
+} from "@material-ui/core";
 import { useState } from "react";
 import {
 	InfoSeverity,
@@ -218,29 +224,35 @@ export const Ping: React.FC = () => {
 					</Grid>
 
 					<Grid item xs={12}>
-						<Typography gutterBottom className={status_row}>
-							<b>Applets found:</b> {pingAppletsCount}
-						</Typography>
+						<Tooltip title="The number of connected cards with a ping applet. To find new cards, click the FIND CARDS button.">
+							<Typography gutterBottom className={status_row}>
+								<b>Applets found:</b> {pingAppletsCount}
+							</Typography>
+						</Tooltip>
 					</Grid>
 					<Grid item xs={12} className={status_row}>
-						<Button
-							type="submit"
-							name={PingOperation.Connect}
-							variant="contained"
-							color="primary"
-							className={pingButton}
-						>
-							Find cards
-						</Button>
-						<Button
-							type="submit"
-							name={PingOperation.Ping}
-							variant="contained"
-							color="primary"
-							className={pingButton}
-						>
-							Ping!
-						</Button>
+						<Tooltip title="Finds and connects to JavaCards with the ping applet.">
+							<Button
+								type="submit"
+								name={PingOperation.Connect}
+								variant="contained"
+								color="primary"
+								className={pingButton}
+							>
+								Find cards
+							</Button>
+						</Tooltip>
+						<Tooltip title="Sends a simple request, receives a response and plots durations of specific phases.">
+							<Button
+								type="submit"
+								name={PingOperation.Ping}
+								variant="contained"
+								color="primary"
+								className={pingButton}
+							>
+								Ping!
+							</Button>
+						</Tooltip>
 					</Grid>
 
 					<Grid item xs={12}>

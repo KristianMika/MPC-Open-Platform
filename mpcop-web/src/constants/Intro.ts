@@ -1,6 +1,6 @@
 export class IntroMessage {
 	static HEADER_BUTTONS =
-		"To navigate on the website, use the header buttons. You can choose between the home (status) page and the supported MPC protocols.";
+		"To navigate on the website, use the header buttons. You can choose between the home (status) page, supported MPC protocols, and the ping page for performance testing.";
 	static PROTOCOL_NAME =
 		"This is the currently selected protocol. Using the control panel on this page won't affect other protocols.";
 	static HEADER_DRAWER =
