@@ -31,7 +31,7 @@ jobs:
       - name: Instal Debian tools
         run: sudo apt update && sudo apt install devscripts equivs
       - name: Install build dependencies
-        run: mk-build-deps --install --tool 'apt-get --assume-yes' --root sudo --remove
+        run: mk-build-deps --install -aall --tool 'apt-get --assume-yes' --root sudo --remove
       - name: Pull static website
         uses: actions/download-artifact@v2
         with:
@@ -124,6 +124,6 @@ jobs:
       - name: Release package
         uses: docker://lpenz/ghaction-packagecloud:v0.3
         with:
-          repository: mpcop/raspbian/buster
+          repository: mpcop/debian/buster
         env:
           PACKAGECLOUD_TOKEN: ${{ secrets.PACKAGECLOUD_TOKEN }}
