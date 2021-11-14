@@ -13,6 +13,7 @@ import {
 import { useEffect, useState } from "react";
 import { useRecoilState } from "recoil";
 import {
+	COLOR_PRIMARY,
 	InfoSeverity,
 	LATENCY_MEASUREMENT_COUNT,
 	Operation,
@@ -36,6 +37,7 @@ import {
 	formatLog,
 	OperationResult,
 } from "../utils/utils";
+import { LoaderSpinner } from "./LoaderSpinner";
 import { ProtocolInfoArea } from "./ProtocolInfoArea";
 
 interface FormValues {
@@ -83,6 +85,8 @@ export const MystSetup: React.FC = () => {
 			],
 		});
 	};
+	const [loading, setLoading] = useState<boolean>(false);
+
 	const {
 		protocol_setup_form,
 		protocol_form__setup_header,
@@ -96,6 +100,7 @@ export const MystSetup: React.FC = () => {
 	};
 
 	const handleResponse = (body: IResponse) => {
+		setLoading(false);
 		if (!checkResponseStatus(body)) {
 			addDebugMessage(InfoSeverity.Error, body.errMessage);
 			return;
@@ -113,6 +118,7 @@ export const MystSetup: React.FC = () => {
 	};
 	const handleSubmit = (event: any) => {
 		event.preventDefault();
+		setLoading(true);
 
 		const configValues = {
 			virtualCardsCount: formValues.virtualCardsCount,
@@ -129,7 +135,7 @@ export const MystSetup: React.FC = () => {
 			mystVerticleAddress,
 			handleResponse,
 			received_response_log,
-			undefined,
+			() => setLoading(false),
 			storeLatency
 		);
 	};
@@ -169,97 +175,102 @@ export const MystSetup: React.FC = () => {
 	}, [socketState]);
 
 	return (
-		<form
-			id="myst_setup_form"
-			onSubmit={handleSubmit}
-			className={protocol_setup_form}
-			data-intro={IntroMessage.PROTOCOL_SETUP}
-		>
-			<Grid
-				container
-				alignItems="center"
-				justify="center"
-				className={container_grid}
+		<div>
+			<LoaderSpinner {...{ isVisible: loading, color: COLOR_PRIMARY }} />
+			<form
+				id="myst_setup_form"
+				onSubmit={handleSubmit}
+				className={protocol_setup_form}
+				data-intro={IntroMessage.PROTOCOL_SETUP}
 			>
-				<Grid item xs={12} className={protocol_form__setup_header}>
-					<Typography variant="h5" component="h1">
-						Setup
-					</Typography>
-				</Grid>
-				<Grid item xs={3}>
-					<Typography id="discrete-slider-restrict" gutterBottom>
-						Virtual cards:
-					</Typography>
-				</Grid>
-				<Grid item xs={7}>
-					<Tooltip title="Virtual cards are software-emulated cards that run directly on the server.">
-						<Slider
-							value={formValues.virtualCardsCount}
-							onChange={handleSliderChange("virtualCardsCount")}
-							defaultValue={0}
-							step={1}
-							min={0}
-							max={15}
-							className={protocol_form__slider}
-							marks={[
-								{
-									value: 0,
-									label: "0",
-								},
-								{
-									value: 15,
-									label: "15",
-								},
-							]}
-							valueLabelDisplay="on"
-						/>
-					</Tooltip>
-				</Grid>
-
-				<Grid item xs={12} className={protocol_setup__setup_button}>
-					<Tooltip title="Update the protocol's configuration.">
-						<Button
-							variant="contained"
-							color="primary"
-							onClick={handleDialogOpen}
-						>
+				<Grid
+					container
+					alignItems="center"
+					justify="center"
+					className={container_grid}
+				>
+					<Grid item xs={12} className={protocol_form__setup_header}>
+						<Typography variant="h5" component="h1">
 							Setup
-						</Button>
-					</Tooltip>
+						</Typography>
+					</Grid>
+					<Grid item xs={3}>
+						<Typography id="discrete-slider-restrict" gutterBottom>
+							Virtual cards:
+						</Typography>
+					</Grid>
+					<Grid item xs={7}>
+						<Tooltip title="Virtual cards are software-emulated cards that run directly on the server.">
+							<Slider
+								value={formValues.virtualCardsCount}
+								onChange={handleSliderChange(
+									"virtualCardsCount"
+								)}
+								defaultValue={0}
+								step={1}
+								min={0}
+								max={15}
+								className={protocol_form__slider}
+								marks={[
+									{
+										value: 0,
+										label: "0",
+									},
+									{
+										value: 15,
+										label: "15",
+									},
+								]}
+								valueLabelDisplay="on"
+							/>
+						</Tooltip>
+					</Grid>
 
-					<Dialog
-						open={isDialogOpen}
-						onClose={handleDialogClose}
-						aria-labelledby="alert-dialog-title"
-						aria-describedby="alert-dialog-description"
-					>
-						<DialogTitle id="alert-dialog-title">
-							{"Are you sure?"}
-						</DialogTitle>
-						<DialogContent>
-							<DialogContentText id="alert-dialog-description">
-								Modifying the protocol setup can reset the cards
-								and erase all secrets!
-							</DialogContentText>
-						</DialogContent>
-						<DialogActions>
-							<Button onClick={handleDialogClose} autoFocus>
-								Cancel
-							</Button>
+					<Grid item xs={12} className={protocol_setup__setup_button}>
+						<Tooltip title="Update the protocol's configuration.">
 							<Button
-								onClick={handleDialogClose}
-								form="myst_setup_form"
-								type="submit"
+								variant="contained"
+								color="primary"
+								onClick={handleDialogOpen}
 							>
-								Proceed
+								Setup
 							</Button>
-						</DialogActions>
-					</Dialog>
+						</Tooltip>
+
+						<Dialog
+							open={isDialogOpen}
+							onClose={handleDialogClose}
+							aria-labelledby="alert-dialog-title"
+							aria-describedby="alert-dialog-description"
+						>
+							<DialogTitle id="alert-dialog-title">
+								{"Are you sure?"}
+							</DialogTitle>
+							<DialogContent>
+								<DialogContentText id="alert-dialog-description">
+									Modifying the protocol setup can reset the
+									cards and erase all secrets!
+								</DialogContentText>
+							</DialogContent>
+							<DialogActions>
+								<Button onClick={handleDialogClose} autoFocus>
+									Cancel
+								</Button>
+								<Button
+									onClick={handleDialogClose}
+									form="myst_setup_form"
+									type="submit"
+								>
+									Proceed
+								</Button>
+							</DialogActions>
+						</Dialog>
+					</Grid>
+					<Grid item xs={12}>
+						<ProtocolInfoArea {...protocolInfo} />
+					</Grid>
 				</Grid>
-				<Grid item xs={12}>
-					<ProtocolInfoArea {...protocolInfo} />
-				</Grid>
-			</Grid>
-		</form>
+			</form>
+		</div>
 	);
 };
