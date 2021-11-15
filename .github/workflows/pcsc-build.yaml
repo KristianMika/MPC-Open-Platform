@@ -1,4 +1,4 @@
-name: MPCOP CI/CD
+name: PCSC CI/CD
 on: [push]
 jobs:
   Test-Pcsc-Build:
