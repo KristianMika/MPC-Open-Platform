@@ -7,20 +7,28 @@ import {
 } from "@material-ui/core";
 import { useState } from "react";
 import {
+	barOptions,
 	InfoSeverity,
 	LATENCY_MEASUREMENT_COUNT,
 	PingOperation,
+	pingPerformanceDataCsvHeader,
 } from "../constants/Constants";
 import { defaultProtocolInfo } from "../constants/DefaultValues";
 import IProtocolInfoArea from "../store/models/IProtocolInfoArea";
 import { IResponse } from "../store/models/IResponse";
-import { checkResponseStatus, range, replicate } from "../utils/utils";
+import {
+	checkResponseStatus,
+	getDateTimestamp,
+	range,
+	replicate,
+} from "../utils/utils";
 import { eventBus } from "./GlobalComponent";
 import { ProtocolInfoArea } from "./ProtocolInfoArea";
 import { Bar } from "react-chartjs-2";
-import { IAppPerformanceTimestamps } from "../store/models/IAppPerformanceTimestamps";
 import { useRecoilState } from "recoil";
 import { latencyState } from "../store/atom";
+import { CSVLink } from "react-csv";
+import { PerformanceMeasurement } from "../performance/PerformanceMeasurement";
 
 const useStyles = makeStyles(() => ({
 	status_page: {
@@ -40,18 +48,60 @@ const useStyles = makeStyles(() => ({
 		margin: "0.5em auto",
 	},
 
-	online_indicator: {
-		display: "inline-block",
-		verticalAlign: "middle",
-		margin: "0 0 .2em 0",
-	},
 	ping_header: { marginBottom: "2em" },
 	pingButton: { margin: "0.5em" },
-	applet_count_row: { width: "50%", margin: "0 auto" },
 }));
 
+const createCsvFile = (
+	performanceData: number[],
+	performanceMeasurement: PerformanceMeasurement,
+	operationDuration: number
+) => {
+	const playersCount = performanceData.length;
+	const backend_request_duration =
+		performanceMeasurement.computeBackendRequestDuration();
+	const backend_response_duration =
+		performanceMeasurement.computeBackendResponseDuration();
+	const backendOperationDuration =
+		performanceMeasurement.computeBackendOperationDuration();
+	const rtt =
+		operationDuration -
+		backendOperationDuration -
+		backend_request_duration -
+		backend_response_duration;
+	const latency = rtt / 2;
+
+	const results = [];
+	for (let round = 0; round < playersCount; round++) {
+		const roundTimes = [
+			round + 1,
+			latency,
+			backend_request_duration,
+			performanceData[round],
+			backend_response_duration,
+			latency,
+		];
+		results.push(roundTimes);
+	}
+
+	return [pingPerformanceDataCsvHeader, ...results];
+};
+
 export const Ping: React.FC = () => {
+	const {
+		status_page,
+		status_page_grid,
+		status_page_wrapper,
+		status_row,
+		ping_header,
+		pingButton,
+	} = useStyles();
+
+	const generateCsvFilename = () =>
+		setCsvFileName(`ping_perfdata_${getDateTimestamp()}.csv`);
 	const [latencies, setLatencies] = useRecoilState(latencyState);
+	const [csvData, setCsvData] = useState<(number[] | string[])[]>([]);
+	const [csvFileName, setCsvFileName] = useState<string>("");
 	const storeLatency = (latency: number) => {
 		setLatencies({
 			latencies: [
@@ -65,21 +115,13 @@ export const Ping: React.FC = () => {
 	let requestReceptionTimestamp: number;
 	const [protocolInfo, setProtocolInfo] =
 		useState<IProtocolInfoArea>(defaultProtocolInfo);
-	const {
-		status_page,
-		status_page_grid,
-		status_page_wrapper,
-		status_row,
-		online_indicator,
-		ping_header,
-		applet_count_row,
-		pingButton,
-	} = useStyles();
+
 	const [data, setData] = useState<any>();
 	const handleSubmit = (event: any) => {
 		event.preventDefault();
 		requestOriginTimestamp = Date.now();
 		setData(null);
+		setCsvData([]);
 
 		const operation = event.nativeEvent.submitter.name;
 
@@ -92,7 +134,6 @@ export const Ping: React.FC = () => {
 		}
 		//TODO: store latency
 		eventBus.send("service.ping", operation, (a: any, msg: any) => {
-			console.log(msg);
 			requestReceptionTimestamp = Date.now();
 			handleResponse(msg.body, msg.headers);
 		});
@@ -109,18 +150,21 @@ export const Ping: React.FC = () => {
 
 	const preparePlottingData = (
 		performanceData: number[],
-		appPerformanceData: IAppPerformanceTimestamps
+		performanceMeasurement: PerformanceMeasurement
 	) => {
 		const playersCount = performanceData.length;
 		const backend_request_duration =
-			appPerformanceData.operation_origin -
-			appPerformanceData.backend_ingress;
+			performanceMeasurement.computeBackendRequestDuration();
+
 		const backend_response_duration =
-			appPerformanceData.backend_egress -
-			appPerformanceData.operation_done;
+			performanceMeasurement.computeBackendResponseDuration();
+		const wholeOperationDuration =
+			requestReceptionTimestamp - requestOriginTimestamp;
+		const backendOperationDuration =
+			performanceMeasurement.computeBackendOperationDuration();
 		const rtt =
-			requestReceptionTimestamp -
-			requestOriginTimestamp -
+			wholeOperationDuration -
+			backendOperationDuration -
 			backend_request_duration -
 			backend_response_duration;
 		const latency = rtt / 2;
@@ -130,37 +174,35 @@ export const Ping: React.FC = () => {
 				{
 					label: "Network (Request)",
 					data: replicate(latency, playersCount),
-					backgroundColor: "#22aa99",
+					backgroundColor: "#264653",
 				},
 				{
 					label: "Backend App (Request)",
 					data: replicate(backend_request_duration, playersCount),
-					backgroundColor: "#110099",
+					backgroundColor: "#e9c46a",
 				},
 				{
 					label: "JavaCard",
 					data: performanceData,
-					backgroundColor: "#19a2f7",
+					backgroundColor: "#2a9d8f",
 				},
 				{
 					label: "Backend App (Response)",
 					data: replicate(backend_response_duration, playersCount),
-					backgroundColor: "#110099",
+					backgroundColor: "#e9c46a",
 				},
 				{
 					label: "Network (Response)",
 					data: replicate(latency, playersCount),
-					backgroundColor: "#22aa99",
+					backgroundColor: "#264653",
 				},
 			],
 		};
 
-		console.log(data);
 		setData(data);
 	};
 
 	const handleResponse = (body: IResponse, headers: any) => {
-		console.log(body);
 		// TODO: add operation to the error message
 		if (!checkResponseStatus(body)) {
 			addDebugMessage(InfoSeverity.Error, body.errMessage);
@@ -176,7 +218,18 @@ export const Ping: React.FC = () => {
 				break;
 
 			case PingOperation.Ping:
-				preparePlottingData(JSON.parse(body.data), headers);
+				const performanceData: number[] = JSON.parse(body.data);
+				generateCsvFilename();
+				const performanceMeasurement =
+					PerformanceMeasurement.fromHeaders(headers);
+				preparePlottingData(performanceData, performanceMeasurement);
+				setCsvData(
+					createCsvFile(
+						performanceData,
+						performanceMeasurement,
+						requestReceptionTimestamp - requestOriginTimestamp
+					)
+				);
 				break;
 			default:
 				addDebugMessage(InfoSeverity.Success, body.message);
@@ -184,26 +237,21 @@ export const Ping: React.FC = () => {
 		}
 	};
 
-	const options = {
-		scales: {
-			xAxes: {
-				stacked: true,
-				title: {
-					display: true,
-					text: "Number of participants",
-				},
-			},
-			yAxes: {
-				stacked: true,
-				title: {
-					display: true,
-					text: "ms",
-				},
-			},
-		},
-	};
-	const graph = data ? <Bar data={data} options={options} /> : null;
-	console.log(data);
+	const graph = data ? <Bar data={data} options={barOptions} /> : null;
+	const downloadButton = csvData?.length ? (
+		<Tooltip title="Download performance data as a csv file for later analysis">
+			<CSVLink
+				data={csvData}
+				filename={csvFileName}
+				className={pingButton}
+			>
+				<Button variant="contained" color="primary">
+					Download csv
+				</Button>
+			</CSVLink>
+		</Tooltip>
+	) : null;
+
 	return (
 		<main className={status_page_wrapper}>
 			<form onSubmit={handleSubmit} className={status_page}>
@@ -253,6 +301,8 @@ export const Ping: React.FC = () => {
 								Ping!
 							</Button>
 						</Tooltip>
+
+						{downloadButton}
 					</Grid>
 
 					<Grid item xs={12}>

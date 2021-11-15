@@ -70,3 +70,31 @@ export const MOBILE_WIDTH_BREAKPOINT = 800; //pt
 export const PROTOCOL_ALERT_VISIBILITY_TIME = 5000; //ms
 
 export const LATENCY_MEASUREMENT_COUNT = 5;
+
+export const pingPerformanceDataCsvHeader = [
+	"card count",
+	"request network duration",
+	"request backend duration",
+	"operation duration",
+	"response backend duration",
+	"response network duration",
+];
+
+export const barOptions = {
+	scales: {
+		xAxes: {
+			stacked: true,
+			title: {
+				display: true,
+				text: "Number of participants",
+			},
+		},
+		yAxes: {
+			stacked: true,
+			title: {
+				display: true,
+				text: "ms",
+			},
+		},
+	},
+};
