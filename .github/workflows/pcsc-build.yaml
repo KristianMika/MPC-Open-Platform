@@ -1,0 +1,17 @@
+name: MPCOP CI/CD
+on: [push]
+jobs:
+  Test-Pcsc-Build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./pcsc-lite-max-readers-macro-update
+    steps:
+      - uses: actions/checkout@v2
+      - name: Docker image build
+        run: docker build --tag mpcop/pcsc-build .
+      - run: mkdir release
+      - name: Compile PCSC
+        run: docker run -i --rm -v `pwd`/release:/release mpcop/pcsc-build
+      - name: Test installability
+        run: cd release && sudo apt install ./*
