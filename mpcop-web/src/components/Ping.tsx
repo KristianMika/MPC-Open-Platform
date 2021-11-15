@@ -8,6 +8,7 @@ import {
 import { useState } from "react";
 import {
 	barOptions,
+	COLOR_PRIMARY,
 	InfoSeverity,
 	LATENCY_MEASUREMENT_COUNT,
 	PingOperation,
@@ -29,6 +30,7 @@ import { useRecoilState } from "recoil";
 import { latencyState } from "../store/atom";
 import { CSVLink } from "react-csv";
 import { PerformanceMeasurement } from "../performance/PerformanceMeasurement";
+import { LoaderSpinner } from "./LoaderSpinner";
 
 const useStyles = makeStyles(() => ({
 	status_page: {
@@ -97,6 +99,7 @@ export const Ping: React.FC = () => {
 		pingButton,
 	} = useStyles();
 
+	const [loading, setLoading] = useState<boolean>(false);
 	const generateCsvFilename = () =>
 		setCsvFileName(`ping_perfdata_${getDateTimestamp()}.csv`);
 	const [latencies, setLatencies] = useRecoilState(latencyState);
@@ -119,6 +122,7 @@ export const Ping: React.FC = () => {
 	const [data, setData] = useState<any>();
 	const handleSubmit = (event: any) => {
 		event.preventDefault();
+		setLoading(true);
 		requestOriginTimestamp = Date.now();
 		setData(null);
 		setCsvData([]);
@@ -130,6 +134,7 @@ export const Ping: React.FC = () => {
 				InfoSeverity.Warning,
 				'Make sure the smartcards are connected. Then click the "FIND CARDS" button.'
 			);
+			setLoading(false);
 			return;
 		}
 		//TODO: store latency
@@ -203,6 +208,7 @@ export const Ping: React.FC = () => {
 	};
 
 	const handleResponse = (body: IResponse, headers: any) => {
+		setLoading(false);
 		// TODO: add operation to the error message
 		if (!checkResponseStatus(body)) {
 			addDebugMessage(InfoSeverity.Error, body.errMessage);
@@ -251,65 +257,68 @@ export const Ping: React.FC = () => {
 			</CSVLink>
 		</Tooltip>
 	) : null;
-
+	
 	return (
-		<main className={status_page_wrapper}>
-			<form onSubmit={handleSubmit} className={status_page}>
-				<Grid
-					container
-					alignItems="center"
-					justify="center"
-					className={status_page_grid}
-				>
-					<Grid item xs={12} className={ping_header}>
-						<Typography variant="h5" component="h1">
-							Ping
-						</Typography>
-					</Grid>
-
-					<Grid item xs={12}>
-						{graph}
-					</Grid>
-
-					<Grid item xs={12}>
-						<Tooltip title="The number of connected cards with a ping applet. To find new cards, click the FIND CARDS button.">
-							<Typography gutterBottom className={status_row}>
-								<b>Applets found:</b> {pingAppletsCount}
+		<div>
+			<LoaderSpinner {...{ isVisible: loading, color: COLOR_PRIMARY }} />
+			<main className={status_page_wrapper}>
+				<form onSubmit={handleSubmit} className={status_page}>
+					<Grid
+						container
+						alignItems="center"
+						justify="center"
+						className={status_page_grid}
+					>
+						<Grid item xs={12} className={ping_header}>
+							<Typography variant="h5" component="h1">
+								Ping
 							</Typography>
-						</Tooltip>
-					</Grid>
-					<Grid item xs={12} className={status_row}>
-						<Tooltip title="Finds and connects to JavaCards with the ping applet.">
-							<Button
-								type="submit"
-								name={PingOperation.Connect}
-								variant="contained"
-								color="primary"
-								className={pingButton}
-							>
-								Find cards
-							</Button>
-						</Tooltip>
-						<Tooltip title="Sends a simple request, receives a response and plots durations of specific phases.">
-							<Button
-								type="submit"
-								name={PingOperation.Ping}
-								variant="contained"
-								color="primary"
-								className={pingButton}
-							>
-								Ping!
-							</Button>
-						</Tooltip>
+						</Grid>
 
-						{downloadButton}
-					</Grid>
+						<Grid item xs={12}>
+							{graph}
+						</Grid>
 
-					<Grid item xs={12}>
-						<ProtocolInfoArea {...protocolInfo} />
+						<Grid item xs={12}>
+							<Tooltip title="The number of connected cards with a ping applet. To find new cards, click the FIND CARDS button.">
+								<Typography gutterBottom className={status_row}>
+									<b>Applets found:</b> {pingAppletsCount}
+								</Typography>
+							</Tooltip>
+						</Grid>
+						<Grid item xs={12} className={status_row}>
+							<Tooltip title="Finds and connects to JavaCards with the ping applet.">
+								<Button
+									type="submit"
+									name={PingOperation.Connect}
+									variant="contained"
+									color="primary"
+									className={pingButton}
+								>
+									Find cards
+								</Button>
+							</Tooltip>
+							<Tooltip title="Sends a simple request, receives a response and plots durations of specific phases.">
+								<Button
+									type="submit"
+									name={PingOperation.Ping}
+									variant="contained"
+									color="primary"
+									className={pingButton}
+								>
+									Ping!
+								</Button>
+							</Tooltip>
+
+							{downloadButton}
+						</Grid>
+
+						<Grid item xs={12}>
+							<ProtocolInfoArea {...protocolInfo} />
+						</Grid>
 					</Grid>
-				</Grid>
-			</form>
-		</main>
+				</form>
+			</main>
+		</div>
 	);
 };
