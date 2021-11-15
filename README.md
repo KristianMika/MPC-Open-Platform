@@ -88,3 +88,36 @@ To run the backend, type
 ```bash
 gradle run
 ``` 
+
+
+## Script to Compile PCSC
+
+PCSC-lite is an implementation of the PC/SC international standard for PC to smartcard reader communication. It contains a PCSCLITE_MAX_READERS_CONTEXTS macro that limits the maximum number of readers connencted to a PC at a time. This script downloads and extracts the PCSC-lite and ccid Debian packages, modifies the macro and builds new packages.
+
+For more info click here: [PCSC-lite](https://pcsclite.apdu.fr/).
+
+### How to Build
+
+The provided script is intended to be executed in a Docker container, but you can also run it directly on your host machine. In that case, don't forget to install required packages from the Docker file.
+
+
+#### Docer Build
+
+1. Build a docker image
+    ```bash
+    cd pcsc-lite-max-readers-macro-update
+    docker build --tag mpcop/pcsc-build .
+    ```
+
+2. Run the built image
+    ```bash
+    # create a new folder for the build packages
+    mkdir release
+    docker run -it --rm -v `pwd`/release:/release mpcop/pcsc-build
+    ```
+
+3. Now the `./release` folder contains all the required pcsc packages. Install them using
+    ```bash
+    cd release
+    sudo apt install ./*
+    ```
