@@ -12,6 +12,5 @@ Package: mpcop
 Architecture: all
 Depends: ${misc:Depends}, ${shlibs:Depends},
     default-jre | default-jre-headless,
-    libpcsclite-dev,
     pcscd
 Description: Open Platform for Multiparty Signatures with Smartcards
