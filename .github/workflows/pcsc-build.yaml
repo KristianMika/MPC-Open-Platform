@@ -5,7 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./pcsc-lite-max-readers-macro-update
+        working-directory: ./pcsc-build
     steps:
       - uses: actions/checkout@v2
       - name: Docker image build

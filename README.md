@@ -105,7 +105,7 @@ The provided script is intended to be executed in a Docker container, but you ca
 
 1. Build a docker image
     ```bash
-    cd pcsc-lite-max-readers-macro-update
+    cd pcsc-build
     docker build --tag mpcop/pcsc-build .
     ```
 
