@@ -16,9 +16,7 @@ export DEBIAN_FRONTEND=noninteractive
 # target readers limit
 READER_NUM=60
 
-DEB_CONTROL="debian/control"
 PCSC_SOURCE="pcsc-lite"
-PCSC_PACKAGE="pcscd"
 PCSC_LIB="libpcsclite1"
 PCSC_LIB_DEV="libpcsclite-dev"
 PCSC_VERSION=${PCSC_VERSION:-"1.9.1"}
@@ -27,28 +25,20 @@ PCSC_SLUG="${PCSC_SOURCE}_${PCSC_VERSION}"
 PCSC_SLUG_REV="${PCSC_SLUG}-${PCSC_REV}"
 PCSC_DIR="${PCSC_SOURCE}-${PCSC_VERSION}"
 
-P_PCSC_PACKAGE="${PCSC_PACKAGE}"
-P_PCSC_LIB="${PCSC_LIB}"
 P_PCSC_LIB_DEV="${PCSC_LIB_DEV}"
-
-ARCH=$(dpkg --print-architecture)
-PCSC_VER_ARCH="${PCSC_VERSION}-${PCSC_REV}_${ARCH}"
-PCSC_FILE="${P_PCSC_PACKAGE}_${PCSC_VER_ARCH}.deb"
-PCSC_LIB_FILE="${P_PCSC_LIB}_${PCSC_VER_ARCH}.deb"
-PCSC_LIB_DEV_FILE="${P_PCSC_LIB_DEV}_${PCSC_VER_ARCH}.deb"
 
 echo "Fetching PCSC sources:"
 # PCSC Debian packaging files
-wget http://deb.debian.org/debian/pool/main/p/${PCSC_SOURCE}/${PCSC_SLUG_REV}.debian.tar.xz
+wget "http://deb.debian.org/debian/pool/main/p/${PCSC_SOURCE}/${PCSC_SLUG_REV}.debian.tar.xz"
 # PCSC source codes
-wget http://deb.debian.org/debian/pool/main/p/${PCSC_SOURCE}/${PCSC_SLUG}.orig.tar.bz2
+wget "http://deb.debian.org/debian/pool/main/p/${PCSC_SOURCE}/${PCSC_SLUG}.orig.tar.bz2"
 
 echo "Extracting sources"
-tar xvf ${PCSC_SLUG_REV}.debian.tar.xz
-tar xjvf ${PCSC_SLUG}.orig.tar.bz2
+tar xvf "${PCSC_SLUG_REV}.debian.tar.xz"
+tar xjvf "${PCSC_SLUG}.orig.tar.bz2"
 
 echo "Moving Debian folder to the source directory"
-mv debian ${PCSC_DIR}/
+mv debian "${PCSC_DIR}/"
 
 # Change reader contexts
 echo "Modifying the soruce code"
@@ -56,10 +46,10 @@ PCSC_PATCH_FILE=${PCSC_DIR}/src/PCSC/pcsclite.h.in
 PCSC_FIND="\#define PCSCLITE_MAX_READERS_CONTEXTS\W+?16"
 PCSC_REPLACE="#define PCSCLITE_MAX_READERS_CONTEXTS ${READER_NUM}"
 
-sed -i -E "s/${PCSC_FIND}/${PCSC_REPLACE}/g" ${PCSC_PATCH_FILE}
+sed -i -E "s/${PCSC_FIND}/${PCSC_REPLACE}/g" "${PCSC_PATCH_FILE}"
 
 # Build the pcscd package
-cd ${PCSC_DIR}
+cd "${PCSC_DIR}"
 
 # create a new version
 dch --distribution unstable --increment "feat: modify MAX_READS_COUNT to ${READER_NUM}"
@@ -73,7 +63,7 @@ cd ..
 
 mkdir -p /release
 rm -rf ./*dbgsym*
-mv *.deb /release
+mv ./*.deb /release
 rm -rf ./pcsc-lite*
 
 echo "PCSC has been successfully built"
@@ -85,38 +75,36 @@ CCID_SLUG="${CCID_NAME}_${CCID_VERSION}"
 CCID_SLUG_REV="${CCID_SLUG}-${CCID_REV}"
 CCID_DIR="${CCID_NAME}-${CCID_VERSION}"
 
-CCID_VER_ARCH="${CCID_VERSION}-${CCID_REV}_${ARCH}"
-
 echo "Fetching libccid sources"
 # libccid Debian packaging files
-wget http://deb.debian.org/debian/pool/main/c/${CCID_NAME}/${CCID_SLUG_REV}.debian.tar.xz
+wget "http://deb.debian.org/debian/pool/main/c/${CCID_NAME}/${CCID_SLUG_REV}.debian.tar.xz"
 # libccid source codes
-wget http://deb.debian.org/debian/pool/main/c/${CCID_NAME}/${CCID_SLUG}.orig.tar.bz2
+wget "http://deb.debian.org/debian/pool/main/c/${CCID_NAME}/${CCID_SLUG}.orig.tar.bz2"
 
 echo "Extracting sources"
-tar xvf ${CCID_SLUG_REV}.debian.tar.xz
-tar xjvf ${CCID_SLUG}.orig.tar.bz2
+tar xvf "${CCID_SLUG_REV}.debian.tar.xz"
+tar xjvf "${CCID_SLUG}.orig.tar.bz2"
 
 echo "Moving Debian folder to the source directory"
-mv debian ${CCID_DIR}/
+mv debian "${CCID_DIR}/"
 
 # Change reader contexts
 echo "Modifying the soruce code"
 CCID_PATCH_FILE="${CCID_DIR}/src/ccid_ifdhandler.h"
 CCID_FIND="CCID_DRIVER_MAX_READERS\W+?16"
 CCID_REPLACE="CCID_DRIVER_MAX_READERS ${READER_NUM}"
-sed -i -E "s/${CCID_FIND}/${CCID_REPLACE}/g" ${CCID_PATCH_FILE}
+sed -i -E "s/${CCID_FIND}/${CCID_REPLACE}/g" "${CCID_PATCH_FILE}"
 
-cd ${CCID_DIR}
+cd "${CCID_DIR}"
 
 # create a new version
 dch --distribution unstable --increment "feat: modify MAX_READS_COUNT to ${READER_NUM}"
 
 echo "Installing built PCSC packages as build dependencies for libccid"
-MODIFIED_PCSCLITE_PATH="/release/${PCSC_LIB}*.deb"
-MODIFIED_PCSCLITE_DEV_PATH="/release/${P_PCSC_LIB_DEV}*.deb"
-dpkg -i --force-overwrite ${MODIFIED_PCSCLITE_PATH}
-dpkg -i ${MODIFIED_PCSCLITE_DEV_PATH}
+MODIFIED_PCSCLITE_PATH=$(find /release -type f -name "${PCSC_LIB}*.deb")
+MODIFIED_PCSCLITE_DEV_PATH=$(find /release -type f -name "${P_PCSC_LIB_DEV}*.deb")
+dpkg -i --force-overwrite "${MODIFIED_PCSCLITE_PATH}"
+dpkg -i "${MODIFIED_PCSCLITE_DEV_PATH}"
 
 echo "Installing the remaining build dependencies for ${CCID_NAME}"
 mk-build-deps --install --tool 'apt-get --assume-yes' --remove
@@ -127,7 +115,7 @@ dpkg-buildpackage -b -rfakeroot -us -uc
 cd ..
 
 rm -f ./*dbgsym*
-mv *.deb /release
+mv ./*.deb /release
 rm -rf ./ccid*
 
 echo "Build has finished successfully! Your packages are located in the /release folder."
