@@ -2,21 +2,19 @@ package cz.muni.fi.mpcop
 
 
 import io.vertx.core.AbstractVerticle
-import io.vertx.core.Handler
-import io.vertx.core.VertxOptions
-import io.vertx.core.eventbus.Message
 import io.vertx.core.eventbus.ReplyException
 import io.vertx.core.eventbus.ReplyFailure
 import io.vertx.core.json.JsonObject
-import io.vertx.core.metrics.MetricsOptions
 import io.vertx.ext.bridge.BridgeEventType
 import io.vertx.ext.bridge.PermittedOptions
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.RoutingContext
+import io.vertx.ext.web.handler.StaticHandler
 import io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions
 import io.vertx.ext.web.handler.sockjs.SockJSHandler
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions
 import io.vertx.kotlin.core.json.get
+import java.net.SocketException
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.logging.Logger
 
@@ -54,13 +52,15 @@ class ControllerVerticle : AbstractVerticle() {
 
                 }
                 BridgeEventType.SEND -> {
-                    event.rawMessage.get<JsonObject>("headers").put("backend_ingress", System.currentTimeMillis().toString())
+                    event.rawMessage.get<JsonObject>("headers")
+                        .put("backend_ingress", System.currentTimeMillis().toString())
                 }
 
                 BridgeEventType.RECEIVE -> {
-                    event.rawMessage.get<JsonObject>("headers").put("backend_egress", System.currentTimeMillis().toString())
+                    event.rawMessage.get<JsonObject>("headers")
+                        .put("backend_egress", System.currentTimeMillis().toString())
                 }
-                else ->{
+                else -> {
 
                 }
             }
@@ -74,9 +74,20 @@ class ControllerVerticle : AbstractVerticle() {
             failure?.printStackTrace()
         }
 
+        router.errorHandler(
+            404
+        ) { routingContext: RoutingContext ->
+            routingContext.response().setStatusCode(302).putHeader("Location", "/index.html").end()
+        }
+
         router.route("$CONTROLLER_BRIDGE_PATH/*").handler(sockJSHandler)
+
+        val staticHandler = StaticHandler.create(staticContentDir)
+        router.route("/*").handler(staticHandler)
+
         server.requestHandler(router).listen(CONTROLLER_PORT)
         logger.info("Controller has been successfully deployed and is now running on port $CONTROLLER_PORT.")
+        logger.info(getPrivateIpAnnouncement())
 
     }
 
@@ -132,10 +143,28 @@ class ControllerVerticle : AbstractVerticle() {
         return (Messages.GENERIC_ERROR_MESSAGE + " " + throwable.toString())
     }
 
+    /**
+     * Creates an announcement containing the host's private IP address and instructions on accessing
+     * the control panel from other computers.
+     */
+    private fun getPrivateIpAnnouncement(): String {
+        var message = "You can access the control panel from computers within this LAN at "
+        message += try {
+            val privateIp: String = Utils.getPrivateIp()
+            "$privateIp:${CONTROLLER_PORT}."
+        } catch (ignored: SocketException) {
+            "port $CONTROLLER_PORT of this computer."
+        }
+        return message
+    }
+
     companion object {
         const val CONTROLLER_ADDRESS = "service.controller"
         const val CONTROLLER_REGISTER_ADDRESS = "service.controller-register"
         const val CONTROLLER_BRIDGE_PATH = "/mpcop-event-bus"
+
+        // TODO: tmp fix, use config
+        private const val staticContentDir: String = "../../../../../../www/mpcop/static"
         private val logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME)
         private const val CONTROLLER_PORT = 8082
         private const val HEART_BEAT_INTERVAL: Long = 2000

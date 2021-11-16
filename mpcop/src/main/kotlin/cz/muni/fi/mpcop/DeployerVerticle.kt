@@ -22,7 +22,6 @@ class DeployerVerticle : AbstractVerticle() {
         deployWorkerVerticle(SmpcRsaVerticle::class.java.name)
         deployWorkerVerticle(PingVerticle::class.java.name)
         deployVerticle(ControllerVerticle::class.java.name)
-        deployVerticle(StaticServerVerticle::class.java.name)
     }
 
     /**

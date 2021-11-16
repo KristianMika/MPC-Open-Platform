@@ -52,13 +52,13 @@ A network of MPC nodes can be used as a single node.
     ```bash
     sudo apt-get install mpcop
     ```
-4. After the installation has been completed, the application is running and ready to use on port 8083.
+4. After the installation has been completed, the application is running and ready to use on port 8082.
 
 ## Run Using Docker
 
 ```bash
 docker pull mpcop/mpcop:latest
-docker run --device /dev/bus/usb -p 8082:8082 -p 8083:8083 mpcop/mpcop:latest
+docker run --device /dev/bus/usb -p 8082:8082 mpcop/mpcop:latest
 ```
 ## Package
 
