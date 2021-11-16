@@ -1,0 +1,17 @@
+name: PING CI/CD
+on: [push]
+jobs:
+  Build-And-Test:
+    runs-on: ubuntu-latest
+    container: openjdk:8
+    defaults:
+      run:
+        working-directory: ./ping
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'true'
+      - name: Run tests
+        run: ./gradlew check --info
+      - name: Build applet
+        run: ./gradlew buildJavaCard --info
