@@ -14,7 +14,7 @@ export const send = (
 	storeLatency: undefined | ((latency: number) => void) = undefined
 ): void => {
 	const originTimestamp = Date.now();
-	eventBus.send(address, msgBody, (_: any, msg: any) => {
+	eventBus.send(address, msgBody, (error: Error, msg: any) => {
 		const operationDuration = Date.now() - originTimestamp;
 		if (msg == null) {
 			console.log("An error occured: the back-end hasn't responded");

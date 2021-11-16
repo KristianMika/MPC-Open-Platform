@@ -10,7 +10,7 @@ import {
 	Tooltip,
 	Typography,
 } from "@material-ui/core";
-import { useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { useRecoilState } from "recoil";
 import {
 	COLOR_PRIMARY,
@@ -56,10 +56,7 @@ export const MystSetup: React.FC = () => {
 	const handleDialogOpen = () => {
 		setIsDialogOpen(true);
 	};
-	interface IFormValues {
-		data: string;
-	}
-	const handleSliderChange = (name: any) => (_e: any, value: any) => {
+	const handleSliderChange = (name: string) => (_e: any, value: any) => {
 		setFormValues({
 			...formValues,
 			[name]: value,
@@ -116,7 +113,7 @@ export const MystSetup: React.FC = () => {
 				addDebugMessage(InfoSeverity.Info, body.message);
 		}
 	};
-	const handleSubmit = (event: any) => {
+	const handleSubmit = (event: ChangeEvent<HTMLFormElement>) => {
 		event.preventDefault();
 		setLoading(true);
 
@@ -141,7 +138,7 @@ export const MystSetup: React.FC = () => {
 	};
 	const [debugMessages, setDebugMessages] =
 		useRecoilState(debugMessagesState);
-	const logDebugMessage = (msg: any) => {
+	const logDebugMessage = (msg: IResponse) => {
 		const res = msg.success
 			? OperationResult.Success
 			: OperationResult.Error;

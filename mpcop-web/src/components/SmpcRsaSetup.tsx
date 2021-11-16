@@ -21,7 +21,7 @@ import {
 import { IMessage } from "../store/models/IMessage";
 import { useProtocolSetupStyles } from "../styles/protocolSetup";
 import { send } from "../eventbus/eventbus";
-import { useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { ProtocolInfoArea } from "./ProtocolInfoArea";
 import IProtocolInfoArea from "../store/models/IProtocolInfoArea";
 import { IResponse } from "../store/models/IResponse";
@@ -114,7 +114,7 @@ export const SmpcRsaSetup: React.FC = () => {
 				}
 		}
 	};
-	const handleSubmit = (event: any) => {
+	const handleSubmit = (event: ChangeEvent<HTMLFormElement>) => {
 		event.preventDefault();
 		setLoading(true);
 
@@ -145,10 +145,10 @@ export const SmpcRsaSetup: React.FC = () => {
 		);
 	};
 
-	const eventSwitchChange = (e: any) => {
+	const eventSwitchChange = (event: ChangeEvent<HTMLInputElement>) => {
 		setFormValues({
 			...formValues,
-			[e.target.name]: e.target.checked,
+			[event.target.name]: event.target.checked,
 		});
 	};
 
@@ -162,7 +162,7 @@ export const SmpcRsaSetup: React.FC = () => {
 
 	const [debugMessages, setDebugMessages] =
 		useRecoilState(debugMessagesState);
-	const logDebugMessage = (msg: any) => {
+	const logDebugMessage = (msg: IResponse) => {
 		const res = msg.success
 			? OperationResult.Success
 			: OperationResult.Error;

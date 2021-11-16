@@ -18,19 +18,19 @@ export class PerformanceMeasurement implements IAppPerformanceTimestamps {
 		this.operation_done = operation_done;
 	}
 
-	computeBackendRequestDuration() {
+	computeBackendRequestDuration(): number {
 		return this.operation_origin - this.backend_ingress;
 	}
 
-	computeBackendResponseDuration() {
+	computeBackendResponseDuration(): number {
 		return this.backend_egress - this.operation_done;
 	}
 
-	computeBackendOperationDuration() {
+	computeBackendOperationDuration(): number {
 		return this.operation_done - this.operation_origin;
 	}
 
-	static fromHeaders(headers: any) {
+	static fromHeaders(headers: any): PerformanceMeasurement {
 		return new PerformanceMeasurement(
 			headers.backend_ingress,
 			headers.backend_egress,

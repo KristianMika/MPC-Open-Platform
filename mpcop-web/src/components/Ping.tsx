@@ -138,7 +138,7 @@ export const Ping: React.FC = () => {
 			return;
 		}
 		//TODO: store latency
-		eventBus.send("service.ping", operation, (a: any, msg: any) => {
+		eventBus.send("service.ping", operation, (error: Error, msg: any) => {
 			requestReceptionTimestamp = Date.now();
 			handleResponse(msg.body, msg.headers);
 		});
