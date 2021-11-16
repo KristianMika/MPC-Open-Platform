@@ -124,6 +124,6 @@ jobs:
       - name: Release package
         uses: docker://lpenz/ghaction-packagecloud:v0.3
         with:
-          repository: mpcop/debian/buster
+          repository: mpcop/any/any
         env:
           PACKAGECLOUD_TOKEN: ${{ secrets.PACKAGECLOUD_TOKEN }}
