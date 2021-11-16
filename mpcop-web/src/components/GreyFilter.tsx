@@ -26,7 +26,7 @@ export const GreyFilter: React.FC = () => {
 	const greyFilter = socketState.isOpen ? null : (
 		<Delayed {...{ waitBeforeShow: 3000 }}>
 			<div className={grey_filter}>
-				<Grid container alignItems="center" justify="center">
+				<Grid container alignItems="center" justifyContent="center">
 					<Grid item xs={12} className={connection_warning}>
 						<Typography variant="h5" component="h1">
 							The connection with the server has been terminated.{" "}

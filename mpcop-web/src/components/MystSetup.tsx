@@ -186,7 +186,7 @@ export const MystSetup: React.FC = () => {
 				<Grid
 					container
 					alignItems="center"
-					justify="center"
+					justifyContent="center"
 					className={container_grid}
 				>
 					<Grid item xs={12} className={protocol_form__setup_header}>
@@ -206,7 +206,6 @@ export const MystSetup: React.FC = () => {
 								onChange={handleSliderChange(
 									"virtualCardsCount"
 								)}
-								defaultValue={0}
 								step={1}
 								min={0}
 								max={15}

@@ -266,7 +266,7 @@ export const Ping: React.FC = () => {
 					<Grid
 						container
 						alignItems="center"
-						justify="center"
+						justifyContent="center"
 						className={status_page_grid}
 					>
 						<Grid item xs={12} className={ping_header}>

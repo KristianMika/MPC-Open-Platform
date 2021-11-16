@@ -238,7 +238,7 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 			<LoaderSpinner {...{ isVisible: loading, color: COLOR_PRIMARY }} />
 
 			<form onSubmit={handleSubmit} className={protocol_form}>
-				<Grid container alignItems="center" justify="center">
+				<Grid container alignItems="center" justifyContent="center">
 					<Grid item xs={12} className={protocol_form__protocol_name}>
 						<Typography variant="h5" component="h1">
 							<span data-intro={IntroMessage.PROTOCOL_NAME}>
@@ -262,7 +262,6 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 								label="Public Key"
 								type="text"
 								multiline
-								defaultValue="(Not generated yet)"
 								value={pubKey}
 								rows={3}
 								onChange={handleInputChange}

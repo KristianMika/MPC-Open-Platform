@@ -208,7 +208,7 @@ export const SmpcRsaSetup: React.FC = () => {
 				<Grid
 					container
 					alignItems="center"
-					justify="center"
+					justifyContent="center"
 					className={container_grid}
 				>
 					<Grid item xs={12} className={protocol_form__setup_header}>

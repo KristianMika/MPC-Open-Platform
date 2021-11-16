@@ -69,7 +69,7 @@ export const Home: React.FC = () => {
 				<Grid
 					container
 					alignItems="center"
-					justify="center"
+					justifyContent="center"
 					className={status_page_grid}
 					data-intro={IntroMessage.HOME_PAGE_STATUS}
 				>
