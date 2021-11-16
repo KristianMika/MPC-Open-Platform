@@ -38,7 +38,6 @@ export const AutoHideAlert: React.FC<IAutoHideAlert> = (props) => {
 						size="small"
 						onClick={() => {
 							setOpen(false);
-							console.log("closing");
 						}}
 					>
 						<CloseIcon fontSize="inherit" />

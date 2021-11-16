@@ -195,7 +195,6 @@ export const SmpcRsaSetup: React.FC = () => {
 		);
 	}, [socketState]);
 
-	console.log(formValues);
 	return (
 		<div>
 			<LoaderSpinner {...{ isVisible: loading, color: COLOR_PRIMARY }} />

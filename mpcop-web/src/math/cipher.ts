@@ -8,14 +8,8 @@ export const verifyMystCipher = (
 	const decryptedEc = ec
 		.keyFromPublic(decryptedCiphertext, "hex")
 		.getPublic();
-	console.log(mG.encode("hex"));
-	console.log(decryptedEc.encode("hex", false));
 	const wasVeirificationSuccessfull: boolean = mG.eq(decryptedEc);
-	if (wasVeirificationSuccessfull) {
-		alert(
-			"DEBUG: The plaintext has been compared to the recently encrypted plaintext and they match"
-		);
-	}
+
 	return wasVeirificationSuccessfull;
 };
 

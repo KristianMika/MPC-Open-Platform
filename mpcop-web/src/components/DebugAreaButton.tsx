@@ -34,7 +34,6 @@ export const DebugAreaButton: React.FC = () => {
 	const [isVisible, setIsVisible] = useState(false);
 	const toggleDebug = () => {
 		setIsVisible(!isVisible);
-		console.log(isVisible);
 	};
 
 	const debugAreaElement = isVisible ? (
