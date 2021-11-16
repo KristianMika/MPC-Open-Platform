@@ -23,7 +23,6 @@ import {
 	range,
 	replicate,
 } from "../utils/utils";
-import { eventBus } from "./GlobalComponent";
 import { ProtocolInfoArea } from "./ProtocolInfoArea";
 import { Bar } from "react-chartjs-2";
 import { useRecoilState } from "recoil";
@@ -31,6 +30,7 @@ import { latencyState } from "../store/atom";
 import { CSVLink } from "react-csv";
 import { PerformanceMeasurement } from "../performance/PerformanceMeasurement";
 import { LoaderSpinner } from "./LoaderSpinner";
+import { send } from "../eventbus/eventbus";
 
 const useStyles = makeStyles(() => ({
 	status_page: {
@@ -56,22 +56,15 @@ const useStyles = makeStyles(() => ({
 
 const createCsvFile = (
 	performanceData: number[],
-	performanceMeasurement: PerformanceMeasurement,
-	operationDuration: number
+	performanceMeasurement: PerformanceMeasurement
 ) => {
 	const playersCount = performanceData.length;
 	const backend_request_duration =
 		performanceMeasurement.computeBackendRequestDuration();
 	const backend_response_duration =
 		performanceMeasurement.computeBackendResponseDuration();
-	const backendOperationDuration =
-		performanceMeasurement.computeBackendOperationDuration();
-	const rtt =
-		operationDuration -
-		backendOperationDuration -
-		backend_request_duration -
-		backend_response_duration;
-	const latency = rtt / 2;
+
+	const latency = performanceMeasurement.computeLatency();
 
 	const results = [];
 	for (let round = 0; round < playersCount; round++) {
@@ -114,8 +107,6 @@ export const Ping: React.FC = () => {
 		});
 	};
 	const [pingAppletsCount, setPingAppletsCount] = useState<number>(0);
-	let requestOriginTimestamp: number;
-	let requestReceptionTimestamp: number;
 	const [protocolInfo, setProtocolInfo] =
 		useState<IProtocolInfoArea>(defaultProtocolInfo);
 
@@ -123,7 +114,6 @@ export const Ping: React.FC = () => {
 	const handleSubmit = (event: any) => {
 		event.preventDefault();
 		setLoading(true);
-		requestOriginTimestamp = Date.now();
 		setData(null);
 		setCsvData([]);
 
@@ -137,11 +127,14 @@ export const Ping: React.FC = () => {
 			setLoading(false);
 			return;
 		}
-		//TODO: store latency
-		eventBus.send("service.ping", operation, (error: Error, msg: any) => {
-			requestReceptionTimestamp = Date.now();
-			handleResponse(msg.body, msg.headers);
-		});
+		send(
+			{ operation, data: "", protocol: "ping" },
+			"service.ping",
+			handleResponse,
+			undefined,
+			() => setLoading(false),
+			storeLatency
+		);
 	};
 
 	const addDebugMessage = (severity: InfoSeverity, message: string) => {
@@ -163,16 +156,7 @@ export const Ping: React.FC = () => {
 
 		const backend_response_duration =
 			performanceMeasurement.computeBackendResponseDuration();
-		const wholeOperationDuration =
-			requestReceptionTimestamp - requestOriginTimestamp;
-		const backendOperationDuration =
-			performanceMeasurement.computeBackendOperationDuration();
-		const rtt =
-			wholeOperationDuration -
-			backendOperationDuration -
-			backend_request_duration -
-			backend_response_duration;
-		const latency = rtt / 2;
+		const latency = performanceMeasurement.computeLatency();
 		const data = {
 			labels: range(playersCount),
 			datasets: [
@@ -207,8 +191,10 @@ export const Ping: React.FC = () => {
 		setData(data);
 	};
 
-	const handleResponse = (body: IResponse, headers: any) => {
-		setLoading(false);
+	const handleResponse = (
+		body: IResponse,
+		performanceMeasurement: PerformanceMeasurement
+	) => {
 		// TODO: add operation to the error message
 		if (!checkResponseStatus(body)) {
 			addDebugMessage(InfoSeverity.Error, body.errMessage);
@@ -226,15 +212,10 @@ export const Ping: React.FC = () => {
 			case PingOperation.Ping:
 				const performanceData: number[] = JSON.parse(body.data);
 				generateCsvFilename();
-				const performanceMeasurement =
-					PerformanceMeasurement.fromHeaders(headers);
+
 				preparePlottingData(performanceData, performanceMeasurement);
 				setCsvData(
-					createCsvFile(
-						performanceData,
-						performanceMeasurement,
-						requestReceptionTimestamp - requestOriginTimestamp
-					)
+					createCsvFile(performanceData, performanceMeasurement)
 				);
 				break;
 			default:
@@ -257,7 +238,7 @@ export const Ping: React.FC = () => {
 			</CSVLink>
 		</Tooltip>
 	) : null;
-	
+
 	return (
 		<div>
 			<LoaderSpinner {...{ isVisible: loading, color: COLOR_PRIMARY }} />

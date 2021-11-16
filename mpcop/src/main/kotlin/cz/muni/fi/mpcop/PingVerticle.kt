@@ -1,40 +1,37 @@
 package cz.muni.fi.mpcop
 
+import com.google.gson.Gson
+import com.google.gson.JsonElement
+import com.google.gson.JsonSyntaxException
 import cz.muni.cz.mpcop.PingManager
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.Message
 import io.vertx.core.json.JsonObject
+
 import java.util.logging.Logger
 
 class PingVerticle : AbstractVerticle() {
     var pingManager: PingManager? = null
     private val logger: Logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME)
-
+    private val gson = Gson()
     override fun start() {
-        vertx.eventBus().consumer("service.ping") { msg: Message<String> ->
+        vertx.eventBus().consumer("service.ping") { msg: Message<JsonObject> ->
 
             requestHandler(msg)
         }
     }
 
-    private fun requestHandler(msg: Message<String>) {
-
+    private fun requestHandler(msg: Message<JsonObject>) {
 
         logger.info("Received: " + msg.body().toString())
 
-        val operation: PingOperation = try {
-            PingOperation.valueOf(msg.body())
-        } catch (e: IllegalArgumentException) {
-            throw GeneralMPCOPException("Invalid operation $msg.body()")
-        }
-
         val operationOriginTimestamp = System.currentTimeMillis()
         val response: Response? = try {
-            process(operation)
+            process(msg.body())
         } catch (e: Exception) {
             logger.warning(e.toString())
-            Response(operation.toString()).failed().setErrMessage(e.message)
+            Response("Ping operation").failed().setErrMessage(e.message)
         }
         val operationFinalTimestamp = System.currentTimeMillis()
 
@@ -51,10 +48,16 @@ class PingVerticle : AbstractVerticle() {
     }
 
     @Throws(GeneralMPCOPException::class)
-    fun process(operation: PingOperation): Response {
-        val r = Response(operation.toString())
+    fun process(rawRequest: JsonObject): Response {
 
-        return when (operation) {
+        val request:PingRequest = try {
+            gson.fromJson(rawRequest.toString(), PingRequest::class.java)
+        }  catch (e:JsonSyntaxException) {
+            throw GeneralMPCOPException("Invalid request format")
+        }
+        val r = Response(request.operation.toString())
+
+        return when (request.operation) {
             PingOperation.CONNECT -> {
                 pingManager = PingManager(true)
                 r.setMessage(pingManager?.pingPlayers?.size?.toString() ?: "0")

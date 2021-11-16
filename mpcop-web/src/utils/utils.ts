@@ -1,4 +1,3 @@
-import { IAppPerformanceTimestamps } from "../store/models/IAppPerformanceTimestamps";
 import { IResponse } from "../store/models/IResponse";
 
 const VOWELS = ["a", "e", "i", "o", "u", "y"];
@@ -97,13 +96,3 @@ export const range = (n: number): number[] =>
 export const replicate = <T>(elem: T, count: number): T[] =>
 	Array(count).fill(elem);
 
-export const computeRtt = (
-	operationDuration: number,
-	appPerformanceHeaders: IAppPerformanceTimestamps
-): number => {
-	return (
-		operationDuration -
-		(appPerformanceHeaders.backend_egress -
-			appPerformanceHeaders.backend_ingress)
-	);
-};
