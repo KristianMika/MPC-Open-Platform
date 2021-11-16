@@ -14,7 +14,7 @@ import static cz.muni.cz.mpcop.JavacardUtils.checkSw;
 
 public class Ping implements Runnable {
     public static final byte NONE = 0x00;
-    private final static byte INS_PING = (byte) 0x1234;
+    private final static byte INS_PING = (byte) 0x12;
     private static final byte CLA_PING = (byte) 0x88;
     public volatile Optional<String> lastError = Optional.empty();
 
