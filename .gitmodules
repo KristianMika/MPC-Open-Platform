@@ -7,3 +7,6 @@
 [submodule "mpcop/protocols/Myst"]
 	path = mpcop/protocols/Myst
 	url = https://github.com/KristianMika/Myst.git
+[submodule "ping/libs-sdks"]
+	path = ping/libs-sdks
+	url = https://github.com/martinpaljak/oracle_javacard_sdks.git
