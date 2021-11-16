@@ -72,7 +72,7 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 		setProtocolInfo({
 			messages: [
 				...protocolInfo.messages,
-				{ message, severity, key: Date.now() },
+				{ message, severity, timestamp: Date.now() },
 			],
 		});
 	};

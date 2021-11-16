@@ -81,7 +81,7 @@ export const MystSetup: React.FC = () => {
 		setProtocolInfo({
 			messages: [
 				...protocolInfo.messages,
-				{ message, severity, key: Date.now() },
+				{ message, severity, timestamp: Date.now() },
 			],
 		});
 	};

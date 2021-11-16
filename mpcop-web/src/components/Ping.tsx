@@ -148,7 +148,7 @@ export const Ping: React.FC = () => {
 		setProtocolInfo({
 			messages: [
 				...protocolInfo.messages,
-				{ message, severity, key: Date.now() },
+				{ message, severity, timestamp: Date.now() },
 			],
 		});
 	};

@@ -9,7 +9,7 @@ export const ProtocolButtons: React.FC = () => {
 	const buttons = protocolButtons.map(
 		({ name, label, tooltipLabel }: IProtocolButton) => {
 			return (
-				<Tooltip title={tooltipLabel}>
+				<Tooltip title={tooltipLabel} key={name}>
 					<Button
 						variant="contained"
 						color="primary"

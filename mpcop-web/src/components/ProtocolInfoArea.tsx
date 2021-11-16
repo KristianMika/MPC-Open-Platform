@@ -18,7 +18,7 @@ export const ProtocolInfoArea: React.FC<IProtocolInfoArea> = (props) => {
 			if (message) {
 				setAlerts([
 					...alerts,
-					<AutoHideAlert {...message}></AutoHideAlert>,
+					<AutoHideAlert key={message.timestamp} {...message}></AutoHideAlert>,
 				]);
 			}
 		}

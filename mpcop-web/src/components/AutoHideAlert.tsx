@@ -10,7 +10,7 @@ import { makeStyles } from "@material-ui/core";
 export interface IAutoHideAlert {
 	message: string;
 	severity: InfoSeverity;
-	key: React.Key;
+	timestamp: number;
 }
 const useStyles = makeStyles(() => ({
 	alert: {
@@ -27,7 +27,7 @@ export const AutoHideAlert: React.FC<IAutoHideAlert> = (props) => {
 
 	const { alert } = useStyles();
 	return (
-		<Collapse in={open} key={props.key}>
+		<Collapse in={open} key={props.timestamp}>
 			<Alert
 				className={alert}
 				severity={props.severity}
