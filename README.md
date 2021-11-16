@@ -33,9 +33,16 @@ A network of MPC nodes can be used as a single node.
 
 ## Installation
 
-1. Set up the MPCOP repository on your system using the script provided by [packagecloud.io](https://packagecloud.io/)
+1. Set up the MPCOP repository on your system:
+    - Using the script provided by [packagecloud.io](https://packagecloud.io/)
     ```bash
-    $ curl -s https://packagecloud.io/install/repositories/kristian_mika/mpcop/script.deb.sh | sudo bash
+    curl -s https://packagecloud.io/install/repositories/kristian_mika/mpcop/script.deb.sh | sudo bash
+    ```
+    - or by direct apt sources modification
+    ```bash
+    echo "deb https://packagecloud.io/kristian_mika/mpcop/any/ any main" | sudo tee --append /etc/apt/sources.list.d/kristian_mika_mpcop.list
+    echo "deb-src https://packagecloud.io/kristian_mika/mpcop/any/ any main" | sudo tee --append /etc/apt/sources.list.d/kristian_mika_mpcop.list
+    curl -L "https://packagecloud.io/kristian_mika/mpcop/gpgkey" 2> /dev/null | sudo apt-key add -
     ```
 2. Update your package indices
     ```bash
