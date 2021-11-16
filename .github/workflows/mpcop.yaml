@@ -28,6 +28,8 @@ jobs:
         working-directory: ./mpcop
     steps:
       - uses: actions/checkout@v2
+        with:
+          submodules: 'true'
       - name: Instal Debian tools
         run: sudo apt update && sudo apt install devscripts equivs
       - name: Install build dependencies
@@ -37,8 +39,6 @@ jobs:
         with:
           name: static
           path: mpcop/static/
-      - name: Clone submodules
-        run: git submodule update --init --recursive
       - name: Check version
         id: version_output
         run: >
