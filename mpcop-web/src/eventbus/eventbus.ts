@@ -1,10 +1,11 @@
 import { eventBus } from "../components/GlobalComponent";
 import { PerformanceMeasurement } from "../performance/PerformanceMeasurement";
 import { IMessage } from "../store/models/IMessage";
+import { IPingMessage } from "../store/models/IPingMessage";
 import { IResponse } from "../store/models/IResponse";
 
 export const send = (
-	msgBody: IMessage,
+	msgBody: IMessage | IPingMessage,
 	address: string,
 	callback: (
 		body: IResponse,

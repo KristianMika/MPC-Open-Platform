@@ -117,7 +117,7 @@ export const Ping: React.FC = () => {
 		setData(null);
 		setCsvData([]);
 
-		const operation = event.nativeEvent.submitter.name;
+		const operation: PingOperation = event.nativeEvent.submitter.name;
 
 		if (operation === PingOperation.Ping && pingAppletsCount == 0) {
 			addDebugMessage(
@@ -128,7 +128,7 @@ export const Ping: React.FC = () => {
 			return;
 		}
 		send(
-			{ operation, data: "", protocol: "ping" },
+			{ operation },
 			"service.ping",
 			handleResponse,
 			undefined,
