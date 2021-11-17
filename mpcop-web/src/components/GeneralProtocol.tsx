@@ -8,6 +8,7 @@ import {
 	operationsWithInput,
 } from "../constants/Constants";
 import {
+	appendDuration,
 	checkResponseStatus,
 	composeRequestInfoAlert,
 	formatLog,
@@ -130,6 +131,13 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 		switch (body.operation) {
 			case Operation.Sign:
 				setOutputField(body.signature);
+				addDebugMessage(
+					InfoSeverity.Success,
+					appendDuration(
+						"The signature has been computed successfully",
+						performanceMeasurement
+					)
+				);
 				const wasSigVerificationSuccessfull = props.verifySignature(
 					body.signature,
 					formValues.data.trim(),
@@ -163,7 +171,7 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 			case Operation.Keygen:
 				addDebugMessage(
 					InfoSeverity.Success,
-					"Keys have been generated successfully!"
+					appendDuration("Keys have been generated successfully", performanceMeasurement)
 				);
 				break;
 
@@ -172,7 +180,7 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 					setPubKey(defaultPubKeyValue);
 					addDebugMessage(
 						InfoSeverity.Success,
-						"The request has been successfully executed"
+						appendDuration("The request has been successfully executed", performanceMeasurement)
 					);
 				}
 
@@ -181,7 +189,7 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 				setOutputField(body.message);
 				addDebugMessage(
 					InfoSeverity.Success,
-					"The messages h been encrypted successfully!"
+					appendDuration("The messages h been encrypted successfully!", performanceMeasurement)
 				);
 				break;
 
@@ -190,7 +198,7 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 				props.verifyDecryption(body.message, lastPlaintext);
 				addDebugMessage(
 					InfoSeverity.Success,
-					"The messag has been decrypted successfully!"
+					appendDuration("The messag has been decrypted successfully!", performanceMeasurement)
 				);
 				break;
 		}
@@ -232,7 +240,10 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 			return;
 		}
 
-		registerSubscribeHandler(`${props.protocolVerticleAddress}-updates`, handleProtocolUpdate);
+		registerSubscribeHandler(
+			`${props.protocolVerticleAddress}-updates`,
+			handleProtocolUpdate
+		);
 
 		const getPubkeyMessage: IMessage = {
 			operation: Operation.GetPubkey,
@@ -314,6 +325,7 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 					>
 						<Tooltip title="The aggregate public key computed by the protocol.">
 							<TextField
+								InputLabelProps={{ shrink: true }}
 								InputProps={{
 									readOnly: true,
 								}}

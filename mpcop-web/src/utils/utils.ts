@@ -1,3 +1,4 @@
+import { PerformanceMeasurement } from "../performance/PerformanceMeasurement";
 import { IResponse } from "../store/models/IResponse";
 
 const VOWELS = ["a", "e", "i", "o", "u", "y"];
@@ -96,3 +97,12 @@ export const range = (n: number): number[] =>
 export const replicate = <T>(elem: T, count: number): T[] =>
 	Array(count).fill(elem);
 
+export const appendDuration = (
+	resultMessage: string,
+	performanceMeasurement: PerformanceMeasurement | undefined
+): string => {
+	if (performanceMeasurement) {
+		return `${resultMessage} (${performanceMeasurement.computeBackendOperationDuration()}ms)`;
+	}
+	return resultMessage;
+};

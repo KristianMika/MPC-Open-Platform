@@ -33,6 +33,7 @@ import {
 } from "../store/atom";
 import { IntroMessage } from "../constants/Intro";
 import {
+	appendDuration,
 	checkResponseStatus,
 	composeRequestInfoAlert,
 	formatLog,
@@ -123,7 +124,10 @@ export const SmpcRsaSetup: React.FC = () => {
 				if (createAlert) {
 					addDebugMessage(
 						InfoSeverity.Success,
-						"The protocol has been configured successfully"
+						appendDuration(
+							"The protocol has been configured successfully",
+							performanceMeasurement
+						)
 					);
 				}
 				break;

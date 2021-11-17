@@ -37,6 +37,7 @@ import IProtocolInfoArea from "../store/models/IProtocolInfoArea";
 import { IResponse } from "../store/models/IResponse";
 import { useProtocolSetupStyles } from "../styles/protocolSetup";
 import {
+	appendDuration,
 	checkResponseStatus,
 	composeRequestInfoAlert,
 	formatLog,
@@ -128,7 +129,10 @@ export const MystSetup: React.FC = () => {
 				if (createAlert) {
 					addDebugMessage(
 						InfoSeverity.Success,
-						"The protocol has been configured successfully"
+						appendDuration(
+							"The protocol has been configured successfully",
+							performanceMeasurement
+						)
 					);
 				}
 				break;
@@ -177,7 +181,10 @@ export const MystSetup: React.FC = () => {
 			return;
 		}
 
-		registerSubscribeHandler(`${mystVerticleAddress}-updates`, handleProtocolUpdate);
+		registerSubscribeHandler(
+			`${mystVerticleAddress}-updates`,
+			handleProtocolUpdate
+		);
 
 		const getConfigMessage: IMessage = {
 			operation: Operation.GetConfig,
