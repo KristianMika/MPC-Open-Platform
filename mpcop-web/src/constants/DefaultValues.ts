@@ -1,3 +1,4 @@
+import { IMystFormValues } from "../store/models/IMystFormValues";
 import { IProtocolFormValues } from "../store/models/IProtocolFormValues";
 import IProtocolInfoArea from "../store/models/IProtocolInfoArea";
 import { InfoSeverity } from "./Constants";
@@ -8,5 +9,8 @@ export const defaultProtocolFormValues: IProtocolFormValues = {
 
 export const defaultProtocolInfo: IProtocolInfoArea = {
 	messages:[]
-	
+};
+
+export const mystFormDefaultValues: IMystFormValues = {
+	virtualCardsCount: 0,
 };

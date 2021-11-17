@@ -10,6 +10,7 @@ import io.vertx.ext.bridge.PermittedOptions
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.RoutingContext
 import io.vertx.ext.web.handler.StaticHandler
+import io.vertx.ext.web.handler.sockjs.BridgeEvent
 import io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions
 import io.vertx.ext.web.handler.sockjs.SockJSHandler
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions
@@ -37,31 +38,36 @@ class ControllerVerticle : AbstractVerticle() {
             .addInboundPermitted(PermittedOptions().setAddress(CONTROLLER_REGISTER_ADDRESS))
             .addInboundPermitted(PermittedOptions().setAddress("service.ping"))
             .addInboundPermitted(PermittedOptions().setAddress("service.myst"))
+            .addOutboundPermitted(PermittedOptions().setAddress("service.myst-updates"))
             .addInboundPermitted(PermittedOptions().setAddress("service.smart-id-rsa"))
+            .addOutboundPermitted(PermittedOptions().setAddress("service.smart-id-rsa-updates"))
+            .addOutboundPermitted(PermittedOptions().setAddress("protocol-updates"))
             .addOutboundPermitted(PermittedOptions().setAddress(CONTROLLER_REGISTER_ADDRESS))
             .setReplyTimeout(REPLY_TIMEOUT)
 
         sockJSHandler.bridge(bo) { event ->
             when (event.type()) {
                 BridgeEventType.REGISTER -> {
-                    logNewConnection(event.socket().remoteAddress().toString())
-
+                    if (event.rawMessage.get<String>("address") == CONTROLLER_REGISTER_ADDRESS) {
+                        logNewConnection(event.socket().remoteAddress().toString())
+                    }
                 }
                 BridgeEventType.UNREGISTER -> {
-                    logClosedConnection(event.socket().remoteAddress().toString())
-
+                    if (event.rawMessage.get<String>("address") == CONTROLLER_REGISTER_ADDRESS) {
+                        logClosedConnection(event.socket().remoteAddress().toString())
+                    }
                 }
                 BridgeEventType.SEND -> {
+                    setDefaultHeaders(event)
                     event.rawMessage.get<JsonObject>("headers")
                         .put("backend_ingress", System.currentTimeMillis().toString())
                 }
-
                 BridgeEventType.RECEIVE -> {
+                    setDefaultHeaders(event)
                     event.rawMessage.get<JsonObject>("headers")
                         .put("backend_egress", System.currentTimeMillis().toString())
                 }
                 else -> {
-
                 }
             }
             event.complete(true)
@@ -89,6 +95,13 @@ class ControllerVerticle : AbstractVerticle() {
         logger.info("Controller has been successfully deployed and is now running on port $CONTROLLER_PORT.")
         logger.info(getPrivateIpAnnouncement())
 
+    }
+
+    private fun setDefaultHeaders(event: BridgeEvent): BridgeEvent {
+        if (!event.rawMessage.containsKey("headers")) {
+            event.rawMessage.put("headers", JsonObject())
+        }
+        return event
     }
 
     /**

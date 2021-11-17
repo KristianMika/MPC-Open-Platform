@@ -20,7 +20,7 @@ import {
 } from "../constants/Constants";
 import { IMessage } from "../store/models/IMessage";
 import { useProtocolSetupStyles } from "../styles/protocolSetup";
-import { send } from "../eventbus/eventbus";
+import { registerSubscribeHandler, send } from "../eventbus/eventbus";
 import { ChangeEvent, useEffect, useState } from "react";
 import { ProtocolInfoArea } from "./ProtocolInfoArea";
 import IProtocolInfoArea from "../store/models/IProtocolInfoArea";
@@ -40,6 +40,7 @@ import {
 } from "../utils/utils";
 import { defaultProtocolInfo } from "../constants/DefaultValues";
 import { LoaderSpinner } from "./LoaderSpinner";
+import { PerformanceMeasurement } from "../performance/PerformanceMeasurement";
 
 interface IFormValues {
 	isServerSimulated: boolean;
@@ -88,30 +89,44 @@ export const SmpcRsaSetup: React.FC = () => {
 		addDebugMessage(InfoSeverity.Info, `Received response`);
 	};
 
-	const handleResponse = (body: IResponse) => {
+	const handleResponseWithAlert = (
+		body: IResponse,
+		performanceMeasurement: PerformanceMeasurement
+	) => handleResponse(body, performanceMeasurement, true);
+	const handleResponseWithoutAlert = (
+		body: IResponse,
+		performanceMeasurement: PerformanceMeasurement
+	) => handleResponse(body, performanceMeasurement, false);
+
+	const handleResponse = (
+		body: IResponse,
+		performanceMeasurement: PerformanceMeasurement | undefined,
+		createAlert: boolean
+	) => {
 		setLoading(false);
-		if (!checkResponseStatus(body)) {
+		if (!checkResponseStatus(body) && createAlert) {
 			addDebugMessage(InfoSeverity.Error, body.errMessage);
 			return;
 		}
 
 		switch (body.operation) {
 			case Operation.GetConfig:
+				if (createAlert) {
+					addDebugMessage(
+						InfoSeverity.Success,
+						"Updating the protocol configuration"
+					);
+				}
 				setFormValues(JSON.parse(body.message));
 				break;
 			case Operation.Configure:
-				addDebugMessage(
-					InfoSeverity.Success,
-					`The protocol has been successully configured`
-				);
-				break;
-
-			default:
-				if (body.success) {
-					addDebugMessage(InfoSeverity.Success, body.message);
-				} else {
-					addDebugMessage(InfoSeverity.Error, body.errMessage);
+				if (createAlert) {
+					addDebugMessage(
+						InfoSeverity.Success,
+						"The protocol has been configured successfully"
+					);
 				}
+				break;
 		}
 	};
 	const handleSubmit = (event: ChangeEvent<HTMLFormElement>) => {
@@ -138,7 +153,7 @@ export const SmpcRsaSetup: React.FC = () => {
 		send(
 			body,
 			SmpcRsaVerticleAddress,
-			handleResponse,
+			handleResponseWithAlert,
 			received_response_log,
 			() => setLoading(false),
 			storeLatency
@@ -174,11 +189,34 @@ export const SmpcRsaSetup: React.FC = () => {
 			]),
 		});
 	};
+
+	const handleProtocolUpdate = (body: IResponse) => {
+		if (!checkResponseStatus(body)) {
+			addDebugMessage(InfoSeverity.Error, body.errMessage);
+			return;
+		}
+		switch (body.operation) {
+			case Operation.GetConfig:
+				addDebugMessage(
+					InfoSeverity.Success,
+					"Updating the protocol configuration"
+				);
+				setFormValues(JSON.parse(body.message));
+				break;
+		}
+	};
+
 	const [socketState, setSocketState] = useRecoilState(eventbusSocketState);
 	useEffect(() => {
 		if (!socketState.isOpen) {
 			return;
 		}
+
+		registerSubscribeHandler(
+			`${SmpcRsaVerticleAddress}-updates`,
+			handleProtocolUpdate
+		);
+
 		const getConfigMessage: IMessage = {
 			operation: Operation.GetConfig,
 			data: "",
@@ -188,7 +226,7 @@ export const SmpcRsaSetup: React.FC = () => {
 		send(
 			getConfigMessage,
 			SmpcRsaVerticleAddress,
-			handleResponse,
+			handleResponseWithoutAlert,
 			logDebugMessage,
 			undefined,
 			storeLatency

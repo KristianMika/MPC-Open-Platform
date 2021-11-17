@@ -8,6 +8,7 @@ import io.vertx.core.AbstractVerticle
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.Message
 import io.vertx.core.json.JsonObject
+import io.vertx.kotlin.core.json.get
 import java.util.logging.Logger
 
 // TODO: remove @param and @return tags
@@ -18,31 +19,38 @@ import java.util.logging.Logger
  *
  * @author Kristian Mika
  */
-abstract class AbstractProtocolVerticle(protected val CONSUMER_ADDRESS: String) : AbstractVerticle() {
+abstract class AbstractProtocolVerticle(private val CONSUMER_ADDRESS: String) : AbstractVerticle() {
     protected val logger: Logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME)
     private val state: ProtocolState = ProtocolState()
-    var isProtocolConfigured: Boolean = false
+    private var isProtocolConfigured: Boolean = false
     var areKeysGenerated: Boolean = false
 
+    private data class ExecutionResponse(val response: Response, val publishEvent: Operation?) {
+        constructor(response:Response):this(response, null)
+    }
+
     private fun requestHandler(msg: Message<JsonObject>) {
-        logger.info("Received: " + msg.body().toString())
+        logger.info("Received: ${msg.body()}")
         val operationOriginTimestamp = System.currentTimeMillis()
-        val response: Response? = try {
+        val (response, publishEvent) = try {
             process(msg.body() as JsonObject)
         } catch (e: GeneralMPCOPException) {
             logger.warning(e.toString())
-            Response("Protocol initialization").failed().setErrMessage(e.message)
+            ExecutionResponse(Response("Protocol execution").failed().setErrMessage(e.message))
         }
         val operationFinalTimestamp = System.currentTimeMillis()
-        val serializedResponse: JsonObject? = response?.let { toJsonObject(it) }
+        val serializedResponse: JsonObject =  toJsonObject(response)
         logger.info("Replying: $serializedResponse")
         val options = DeliveryOptions()
-        for ((key, value) in msg.headers()) {
-            options.addHeader(key, value)
-        }
+        options.headers = msg.headers()
         options.addHeader("operation_origin", operationOriginTimestamp.toString())
         options.addHeader("operation_done", operationFinalTimestamp.toString())
         msg.reply(serializedResponse, options)
+
+        if (publishEvent != null) {
+            val (publishResponse, _) = executeOperation(publishEvent)
+            vertx.eventBus().publish("${CONSUMER_ADDRESS}-updates", toJsonObject(publishResponse))
+        }
     }
 
     override fun start() {
@@ -59,22 +67,30 @@ abstract class AbstractProtocolVerticle(protected val CONSUMER_ADDRESS: String) 
      * @throws GeneralMPCOPException if the requested operation is not valid
      */
     @Throws(GeneralMPCOPException::class)
-    fun process(request: JsonObject): Response {
+    private fun process(request: JsonObject): ExecutionResponse {
         val rawOperation: String = request.getString("operation")
         val operation: Operation = try {
             Operation.valueOf(rawOperation)
         } catch (e: IllegalArgumentException) {
             throw GeneralMPCOPException("Invalid operation $rawOperation")
         }
-        val r = Response(operation)
 
         // in case the protocol has not been configured yet,
         // allow only CONFIGURE and GET_CONFIG operations
         if (!isProtocolConfigured && (operation != Operation.CONFIGURE && operation != Operation.GET_CONFIG)) {
-            return r.failed().setErrMessage("The protocol has not been configured yet.")
+            return ExecutionResponse(Response(operation).failed().setErrMessage("The protocol has not been configured yet."))
         }
 
-        return when (operation) {
+        val data = request.get<String>("data")
+        return executeOperation(operation, data)
+
+    }
+
+    @Throws(GeneralMPCOPException::class)
+    private fun executeOperation(operation: Operation, data:String? = null): ExecutionResponse{
+        var publishEvent: Operation? = null
+        var r = Response(operation)
+        r = when (operation) {
             Operation.INFO -> r.setMessage(getInfo())
             Operation.KEYGEN -> {
                 state.pubKey = null
@@ -82,12 +98,14 @@ abstract class AbstractProtocolVerticle(protected val CONSUMER_ADDRESS: String) 
                 val pubkey = getPubKey()
                 state.pubKey = pubkey
                 areKeysGenerated = true
+                publishEvent = Operation.GET_PUBKEY
                 r.setPublicKey(pubkey)
             }
             Operation.RESET -> {
                 state.pubKey = null
                 reset()
                 areKeysGenerated = false
+                publishEvent = Operation.RESET
                 r.setMessage(Messages.CARDS_RESET_SUCCESSFUL)
             }
             Operation.GET_PUBKEY -> {
@@ -97,28 +115,37 @@ abstract class AbstractProtocolVerticle(protected val CONSUMER_ADDRESS: String) 
             }
             Operation.DECRYPT -> {
                 checkAreKeysGenerated()
-                val data: String = request.getString("data")
+                if (data == null) {
+                    throw GeneralMPCOPException("Requested operation requires data")
+                }
                 r.setMessage(decrypt(data))
             }
             Operation.ENCRYPT -> {
                 checkAreKeysGenerated()
-                val data: String = request.getString("data")
+                if (data == null) {
+                    throw GeneralMPCOPException("Requested operation requires data")
+                }
                 // TODO: pubkey can't be empty
                 r.setMessage(encrypt(data, state.pubKey ?: ""))
             }
             Operation.SIGN -> {
                 checkAreKeysGenerated()
-                r.setSignatures(sign(request.getString("data")))
+                if (data == null) {
+                    throw GeneralMPCOPException("Requested operation requires data")
+                }
+                r.setSignatures(sign(data))
             }
             Operation.CONFIGURE -> {
-                val configuration = JsonParser.parseString(request.getString("data"))
+                val configuration = JsonParser.parseString(data)
                 val configResult = configure(configuration)
                 isProtocolConfigured = true
                 areKeysGenerated = areKeysGenerated()
+                publishEvent = Operation.GET_CONFIG;
                 r.setMessage(configResult)
             }
             Operation.GET_CONFIG -> r.setMessage(getConfig())
         }
+        return ExecutionResponse(r, publishEvent)
     }
 
     @Throws(GeneralMPCOPException::class)

@@ -40,3 +40,20 @@ export const send = (
 		}
 	});
 };
+
+export const registerSubscribeHandler = (
+	address: string,
+	handler: (response: IResponse) => void
+) => {
+	eventBus.unregisterHandler(address);
+	eventBus.registerHandler(
+		address,
+		undefined,
+		(error: Error, msg: any): void => {
+			handler(msg.body);
+		}
+	);
+	eventBus.onclose = () => {
+		eventBus.unregisterHandler(address);
+	};
+};

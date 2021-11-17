@@ -27,7 +27,7 @@ import { ProtocolButtons } from "./ProtocolButtons";
 import { useProtocolStyles } from "../styles/protocol";
 import IProtocolInfoArea from "../store/models/IProtocolInfoArea";
 import { LoaderSpinner } from "./LoaderSpinner";
-import { send } from "../eventbus/eventbus";
+import { registerSubscribeHandler, send } from "../eventbus/eventbus";
 import "intro.js/introjs.css";
 import { IntroMessage } from "../constants/Intro";
 import { IProtocolFormValues } from "../store/models/IProtocolFormValues";
@@ -36,6 +36,8 @@ import {
 	defaultProtocolInfo,
 } from "../constants/DefaultValues";
 import { IGeneralProtocol } from "../store/models/IGeneralProtocol";
+import { eventBus } from "./GlobalComponent";
+import { PerformanceMeasurement } from "../performance/PerformanceMeasurement";
 
 export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 	// Default values
@@ -106,9 +108,22 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 		});
 	};
 
-	const handleResponse = (body: IResponse) => {
+	const handleResponseWithAlert = (
+		body: IResponse,
+		performanceMeasurement: PerformanceMeasurement
+	) => handleResponse(body, performanceMeasurement, true);
+	const handleResponseWithoutAlert = (
+		body: IResponse,
+		performanceMeasurement: PerformanceMeasurement
+	) => handleResponse(body, performanceMeasurement, false);
+
+	const handleResponse = (
+		body: IResponse,
+		performanceMeasurement: PerformanceMeasurement | undefined,
+		createAlert: boolean
+	) => {
 		// TODO: add operation to the error message
-		if (!checkResponseStatus(body)) {
+		if (!checkResponseStatus(body) && createAlert) {
 			addDebugMessage(InfoSeverity.Error, body.errMessage);
 			return;
 		}
@@ -137,10 +152,15 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 
 			case Operation.GetPubkey:
 				setPubKey(body.publicKey);
+				if (createAlert) {
+					addDebugMessage(
+						InfoSeverity.Info,
+						"Public key has been updated"
+					);
+				}
 				break;
 
 			case Operation.Keygen:
-				setPubKey(body.publicKey);
 				addDebugMessage(
 					InfoSeverity.Success,
 					"Keys have been generated successfully!"
@@ -148,13 +168,20 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 				break;
 
 			case Operation.Reset:
-				addDebugMessage(InfoSeverity.Success, body.message);
+				if (createAlert) {
+					setPubKey(defaultPubKeyValue);
+					addDebugMessage(
+						InfoSeverity.Success,
+						"The request has been successfully executed"
+					);
+				}
+
 				break;
 			case Operation.Encrypt:
 				setOutputField(body.message);
 				addDebugMessage(
 					InfoSeverity.Success,
-					"The messages has been encrypted successfully!"
+					"The messages h been encrypted successfully!"
 				);
 				break;
 
@@ -163,25 +190,61 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 				props.verifyDecryption(body.message, lastPlaintext);
 				addDebugMessage(
 					InfoSeverity.Success,
-					"The messages has been decrypted successfully!"
+					"The messag has been decrypted successfully!"
 				);
 				break;
-			default:
-				addDebugMessage(InfoSeverity.Info, body.message);
 		}
 	};
 
+	const handleProtocolUpdate = (body: IResponse) => {
+		if (!checkResponseStatus(body)) {
+			addDebugMessage(InfoSeverity.Error, body.errMessage);
+			return;
+		}
+		switch (body.operation) {
+			case Operation.GetPubkey:
+				setPubKey(body.publicKey);
+				addDebugMessage(
+					InfoSeverity.Info,
+					"Public key has been updated"
+				);
+				break;
+
+			case Operation.Keygen:
+				addDebugMessage(
+					InfoSeverity.Success,
+					"Keys have been generated successfully!"
+				);
+				break;
+
+			case Operation.Reset:
+				setPubKey(defaultPubKeyValue);
+				addDebugMessage(
+					InfoSeverity.Success,
+					"The protocol has been reset"
+				);
+
+				break;
+		}
+	};
 	useEffect(() => {
 		if (!socketState.isOpen) {
 			return;
 		}
+
+		registerSubscribeHandler(`${props.protocolVerticleAddress}-updates`, handleProtocolUpdate);
+
 		const getPubkeyMessage: IMessage = {
 			operation: Operation.GetPubkey,
 			data: "",
 			protocol: props.protocol,
 		};
 
-		send(getPubkeyMessage, props.protocolVerticleAddress, handleResponse);
+		send(
+			getPubkeyMessage,
+			props.protocolVerticleAddress,
+			handleResponseWithoutAlert
+		);
 	}, [socketState]);
 
 	const handleSubmit = (event: any) => {
@@ -191,9 +254,6 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 		const inputField = formValues.data.trim();
 
 		const operation = event.nativeEvent.submitter.name;
-		if (operation === Operation.Reset) {
-			setPubKey(defaultPubKeyValue);
-		}
 
 		if (operation === Operation.Encrypt) {
 			setLastPlaintext(inputField);
@@ -226,9 +286,9 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 		send(
 			body,
 			props.protocolVerticleAddress,
-			handleResponse,
+			handleResponseWithAlert,
 			logDebugMessage,
-			() =>setLoading(false),
+			() => setLoading(false),
 			storeLatency
 		);
 	};

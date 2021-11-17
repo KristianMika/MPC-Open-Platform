@@ -19,15 +19,20 @@ import {
 	Operation,
 	Protocol,
 } from "../constants/Constants";
-import { defaultProtocolInfo } from "../constants/DefaultValues";
+import {
+	defaultProtocolInfo,
+	mystFormDefaultValues,
+} from "../constants/DefaultValues";
 import { IntroMessage } from "../constants/Intro";
-import { send } from "../eventbus/eventbus";
+import { registerSubscribeHandler, send } from "../eventbus/eventbus";
+import { PerformanceMeasurement } from "../performance/PerformanceMeasurement";
 import {
 	debugMessagesState,
 	eventbusSocketState,
 	latencyState,
 } from "../store/atom";
 import { IMessage } from "../store/models/IMessage";
+import { IMystFormValues } from "../store/models/IMystFormValues";
 import IProtocolInfoArea from "../store/models/IProtocolInfoArea";
 import { IResponse } from "../store/models/IResponse";
 import { useProtocolSetupStyles } from "../styles/protocolSetup";
@@ -37,15 +42,9 @@ import {
 	formatLog,
 	OperationResult,
 } from "../utils/utils";
+import { eventBus } from "./GlobalComponent";
 import { LoaderSpinner } from "./LoaderSpinner";
 import { ProtocolInfoArea } from "./ProtocolInfoArea";
-
-interface FormValues {
-	virtualCardsCount: number;
-}
-const defaultValues: FormValues = {
-	virtualCardsCount: 0,
-};
 
 const mystVerticleAddress = "service.myst";
 export const MystSetup: React.FC = () => {
@@ -62,7 +61,9 @@ export const MystSetup: React.FC = () => {
 			[name]: value,
 		});
 	};
-	const [formValues, setFormValues] = useState(defaultValues);
+	const [formValues, setFormValues] = useState<IMystFormValues>(
+		mystFormDefaultValues
+	);
 	const [protocolInfo, setProtocolInfo] =
 		useState<IProtocolInfoArea>(defaultProtocolInfo);
 	const [latencies, setLatencies] = useRecoilState(latencyState);
@@ -95,22 +96,42 @@ export const MystSetup: React.FC = () => {
 	const received_response_log = () => {
 		addDebugMessage(InfoSeverity.Info, `Received response`);
 	};
-
-	const handleResponse = (body: IResponse) => {
+	const handleResponseWithAlert = (
+		body: IResponse,
+		performanceMeasurement: PerformanceMeasurement
+	) => handleResponse(body, performanceMeasurement, true);
+	const handleResponseWithoutAlert = (
+		body: IResponse,
+		performanceMeasurement: PerformanceMeasurement
+	) => handleResponse(body, performanceMeasurement, false);
+	const handleResponse = (
+		body: IResponse,
+		performanceMeasurement: PerformanceMeasurement | undefined,
+		createAlert: boolean
+	) => {
 		setLoading(false);
-		if (!checkResponseStatus(body)) {
+		if (!checkResponseStatus(body) && createAlert) {
 			addDebugMessage(InfoSeverity.Error, body.errMessage);
 			return;
 		}
 		switch (body.operation) {
 			case Operation.GetConfig:
+				if (createAlert) {
+					addDebugMessage(
+						InfoSeverity.Success,
+						"Updating the protocol configuration"
+					);
+				}
 				setFormValues(JSON.parse(body.message));
 				break;
 			case Operation.Configure:
-				addDebugMessage(InfoSeverity.Success, body.message);
+				if (createAlert) {
+					addDebugMessage(
+						InfoSeverity.Success,
+						"The protocol has been configured successfully"
+					);
+				}
 				break;
-			default:
-				addDebugMessage(InfoSeverity.Info, body.message);
 		}
 	};
 	const handleSubmit = (event: ChangeEvent<HTMLFormElement>) => {
@@ -130,7 +151,7 @@ export const MystSetup: React.FC = () => {
 		send(
 			body,
 			mystVerticleAddress,
-			handleResponse,
+			handleResponseWithAlert,
 			received_response_log,
 			() => setLoading(false),
 			storeLatency
@@ -155,6 +176,9 @@ export const MystSetup: React.FC = () => {
 		if (!socketState.isOpen) {
 			return;
 		}
+
+		registerSubscribeHandler(`${mystVerticleAddress}-updates`, handleProtocolUpdate);
+
 		const getConfigMessage: IMessage = {
 			operation: Operation.GetConfig,
 			data: "",
@@ -164,12 +188,28 @@ export const MystSetup: React.FC = () => {
 		send(
 			getConfigMessage,
 			mystVerticleAddress,
-			handleResponse,
+			handleResponseWithoutAlert,
 			logDebugMessage,
 			undefined,
 			storeLatency
 		);
 	}, [socketState]);
+
+	const handleProtocolUpdate = (body: IResponse) => {
+		if (!checkResponseStatus(body)) {
+			addDebugMessage(InfoSeverity.Error, body.errMessage);
+			return;
+		}
+		switch (body.operation) {
+			case Operation.GetConfig:
+				addDebugMessage(
+					InfoSeverity.Success,
+					"Updating the protocol configuration"
+				);
+				setFormValues(JSON.parse(body.message));
+				break;
+		}
+	};
 
 	return (
 		<div>

@@ -101,7 +101,7 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
     override fun sign(data: String): List<String> {
         return try {
             val sig: String = run?.signAll(Utils.bigIntegerFromString(data), run?.hostDecryptSign)?.toString(16) ?: ""
-            val sig_e: String = (run?.e ?: "") as String
+            val sig_e: String = run?.e ?: ""
             signCache()
             listOf(sig, sig_e)
         } catch (e: Exception) {
