@@ -118,6 +118,7 @@ public class CardManager {
         }
 
         if (card_found) {
+
             System.out.println("Cards found: " + terminals);
 
             terminal = terminals.get(targetReaderIndex); // Prioritize physical card over simulations
@@ -137,15 +138,26 @@ public class CardManager {
 
             CommandAPDU cmd = new CommandAPDU(0x00, 0xa4, 0x04, 0x00, appletId);
             ResponseAPDU response = transmit(cmd);
+            if (response.getSW() == (ISO7816.SW_NO_ERROR & 0xffff)) {
+                return channel;
+            }
+
+            // the target reader does not contain a card with the requested applet
+            for (CardTerminal t : terminals) {
+                card = t.connect("*");
+                channel = card.getBasicChannel();
+                cmd = new CommandAPDU(0x00, 0xa4, 0x04, 0x00, appletId);
+                response = transmit(cmd);
+                if (response.getSW() == (ISO7816.SW_NO_ERROR & 0xffff)) {
+                    return channel;
+                }
+            }
         } else {
             System.out.print("Failed to find physical card.");
         }
 
-        if (card != null) {
-            return card.getBasicChannel();
-        } else {
-            return null;
-        }
+        throw new CardException("No cards with the requested applet have been found");
+
     }
 
     public ArrayList<CardChannel> connectToAllCardsByTerminalFactory(TerminalFactory factory) throws CardException {
