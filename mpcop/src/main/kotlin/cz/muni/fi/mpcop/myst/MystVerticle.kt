@@ -40,7 +40,6 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
             throw GeneralMPCOPException("Invalid format")
         }
 
-        run?.resetAll(run?.hostFullPriv)
         config.simulatedPlayersCount = mystConfig.virtualCardsCount
 
         try {
@@ -50,7 +49,7 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
             if (run?.runCfg?.allPlayersCount == 0) {
                 throw GeneralMPCOPException("The protocol can't run with 0 players! Make sure you have connected cards.")
             }
-            run?.performSetupAll(run?.hostFullPriv)
+
 
         } catch (e: Exception) {
             throw GeneralMPCOPException(e.message ?: e.toString())
@@ -70,9 +69,11 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
     @Throws(GeneralMPCOPException::class)
     override fun keygen() {
         try {
+            run?.performSetupAll(run?.hostFullPriv)
             run?.performKeyGen(run?.hostKeyGen)
-
-            run?.signCacheAll(run?.hostDecryptSign)
+            vertx.setTimer(1) { _ ->
+                run?.signCacheAll(run?.hostDecryptSign)
+            }
         } catch (e: Exception) {
             e.printStackTrace()
             throw GeneralMPCOPException(e.toString())
@@ -83,7 +84,7 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
     override fun reset() {
         try {
             run?.resetAll(run?.hostFullPriv)
-            run?.performSetupAll(run?.hostFullPriv)
+
         } catch (e: Exception) {
             logger.info(e.toString())
             throw GeneralMPCOPException(e.toString())
@@ -132,7 +133,8 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
 
     override fun encrypt(data: String, pubKey: String): String {
         return try {
-            Util.toHex(run?.encrypt(BigInteger(1, Util.hexStringToByteArray(data)), run?.hostFullPriv))
+            //Util.toHex(run?.encrypt(BigInteger(1, Util.hexStringToByteArray(data)), run?.hostFullPriv))
+            Util.toHex(run?.encryptOnHost(BigInteger(1, Util.hexStringToByteArray(data))))
         } catch (e: Exception) {
             throw GeneralMPCOPException(e.message ?: "Encryption failed")
         }
