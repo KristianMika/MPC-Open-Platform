@@ -48,6 +48,16 @@ export class PerformanceMeasurement {
 		return this.computeRtt() / 2;
 	}
 
+	toString(): string {
+		return [
+			this.computeLatency(),
+			this.computeBackendRequestDuration(),
+			this.computeBackendOperationDuration(),
+			this.computeBackendResponseDuration(),
+			this.computeLatency(),
+		].join(",");
+	}
+
 	static fromHeaders(headers: any): PerformanceMeasurement {
 		return new PerformanceMeasurement(
 			headers.backend_ingress,
@@ -60,9 +70,9 @@ export class PerformanceMeasurement {
 }
 
 export const toCsv = (
-	data:ISpreadPerformanceData,
+	data: ISpreadPerformanceData
 ): (number[] | string[])[] => {
-	const results:CsvLines = [pingPerformanceDataCsvHeader];
+	const results: CsvLines = [pingPerformanceDataCsvHeader];
 	for (let round = 0; round < data.players.length; round++) {
 		const roundTimes = [
 			data.players[round],

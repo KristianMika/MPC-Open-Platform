@@ -130,6 +130,7 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 		}
 		switch (body.operation) {
 			case Operation.Sign:
+				console.log(performanceMeasurement?.toString())
 				setOutputField(body.signature);
 				addDebugMessage(
 					InfoSeverity.Success,
