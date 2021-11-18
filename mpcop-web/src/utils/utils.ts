@@ -108,6 +108,11 @@ export const appendDuration = (
 	return resultMessage;
 };
 
+export const appendDurationStr = (
+	resultMessage: string,
+	duration: number
+): string => `${resultMessage} (${duration}ms)`;
+
 export const addVectors = (a: number[], b: number[]): number[] => {
 	const out: number[] = [];
 	for (let i = 0; i < a.length; i++) {

@@ -23,6 +23,7 @@ import { IResponse } from "../store/models/IResponse";
 import {
 	add,
 	appendDuration,
+	appendDurationStr,
 	checkResponseStatus,
 	divide,
 	getDateTimestamp,
@@ -70,6 +71,7 @@ const useStyles = makeStyles(() => ({
 
 export type CsvLines = (number[] | string[])[];
 export const Ping: React.FC = () => {
+	let operationBeginning: number;
 	const {
 		status_page,
 		status_page_grid,
@@ -127,8 +129,9 @@ export const Ping: React.FC = () => {
 	};
 
 	const ping = () => {
-		pingRecursive(formValues.repetitions, []);
 		generateCsvFilename();
+		operationBeginning = Date.now();
+		pingRecursive(formValues.repetitions, []);
 	};
 
 	// If only there were a mechanism that could enable us to wait for an asynchronous
@@ -159,6 +162,13 @@ export const Ping: React.FC = () => {
 			pingRecursive(itersLeft, newMeasurement);
 		} else {
 			setLoading(false);
+			addDebugMessage(
+				InfoSeverity.Success,
+				appendDurationStr(
+					"The performance testing has successfully finished.",
+					Date.now() - operationBeginning
+				)
+			);
 			const averagedData = computeAveragedData(newMeasurement);
 
 			if (averagedData) {
@@ -167,6 +177,10 @@ export const Ping: React.FC = () => {
 				setData(plottingData);
 				setCsvData(toCsv(spreadData));
 			}
+			addDebugMessage(
+				InfoSeverity.Success,
+				"Performance data has been successfully processed."
+			);
 		}
 	};
 	const pingRecursive = (
