@@ -61,8 +61,10 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
     steps:
+      - uses: olegtarasov/get-tag@v2.1
+        id: tagName
       - name: Check package version against tag
-        run: test "${{ needs.Build-App.outputs.app_version }}" == "${{ steps.tag.outputs.tag }}"
+        run: test "${{ needs.Build-App.outputs.app_version }}" == ${{ steps.tagName.outputs.tag }}
       - name: Output version
         id: version_output
         run: echo "::set-output name=app_version::${{ needs.Build-App.outputs.app_version }}";
