@@ -3,6 +3,8 @@ Description=Open Platform for Multiparty Signatures with Smartcards
 
 [Service]
 SuccessExitStatus=143
+StandardOutput=journal
+StandardError=journal
 
 User=nobody
 Group=nogroup 
