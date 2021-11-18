@@ -1,3 +1,9 @@
+import { CsvLines } from "../components/Ping";
+import { pingPerformanceDataCsvHeader } from "../constants/Constants";
+import { IPingMultiMeasurement } from "../store/models/IPingMultiMeasurement";
+import { IProcessedMultiPingMeasurement } from "../store/models/IProcessedMultiPingMeasurement";
+import { range, replicate } from "../utils/utils";
+
 export class PerformanceMeasurement {
 	public backend_ingress: number;
 	public backend_egress: number;
@@ -52,3 +58,102 @@ export class PerformanceMeasurement {
 		);
 	}
 }
+
+export const toCsv = (
+	data:ISpreadPerformanceData,
+): (number[] | string[])[] => {
+	const results:CsvLines = [pingPerformanceDataCsvHeader];
+	for (let round = 0; round < data.players.length; round++) {
+		const roundTimes = [
+			data.players[round],
+			data.requestNetwork[round],
+			data.requestBackned[round],
+			data.javacards[round],
+			data.responseBackend[round],
+			data.responseNetwork[round],
+		];
+		results.push(roundTimes);
+	}
+
+	return results;
+};
+
+export interface ISpreadPerformanceData {
+	players: number[];
+	requestNetwork: number[];
+	requestBackned: number[];
+	javacards: number[];
+	responseBackend: number[];
+	responseNetwork: number[];
+}
+export const spreadPerfData = (
+	performanceMeasurement: IProcessedMultiPingMeasurement
+): ISpreadPerformanceData => {
+	const playersCount = performanceMeasurement.javaCardTimes.length;
+	return {
+		players: range(playersCount),
+		requestNetwork: replicate(
+			performanceMeasurement.requestNetwork,
+			playersCount
+		),
+		requestBackned: replicate(
+			performanceMeasurement.requestBackend,
+			playersCount
+		),
+		javacards: performanceMeasurement.javaCardTimes,
+		responseBackend: replicate(
+			performanceMeasurement.responseBackend,
+			playersCount
+		),
+		responseNetwork: replicate(
+			performanceMeasurement.requestNetwork,
+			playersCount
+		),
+	};
+};
+export const preparePlottingData = (perfData: ISpreadPerformanceData) => {
+	return {
+		labels: perfData.players,
+		datasets: [
+			{
+				label: "Network (Request)",
+				data: perfData.requestNetwork,
+				backgroundColor: "#264653",
+			},
+			{
+				label: "Backend App (Request)",
+				data: perfData.requestBackned,
+				backgroundColor: "#e9c46a",
+			},
+			{
+				label: "JavaCard",
+				data: perfData.javacards,
+				backgroundColor: "#2a9d8f",
+			},
+			{
+				label: "Backend App (Response)",
+				data: perfData.responseBackend,
+				backgroundColor: "#e9c46a",
+			},
+			{
+				label: "Network (Response)",
+				data: perfData.responseNetwork,
+				backgroundColor: "#264653",
+			},
+		],
+	};
+};
+
+export const processPingMultiMeasurement = (
+	measurement: IPingMultiMeasurement
+): IProcessedMultiPingMeasurement => {
+	return {
+		requestNetwork: measurement.performanceMeasurement.computeLatency(),
+		requestBackend:
+			measurement.performanceMeasurement.computeBackendRequestDuration(),
+		javaCardTimes: measurement.javaCardMeasurements,
+		responseBackend:
+			measurement.performanceMeasurement.computeBackendResponseDuration(),
+		responseNetwork: measurement.performanceMeasurement.computeLatency(),
+	};
+};

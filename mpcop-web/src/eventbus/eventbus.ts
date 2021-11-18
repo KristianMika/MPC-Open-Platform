@@ -53,7 +53,4 @@ export const registerSubscribeHandler = (
 			handler(msg.body);
 		}
 	);
-	// eventBus.onclose = () => {
-	// 	eventBus.unregisterHandler(address);
-	// };
 };

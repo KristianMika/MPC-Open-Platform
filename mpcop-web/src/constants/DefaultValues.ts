@@ -14,3 +14,34 @@ export const defaultProtocolInfo: IProtocolInfoArea = {
 export const mystFormDefaultValues: IMystFormValues = {
 	virtualCardsCount: 0,
 };
+
+export const defautlBarData = {
+	labels: [],
+	datasets: [
+		{
+			label: "Network (Request)",
+			data: [],
+			backgroundColor: "#264653",
+		},
+		{
+			label: "Backend App (Request)",
+			data: [],
+			backgroundColor: "#e9c46a",
+		},
+		{
+			label: "JavaCard",
+			data: [],
+			backgroundColor: "#2a9d8f",
+		},
+		{
+			label: "Backend App (Response)",
+			data: [],
+			backgroundColor: "#e9c46a",
+		},
+		{
+			label: "Network (Response)",
+			data: [],
+			backgroundColor: "#264653",
+		},
+	],
+};

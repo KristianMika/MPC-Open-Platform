@@ -1,4 +1,5 @@
 import { PerformanceMeasurement } from "../performance/PerformanceMeasurement";
+import { IProcessedMultiPingMeasurement } from "../store/models/IProcessedMultiPingMeasurement";
 import { IResponse } from "../store/models/IResponse";
 
 const VOWELS = ["a", "e", "i", "o", "u", "y"];
@@ -105,4 +106,45 @@ export const appendDuration = (
 		return `${resultMessage} (${performanceMeasurement.computeBackendOperationDuration()}ms)`;
 	}
 	return resultMessage;
+};
+
+export const addVectors = (a: number[], b: number[]): number[] => {
+	const out: number[] = [];
+	for (let i = 0; i < a.length; i++) {
+		out.push(a[i] + b[i]);
+	}
+	return out;
+};
+
+export const add = (
+	a: IProcessedMultiPingMeasurement,
+	b: IProcessedMultiPingMeasurement
+): IProcessedMultiPingMeasurement => {
+	return {
+		requestNetwork: a.requestNetwork + b.requestNetwork,
+		requestBackend: a.requestBackend + b.requestBackend,
+		javaCardTimes: addVectors(a.javaCardTimes, b.javaCardTimes),
+		responseBackend: a.responseBackend + b.responseBackend,
+		responseNetwork: a.responseNetwork + b.responseNetwork,
+	};
+};
+
+export const divideVector = (a: number[], num: number): number[] => {
+	const out: number[] = [];
+	for (let i = 0; i < a.length; i++) {
+		out.push(a[i] / num);
+	}
+	return out;
+};
+export const divide = (
+	a: IProcessedMultiPingMeasurement,
+	num: number
+): IProcessedMultiPingMeasurement => {
+	return {
+		requestNetwork: a.requestNetwork / num,
+		requestBackend: a.requestBackend / num,
+		javaCardTimes: divideVector(a.javaCardTimes, num),
+		responseBackend: a.responseBackend / num,
+		responseNetwork: a.responseNetwork / num,
+	};
 };
