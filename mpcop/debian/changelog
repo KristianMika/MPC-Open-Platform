@@ -1,6 +1,7 @@
 mpcop (0.1.1) UNRELEASED; urgency=medium
 
   * docs: add documentation
+  * feat: use state for average latency in the home component 
 
  -- Kristian Mika <xmika2@mail.muni.cz>  Sun, 21 Nov 2021 07:38:30 +0100
 

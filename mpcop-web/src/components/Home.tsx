@@ -6,25 +6,24 @@ import statusOffline from "../status_offline.svg";
 import statusOnline from "../status_online.svg";
 import { IntroMessage } from "../constants/Intro";
 import { computeAverage } from "../utils/utils";
+import { useEffect, useState } from "react";
+
 const useStyles = makeStyles(() => ({
 	status_page: {
 		padding: "3em 0 2em 0",
 	},
 	status_page_grid: { width: "80%", margin: "2em auto 0 auto" },
-
 	status_page_wrapper: {
 		background: "#dddddd",
 		width: "100%",
 		["@media (min-width:800px)"]: { width: "50%" },
 		margin: "0 auto",
 	},
-
 	status_row: {
 		textAlign: "left",
 		verticalAlign: "center",
 		margin: "2em  auto 1em auto",
 	},
-
 	online_indicator: {
 		display: "inline-block",
 		verticalAlign: "middle",
@@ -32,8 +31,16 @@ const useStyles = makeStyles(() => ({
 	},
 }));
 
+/**
+ * The home status page component displays server status
+ * @returns
+ */
 export const Home: React.FC = () => {
+	// states
+	const [latencies, setLatencies] = useRecoilState(latencyState);
 	const [socketState, setSocketState] = useRecoilState(eventbusSocketState);
+	const [latency, setLatency] = useState(0);
+
 	const {
 		status_page,
 		status_page_grid,
@@ -41,7 +48,11 @@ export const Home: React.FC = () => {
 		status_row,
 		online_indicator,
 	} = useStyles();
-	const [latencies, setLatencies] = useRecoilState(latencyState);
+
+	/**
+	 * Creates the server online/offline status indicator
+	 * @returns the status img
+	 */
 	const getStatus = () => {
 		let statusMessage = "";
 		let statusImg = null;
@@ -61,7 +72,9 @@ export const Home: React.FC = () => {
 		);
 	};
 
-	const latency = Math.round(computeAverage(latencies.latencies));
+	useEffect(() => {
+		setLatency(Math.round(computeAverage(latencies.latencies)));
+	}, [latencies.latencies]);
 
 	return (
 		<main className={status_page_wrapper}>
