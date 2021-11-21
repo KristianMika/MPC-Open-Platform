@@ -37,11 +37,11 @@ import {
 	checkResponseStatus,
 	composeRequestInfoAlert,
 	formatLog,
-	OperationResult,
 } from "../utils/utils";
 import { defaultProtocolInfo } from "../constants/DefaultValues";
 import { LoaderSpinner } from "./LoaderSpinner";
 import { PerformanceMeasurement } from "../performance/PerformanceMeasurement";
+import { OperationResult } from "../constants/Operation";
 
 interface IFormValues {
 	isServerSimulated: boolean;

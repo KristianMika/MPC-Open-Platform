@@ -98,3 +98,5 @@ export const barOptions = {
 		},
 	},
 };
+
+export const VOWELS = ["a", "e", "i", "o", "u", "y"];

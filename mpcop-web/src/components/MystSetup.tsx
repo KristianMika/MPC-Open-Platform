@@ -24,6 +24,7 @@ import {
 	mystFormDefaultValues,
 } from "../constants/DefaultValues";
 import { IntroMessage } from "../constants/Intro";
+import { OperationResult } from "../constants/Operation";
 import { registerSubscribeHandler, send } from "../eventbus/eventbus";
 import { PerformanceMeasurement } from "../performance/PerformanceMeasurement";
 import {
@@ -41,7 +42,6 @@ import {
 	checkResponseStatus,
 	composeRequestInfoAlert,
 	formatLog,
-	OperationResult,
 } from "../utils/utils";
 import { eventBus } from "./GlobalComponent";
 import { LoaderSpinner } from "./LoaderSpinner";

@@ -12,7 +12,6 @@ import {
 	checkResponseStatus,
 	composeRequestInfoAlert,
 	formatLog,
-	OperationResult,
 	verifyHexString,
 } from "../utils/utils";
 import { useRecoilState } from "recoil";
@@ -39,6 +38,7 @@ import {
 import { IGeneralProtocol } from "../store/models/IGeneralProtocol";
 import { eventBus } from "./GlobalComponent";
 import { PerformanceMeasurement } from "../performance/PerformanceMeasurement";
+import { OperationResult } from "../constants/Operation";
 
 export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 	// Default values
@@ -130,7 +130,7 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 		}
 		switch (body.operation) {
 			case Operation.Sign:
-				console.log(performanceMeasurement?.toString())
+				console.log(performanceMeasurement?.toString());
 				setOutputField(body.signature);
 				addDebugMessage(
 					InfoSeverity.Success,
@@ -172,7 +172,10 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 			case Operation.Keygen:
 				addDebugMessage(
 					InfoSeverity.Success,
-					appendDuration("Keys have been generated successfully", performanceMeasurement)
+					appendDuration(
+						"Keys have been generated successfully",
+						performanceMeasurement
+					)
 				);
 				break;
 
@@ -181,7 +184,10 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 					setPubKey(defaultPubKeyValue);
 					addDebugMessage(
 						InfoSeverity.Success,
-						appendDuration("The request has been successfully executed", performanceMeasurement)
+						appendDuration(
+							"The request has been executed successfully",
+							performanceMeasurement
+						)
 					);
 				}
 
@@ -190,17 +196,28 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 				setOutputField(body.message);
 				addDebugMessage(
 					InfoSeverity.Success,
-					appendDuration("The messages h been encrypted successfully!", performanceMeasurement)
+					appendDuration(
+						"The message has been encrypted successfully!",
+						performanceMeasurement
+					)
 				);
 				break;
 
 			case Operation.Decrypt:
 				setOutputField(body.message);
-				props.verifyDecryption(body.message, lastPlaintext);
 				addDebugMessage(
 					InfoSeverity.Success,
-					appendDuration("The messag has been decrypted successfully!", performanceMeasurement)
+					appendDuration(
+						"The message has been decrypted successfully!",
+						performanceMeasurement
+					)
 				);
+				if (props.verifyDecryption(body.message, lastPlaintext)) {
+					addDebugMessage(
+						InfoSeverity.Success,
+						"The message has been decrypted to the last encrypted plaintext!"
+					);
+				}
 				break;
 		}
 	};
