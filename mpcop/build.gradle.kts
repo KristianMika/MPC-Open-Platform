@@ -10,7 +10,7 @@ plugins {
     java
 }
 
-version = "0.1.0"
+version = "0.1.1"
 group = "cz.muni.fi"
 repositories {
     mavenCentral()
