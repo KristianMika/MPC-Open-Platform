@@ -244,3 +244,10 @@ export const divide = (
 		responseNetwork: divident.responseNetwork / divisor,
 	};
 };
+
+/**
+ * Joins debug messages using the new-line character into a single string 
+ * @param messages 
+ * @returns 
+ */
+export const joinDebugMessages = (messages: string[]):string => messages.join("\n");

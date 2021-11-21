@@ -6,7 +6,7 @@ import { Header } from "./components/Header";
 import { SmpcRsa } from "./components/SmpcRsa";
 import { Myst } from "./components/Myst";
 import { Home } from "./components/Home";
-import { DebugAreaButton } from "./components/DebugAreaButton";
+import { DebugAreaWithButtons } from "./components/DebugAreaButton";
 import { GreyFilter } from "./components/GreyFilter";
 import { GlobalComponent } from "./components/GlobalComponent";
 import { Ping } from "./components/Ping";
@@ -34,7 +34,7 @@ const App = (): JSX.Element => {
 						<Ping />
 					</Route>
 				</Switch>
-				<DebugAreaButton />
+				<DebugAreaWithButtons />
 				
 			</div>
 			<Attribution />

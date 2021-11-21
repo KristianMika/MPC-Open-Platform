@@ -72,6 +72,7 @@ export const Home: React.FC = () => {
 		);
 	};
 
+	// recompute the average latency on every `latencies` update
 	useEffect(() => {
 		setLatency(Math.round(computeAverage(latencies.latencies)));
 	}, [latencies.latencies]);

@@ -4,6 +4,10 @@ import { IntroMessage } from "../constants/Intro";
 import { IProtocolButton } from "../store/models/IProtocolButton";
 import { useProtocolStyles } from "../styles/protocol";
 
+/**
+ * This component contains protocol buttons - fundamental buttons
+ * that trigger execution of crypto operations
+ */
 export const ProtocolButtons: React.FC = () => {
 	const { protocol_form__protocol_button } = useProtocolStyles();
 	const buttons = protocolButtons.map(

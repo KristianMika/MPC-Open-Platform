@@ -1,15 +1,23 @@
 import * as elliptic from "elliptic";
 import BN from "bn.js";
 import * as CryptoJS from "crypto-js";
+import * as util from "util";
 
 const ec = new elliptic.ec("p256");
+/**
+ * Verifies a schnorr signature
+ * @param signature - A schnorr signature to be verified
+ * @param plaintext - The plaintext
+ * @param pubKeyString - Public key to be used for verification
+ * @returns true, if the signature is a valid one, false otherwise
+ */
 export const verifySchnorrSignature = (
 	signature: string,
 	plaintext: string,
 	pubKeyString: string
 ) => {
 	// Message * G
-	const encoder = new TextEncoder();
+	const encoder = new util.TextEncoder();
 	const encodedPlain = encoder.encode(plaintext);
 
 	const message_bi = new BN(encodedPlain, 16);
@@ -40,12 +48,6 @@ export const verifySchnorrSignature = (
 
 	return e_bn.cmp(ev_bn) === 0;
 };
-// TODO: add tests
-// const plaintext = '010';
-// const s = "bbfa817b3a90bee459688499b875e961595ff1f06b509f8d66a16a06b5f4c98c";
-// const e = "00D6967EBE912FBB0039AFDFF7D25118094E9A98F2131C90707BD9136D0C0C8857";
-// const pubkey = "042DC4BE8F348B8F27DCCAE32F18B9EFDD58BBC766728B94F7DD493364A7F2DC10E75AF3A5DCE46760B53BBAF2BF3F64DFC44B49189D0E657B5D9C72EA864B431C";
-// console.log(`test sig verification is: ${verifySchnorrSignature(plaintext, pubkey, s, e)}`);
 
 // TODO: missing implementation
 export const verifyRsaSignature = (

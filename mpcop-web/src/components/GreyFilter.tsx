@@ -1,5 +1,6 @@
 import { Grid, makeStyles, Typography } from "@material-ui/core";
 import { useRecoilState } from "recoil";
+import { GREY_FILTER_DISPLAY_DELAY } from "../constants/Constants";
 import { eventbusSocketState } from "../store/atom";
 import { Delayed } from "./Delayed";
 import { LoaderSpinner } from "./LoaderSpinner";
@@ -19,12 +20,17 @@ const useStyles = makeStyles(() => ({
 		zIndex: 2147483647,
 	},
 }));
+
+/**
+ * The grey filter is displayed in case of a connection loss
+ */
 export const GreyFilter: React.FC = () => {
 	const [socketState, setSocketState] = useRecoilState(eventbusSocketState);
+
 	const { grey_filter, connection_warning } = useStyles();
 
 	const greyFilter = socketState.isOpen ? null : (
-		<Delayed {...{ waitBeforeShow: 3000 }}>
+		<Delayed {...{ waitBeforeShow: GREY_FILTER_DISPLAY_DELAY }}>
 			<div className={grey_filter}>
 				<Grid container alignItems="center" justifyContent="center">
 					<Grid item xs={12} className={connection_warning}>

@@ -9,8 +9,8 @@ import { debugMessagesState } from "../store/atom";
 import introJs from "intro.js";
 import { IntroMessage } from "../constants/Intro";
 
-
 const useStyles = makeStyles(() => ({
+	debugArea: { position: "fixed", width: "100%", bottom: 0 },
 	debugArea__debugButtons: {
 		position: "fixed",
 		right: 5,
@@ -22,16 +22,21 @@ const useStyles = makeStyles(() => ({
 	debugArea__debugButton: {
 		marginTop: "0.5em",
 	},
-	debugArea: { position: "fixed", width: "100%", bottom: 0 },
 }));
 
-export const DebugAreaButton: React.FC = () => {
+/**
+ * The debug area with buttons component contains the bottom debug area as well as
+ * the debug area toggle and the help buttons
+ */
+export const DebugAreaWithButtons: React.FC = () => {
 	const [debugMessages, setDebugMessages] =
 		useRecoilState(debugMessagesState);
 
 	const { debugArea__debugButtons, debugArea__debugButton, debugArea } =
 		useStyles();
 	const [isVisible, setIsVisible] = useState(false);
+
+	// Toggles the debug area visibility
 	const toggleDebug = () => {
 		setIsVisible(!isVisible);
 	};
@@ -39,6 +44,7 @@ export const DebugAreaButton: React.FC = () => {
 	const debugAreaElement = isVisible ? (
 		<DebugArea {...debugMessages}></DebugArea>
 	) : null;
+	
 	return (
 		<footer className={debugArea}>
 			<div className={debugArea__debugButtons}>

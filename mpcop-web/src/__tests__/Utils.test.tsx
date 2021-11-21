@@ -13,7 +13,10 @@ describe("Utility function", () => {
 		describe("verifyHexString()", () => {
 			it("should distinguish a valid from invalid hex strings", () => {
 				expect(utils.verifyHexString("123")).toBeFalsy();
+				expect(utils.verifyHexString("123r")).toBeFalsy();
 				expect(utils.verifyHexString("01")).toBeTruthy();
+				expect(utils.verifyHexString("fafafafa")).toBeTruthy();
+				expect(utils.verifyHexString("FAFAFA")).toBeTruthy();
 			});
 		});
 
@@ -60,6 +63,16 @@ describe("Utility function", () => {
 		describe("divideVector()", () => {
 			it("should divide vectors", () => {
 				expect(utils.divideVector([5, 10, 100], 5)).toEqual([1, 2, 20]);
+			});
+		});
+
+		describe("joinDebugMessages()", () => {
+			it("should correctly join debug messages", () => {
+				const inputArray = ["hi", "there"];
+				const targetString = "hi\nthere";
+				expect(utils.joinDebugMessages(inputArray)).toEqual(
+					targetString
+				);
 			});
 		});
 	});

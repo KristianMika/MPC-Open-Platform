@@ -1,11 +1,14 @@
 import { CircularProgress } from "@material-ui/core";
 import { makeStyles } from "@material-ui/styles";
 import React from "react";
+import { ILoaderSpinner } from "../store/models/ILoaderSpinner";
 
-export interface ILoaderSpinner {
-	isVisible: boolean;
-	color: string;
-}
+/**
+ * The loader spinner component displays a loading circle that signalises
+ * a request is being processed
+ * @param props - Input props
+ * @returns
+ */
 export const LoaderSpinner: React.FC<ILoaderSpinner> = (props) => {
 	const useStyles = makeStyles(() => ({
 		spinner: {

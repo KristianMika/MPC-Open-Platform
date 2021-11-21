@@ -1,10 +1,5 @@
 import {
 	Button,
-	Dialog,
-	DialogActions,
-	DialogContent,
-	DialogContentText,
-	DialogTitle,
 	FormControlLabel,
 	Grid,
 	Switch,
@@ -38,24 +33,36 @@ import {
 	composeRequestInfoAlert,
 	formatLog,
 } from "../utils/utils";
-import { defaultProtocolInfo } from "../constants/DefaultValues";
+import {
+	defaultProtocolInfo,
+	ISmpcRsaDefaultFormValues,
+} from "../constants/DefaultValues";
 import { LoaderSpinner } from "./LoaderSpinner";
 import { PerformanceMeasurement } from "../performance/PerformanceMeasurement";
 import { OperationResult } from "../constants/Operation";
+import {
+	SMPC_RSA_SERVICE_ADDRESS,
+	SMPC_RSA_SERVICE_UPDATES_ADDRESS,
+} from "../constants/Addresses";
+import { ISmpcRsaFormValues } from "../store/models/ISmpcRsaFormValues";
+import { ConfirmationDialog } from "./ConfirmationDialog";
 
-interface IFormValues {
-	isServerSimulated: boolean;
-	isClientSimulated: boolean;
-}
-
-const defaultFormValues: IFormValues = {
-	isServerSimulated: false,
-	isClientSimulated: false,
-};
+/**
+ * This component provides user interface for Smart-ID RSA configuration
+ */
 export const SmpcRsaSetup: React.FC = () => {
-	const SmpcRsaVerticleAddress = "service.smart-id-rsa";
-	const [formValues, setFormValues] =
-		useState<IFormValues>(defaultFormValues);
+	// states
+	const [formValues, setFormValues] = useState<ISmpcRsaFormValues>(
+		ISmpcRsaDefaultFormValues
+	);
+	const [protocolInfo, setProtocolInfo] =
+		useState<IProtocolInfoArea>(defaultProtocolInfo);
+	const [latencies, setLatencies] = useRecoilState(latencyState);
+	const [loading, setLoading] = useState<boolean>(false);
+	const [debugMessages, setDebugMessages] =
+		useRecoilState(debugMessagesState);
+	const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
+	const [socketState, setSocketState] = useRecoilState(eventbusSocketState);
 
 	const {
 		protocol_setup_form,
@@ -64,10 +71,25 @@ export const SmpcRsaSetup: React.FC = () => {
 		protocol_setup__setup_button,
 		protocol_form__switch_label_grid,
 	} = useProtocolSetupStyles();
-	const [protocolInfo, setProtocolInfo] =
-		useState<IProtocolInfoArea>(defaultProtocolInfo);
 
-	const addDebugMessage = (severity: InfoSeverity, message: string) => {
+	const formId = "smpcrsa_setup_form";
+
+	//Closes the confirmation dialog
+	const handleDialogOpen = () => {
+		setIsDialogOpen(true);
+	};
+
+	// opens the confirmation dialog
+	const handleDialogClose = () => {
+		setIsDialogOpen(false);
+	};
+
+	/**
+	 * Creates an auto-hide information alert
+	 * @param severity - Message severity
+	 * @param message - The message that will be displayed
+	 */
+	const addInformationAlert = (severity: InfoSeverity, message: string) => {
 		setProtocolInfo({
 			messages: [
 				...protocolInfo.messages,
@@ -75,7 +97,11 @@ export const SmpcRsaSetup: React.FC = () => {
 			],
 		});
 	};
-	const [latencies, setLatencies] = useRecoilState(latencyState);
+
+	/**
+	 * Stores a request network latency
+	 * @param latency
+	 */
 	const storeLatency = (latency: number) => {
 		setLatencies({
 			latencies: [
@@ -85,20 +111,39 @@ export const SmpcRsaSetup: React.FC = () => {
 		});
 	};
 
-	const [loading, setLoading] = useState<boolean>(false);
-	const received_response_log = () => {
-		addDebugMessage(InfoSeverity.Info, `Received response`);
+	/**
+	 * Creates an information alert informing a response from the backend has arrived
+	 */
+	const informAboutReceivedResponse = () => {
+		addInformationAlert(InfoSeverity.Info, `Received response`);
 	};
 
+	/**
+	 * Handles a response without creation of information alerts
+	 * @param body - The reponse body
+	 * @param performanceMeasurement - Request durations
+	 */
 	const handleResponseWithAlert = (
 		body: IResponse,
 		performanceMeasurement: PerformanceMeasurement
 	) => handleResponse(body, performanceMeasurement, true);
+
+	/**
+	 * Handles a response with creation of information alerts
+	 * @param body - The response body
+	 * @param performanceMeasurement - Request durations
+	 */
 	const handleResponseWithoutAlert = (
 		body: IResponse,
 		performanceMeasurement: PerformanceMeasurement
 	) => handleResponse(body, performanceMeasurement, false);
 
+	/**
+	 * Handles the received response
+	 * @param body - Response body
+	 * @param performanceMeasurement - Request durations
+	 * @param createAlert - Information alerts creation toggle
+	 */
 	const handleResponse = (
 		body: IResponse,
 		performanceMeasurement: PerformanceMeasurement | undefined,
@@ -106,14 +151,14 @@ export const SmpcRsaSetup: React.FC = () => {
 	) => {
 		setLoading(false);
 		if (!checkResponseStatus(body) && createAlert) {
-			addDebugMessage(InfoSeverity.Error, body.errMessage);
+			addInformationAlert(InfoSeverity.Error, body.errMessage);
 			return;
 		}
 
 		switch (body.operation) {
 			case Operation.GetConfig:
 				if (createAlert) {
-					addDebugMessage(
+					addInformationAlert(
 						InfoSeverity.Success,
 						"Updating the protocol configuration"
 					);
@@ -122,7 +167,7 @@ export const SmpcRsaSetup: React.FC = () => {
 				break;
 			case Operation.Configure:
 				if (createAlert) {
-					addDebugMessage(
+					addInformationAlert(
 						InfoSeverity.Success,
 						appendDuration(
 							"The protocol has been configured successfully",
@@ -133,12 +178,17 @@ export const SmpcRsaSetup: React.FC = () => {
 				break;
 		}
 	};
+
+	/**
+	 * Handles the configuration form submit
+	 * @param event - Change event
+	 */
 	const handleSubmit = (event: ChangeEvent<HTMLFormElement>) => {
 		event.preventDefault();
 		setLoading(true);
 
 		if (formValues.isClientSimulated && formValues.isServerSimulated) {
-			addDebugMessage(
+			addInformationAlert(
 				InfoSeverity.Warning,
 				"The server and the client can't be both simulated"
 			);
@@ -152,18 +202,25 @@ export const SmpcRsaSetup: React.FC = () => {
 			protocol: Protocol.SmartIdRsa,
 		};
 
-		addDebugMessage(InfoSeverity.Info, composeRequestInfoAlert("CONFIG"));
+		addInformationAlert(
+			InfoSeverity.Info,
+			composeRequestInfoAlert("CONFIG")
+		);
 
 		send(
 			body,
-			SmpcRsaVerticleAddress,
+			SMPC_RSA_SERVICE_ADDRESS,
 			handleResponseWithAlert,
-			received_response_log,
+			informAboutReceivedResponse,
 			() => setLoading(false),
 			storeLatency
 		);
 	};
 
+	/**
+	 * Stores an event change
+	 * @param event - The change event
+	 */
 	const eventSwitchChange = (event: ChangeEvent<HTMLInputElement>) => {
 		setFormValues({
 			...formValues,
@@ -171,16 +228,10 @@ export const SmpcRsaSetup: React.FC = () => {
 		});
 	};
 
-	const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
-	const handleDialogClose = () => {
-		setIsDialogOpen(false);
-	};
-	const handleDialogOpen = () => {
-		setIsDialogOpen(true);
-	};
-
-	const [debugMessages, setDebugMessages] =
-		useRecoilState(debugMessagesState);
+	/**
+	 * Logs a debug message
+	 * @param msg
+	 */
 	const logDebugMessage = (msg: IResponse) => {
 		const res = msg.success
 			? OperationResult.Success
@@ -194,14 +245,19 @@ export const SmpcRsaSetup: React.FC = () => {
 		});
 	};
 
+	/**
+	 * Handles protocol updates from the update address
+	 * @param body
+	 * @returns
+	 */
 	const handleProtocolUpdate = (body: IResponse) => {
 		if (!checkResponseStatus(body)) {
-			addDebugMessage(InfoSeverity.Error, body.errMessage);
+			addInformationAlert(InfoSeverity.Error, body.errMessage);
 			return;
 		}
 		switch (body.operation) {
 			case Operation.GetConfig:
-				addDebugMessage(
+				addInformationAlert(
 					InfoSeverity.Success,
 					"Updating the protocol configuration"
 				);
@@ -210,14 +266,17 @@ export const SmpcRsaSetup: React.FC = () => {
 		}
 	};
 
-	const [socketState, setSocketState] = useRecoilState(eventbusSocketState);
+	/**
+	 * Request the current config on every component mount / socket state change
+	 */
 	useEffect(() => {
 		if (!socketState.isOpen) {
 			return;
 		}
 
+		// register a subscribe handler for protocol updates
 		registerSubscribeHandler(
-			`${SmpcRsaVerticleAddress}-updates`,
+			SMPC_RSA_SERVICE_UPDATES_ADDRESS,
 			handleProtocolUpdate
 		);
 
@@ -229,7 +288,7 @@ export const SmpcRsaSetup: React.FC = () => {
 
 		send(
 			getConfigMessage,
-			SmpcRsaVerticleAddress,
+			SMPC_RSA_SERVICE_ADDRESS,
 			handleResponseWithoutAlert,
 			logDebugMessage,
 			undefined,
@@ -241,7 +300,7 @@ export const SmpcRsaSetup: React.FC = () => {
 		<div>
 			<LoaderSpinner {...{ isVisible: loading, color: COLOR_PRIMARY }} />
 			<form
-				id="smpcrsa_setup_form"
+				id={formId}
 				onSubmit={handleSubmit}
 				className={protocol_setup_form}
 				data-intro={IntroMessage.PROTOCOL_SETUP}
@@ -299,8 +358,6 @@ export const SmpcRsaSetup: React.FC = () => {
 						</Tooltip>
 					</Grid>
 
-					<Grid item xs={7}></Grid>
-
 					<Grid item xs={12} className={protocol_setup__setup_button}>
 						<Tooltip title="Update the protocol's configuration.">
 							<Button
@@ -311,44 +368,22 @@ export const SmpcRsaSetup: React.FC = () => {
 								Setup
 							</Button>
 						</Tooltip>
-						<Dialog
-							open={isDialogOpen}
-							onClose={handleDialogClose}
-							aria-labelledby="alert-dialog-title"
-							aria-describedby="alert-dialog-description"
-						>
-							<DialogTitle id="alert-dialog-title">
-								{"Are you sure?"}
-							</DialogTitle>
-							<DialogContent>
-								<DialogContentText id="alert-dialog-description">
-									Modifying the protocol setup can reset the
-									cards and erase all secrets!
-								</DialogContentText>
-							</DialogContent>
-							<DialogActions>
-								<Button
-									onClick={handleDialogClose}
-									color="primary"
-									autoFocus
-								>
-									Cancel
-								</Button>
-								<Button
-									onClick={handleDialogClose}
-									form="smpcrsa_setup_form"
-									type="submit"
-								>
-									Proceed
-								</Button>
-							</DialogActions>
-						</Dialog>
+
+						<ConfirmationDialog
+							isDialogOpen={isDialogOpen}
+							handleDialogClose={handleDialogClose}
+							dialogTitle={"Are you sure?"}
+							dialogContent={
+								"Modifying the protocol setup can reset the cards and erase all secrets!"
+							}
+							formName={formId}
+						/>
 					</Grid>
 					<Grid item xs={12}>
 						<ProtocolInfoArea {...protocolInfo} />
 					</Grid>
 				</Grid>
-			</form>{" "}
+			</form>
 		</div>
 	);
 };

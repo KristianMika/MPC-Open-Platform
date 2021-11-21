@@ -1,4 +1,4 @@
-// The header component is inpired by Anh's tutorial
+// The header component is inpired by Anh's tutorial:
 // https://betterprogramming.pub/building-a-basic-header-with-materialui-and-react-js-d650f75b4b0a
 import React, { useEffect, useState } from "react";
 import {
@@ -16,31 +16,7 @@ import MenuIcon from "@material-ui/icons/Menu";
 import CloseIcon from "@material-ui/icons/Close";
 import { Link as RouterLink } from "react-router-dom";
 import { IntroMessage } from "../constants/Intro";
-import { MOBILE_WIDTH_BREAKPOINT } from "../constants/Constants";
-
-interface IHeaderData {
-	label: string;
-	href: string;
-}
-
-const headerData: IHeaderData[] = [
-	{
-		label: "Home",
-		href: "/",
-	},
-	{
-		label: "Myst",
-		href: "/protocols/myst",
-	},
-	{
-		label: "Smart-ID RSA",
-		href: "/protocols/smpcrsa",
-	},
-	{
-		label: "Ping",
-		href: "/ping",
-	},
-];
+import { headerData, MOBILE_WIDTH_BREAKPOINT } from "../constants/Constants";
 
 const useStyles = makeStyles(() => ({
 	header: {
@@ -62,7 +38,7 @@ const useStyles = makeStyles(() => ({
 		fontFamily: "Open Sans, sans-serif",
 		fontWeight: 700,
 		size: "1.2em",
-		margin: "auto 1em"
+		margin: "auto 1em",
 	},
 	toolbar: {
 		display: "flex",
@@ -78,6 +54,11 @@ const useStyles = makeStyles(() => ({
 	},
 }));
 
+/**
+ * The header component is displayed at the top of the page.
+ * It contains navigation buttons
+ * @returns
+ */
 export const Header: React.FC = () => {
 	const [state, setState] = useState({
 		mobileView: false,
@@ -86,6 +67,9 @@ export const Header: React.FC = () => {
 
 	const { mobileView, drawerOpen } = state;
 
+	/**
+	 * Sets responsiveness based on the window width
+	 */
 	useEffect(() => {
 		const setResponsiveness = () => {
 			return window.innerWidth < MOBILE_WIDTH_BREAKPOINT
@@ -113,12 +97,18 @@ export const Header: React.FC = () => {
 		drawer_container__exit_button,
 	} = useStyles();
 
+	/**
+	 * The logo component that is displayed in the left part of the header
+	 */
 	const mpcopLogo = (
 		<Typography variant="h5" component="h1" className={logo}>
 			MPCOP
 		</Typography>
 	);
 
+	/**
+	 * @returns a desktop toolbar component
+	 */
 	const displayDesktop = () => {
 		return (
 			<Toolbar className={toolbar}>
@@ -127,10 +117,20 @@ export const Header: React.FC = () => {
 			</Toolbar>
 		);
 	};
+	/**
+	 * Openes a closed drawer
+	 */
 	const handleDrawerOpen = () =>
 		setState((prevState) => ({ ...prevState, drawerOpen: true }));
+	/**
+	 * Closes an opened drawer
+	 */
 	const handleDrawerClose = () =>
 		setState((prevState) => ({ ...prevState, drawerOpen: false }));
+
+	/**
+	 * @returns  a mobile toolbar component
+	 */
 	const displayMobile = () => {
 		return (
 			<Toolbar>
@@ -176,6 +176,9 @@ export const Header: React.FC = () => {
 		);
 	};
 
+	/**
+	 * @returns a collection of header menu links - used in the mobile view
+	 */
 	const getDrawerChoices = () => {
 		return headerData.map(({ label, href }) => {
 			return (
@@ -195,6 +198,10 @@ export const Header: React.FC = () => {
 		});
 	};
 
+	/**
+	 * Returns an array of header menu buttons wrapped in a div
+	 * @returns an array of header menu buttons wrapped in a div
+	 */
 	const getMenuButtons = () => {
 		const buttons = headerData.map(({ label, href }) => {
 			return (

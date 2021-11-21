@@ -8,10 +8,13 @@ const useStyles = makeStyles(() => ({
 		textDecoration: "none",
 		color: "#898989",
 		margin: "auto",
-        display: "table"
+		display: "table",
 	},
 }));
 
+/**
+ * This component inserts an attribution at the bottom of the page
+ */
 export const Attribution: React.FC = () => {
 	const { footer__attribution_wrapper, footer__attribution } = useStyles();
 

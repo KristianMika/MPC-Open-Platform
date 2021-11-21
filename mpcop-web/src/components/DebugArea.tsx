@@ -1,6 +1,8 @@
 import { makeStyles, TextField } from "@material-ui/core";
 import React from "react";
+import { DEBUG_AREA_TEXT_COLOR } from "../constants/Constants";
 import { IDebugMessages } from "../store/models/IDebugMessages";
+import { joinDebugMessages } from "../utils/utils";
 
 const useStyles = makeStyles(() => ({
 	debug_area: {
@@ -13,7 +15,10 @@ const useStyles = makeStyles(() => ({
 	},
 }));
 
-const joinDebugMessages = (messages: string[]) => messages.join("\n");
+/**
+ * The bottom debug area present on every page - contains debug logs
+ * @param props - The input props
+ */
 export const DebugArea: React.FC<IDebugMessages> = (props) => {
 	const { debug_area, debug_area__textField } = useStyles();
 
@@ -27,9 +32,8 @@ export const DebugArea: React.FC<IDebugMessages> = (props) => {
 				className={debug_area__textField}
 				inputProps={{
 					readOnly: true,
-
 					style: {
-						color: "#dddddd",
+						color: DEBUG_AREA_TEXT_COLOR,
 					},
 				}}
 			/>

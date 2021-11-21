@@ -13,19 +13,19 @@ import {
 	InfoSeverity,
 	LATENCY_MEASUREMENT_COUNT,
 	PingOperation,
+	
 } from "../constants/Constants";
 import {
+	defaultPingFormValues,
 	defaultProtocolInfo,
 	defautlBarData,
 } from "../constants/DefaultValues";
 import IProtocolInfoArea from "../store/models/IProtocolInfoArea";
 import { IResponse } from "../store/models/IResponse";
 import {
-	add,
 	appendDuration,
 	appendDurationStr,
 	checkResponseStatus,
-	divide,
 	getDateTimestamp,
 } from "../utils/utils";
 import { ProtocolInfoArea } from "./ProtocolInfoArea";
@@ -34,17 +34,18 @@ import { useRecoilState } from "recoil";
 import { latencyState } from "../store/atom";
 import { CSVLink } from "react-csv";
 import {
+	computeAverageMeasurement,
 	PerformanceMeasurement,
 	preparePlottingData,
-	processPingMultiMeasurement,
 	spreadPerfData,
 	toCsv,
 } from "../performance/PerformanceMeasurement";
 import { LoaderSpinner } from "./LoaderSpinner";
 import { send } from "../eventbus/eventbus";
 import { IPingFormValues } from "../store/models/IPingFormValues";
-import { IProcessedMultiPingMeasurement } from "../store/models/IProcessedMultiPingMeasurement";
 import { IPingMultiMeasurement } from "../store/models/IPingMultiMeasurement";
+import { CsvLines } from "../constants/Types";
+import { PING_SERVICE_ADDRESS } from "../constants/Addresses";
 
 const useStyles = makeStyles(() => ({
 	status_page: {
@@ -69,8 +70,23 @@ const useStyles = makeStyles(() => ({
 	ping__applet_count: { margin: "0.5em auto 2em auto" },
 }));
 
-export type CsvLines = (number[] | string[])[];
+/**
+ * The ping component provides interface for platform performance testing
+ */
 export const Ping: React.FC = () => {
+	// states
+	const [loading, setLoading] = useState<boolean>(false);
+	const [latencies, setLatencies] = useRecoilState(latencyState);
+	const [csvData, setCsvData] = useState<CsvLines>([]);
+	const [csvFileName, setCsvFileName] = useState<string>("");
+	const [pingAppletsCount, setPingAppletsCount] = useState<number>(0);
+	const [protocolInfo, setProtocolInfo] =
+		useState<IProtocolInfoArea>(defaultProtocolInfo);
+	const [data, setData] = useState<any>(defautlBarData);
+	const [formValues, setFormValues] = useState<IPingFormValues>(
+		defaultPingFormValues
+	);
+
 	let operationBeginning: number;
 	const {
 		status_page,
@@ -82,7 +98,9 @@ export const Ping: React.FC = () => {
 		ping__applet_count,
 	} = useStyles();
 
-	const [loading, setLoading] = useState<boolean>(false);
+	/**
+	 * Generates and sets the csv performance results filename
+	 */
 	const generateCsvFilename = () =>
 		setCsvFileName(
 			`ping_perfdata_${getDateTimestamp()}_${
@@ -90,10 +108,6 @@ export const Ping: React.FC = () => {
 			}_reps.csv`
 		);
 
-	const [latencies, setLatencies] = useRecoilState(latencyState);
-	const [csvData, setCsvData] = useState<CsvLines>([]);
-
-	const [csvFileName, setCsvFileName] = useState<string>("");
 	const storeLatency = (latency: number) => {
 		setLatencies({
 			latencies: [
@@ -102,45 +116,23 @@ export const Ping: React.FC = () => {
 			],
 		});
 	};
-	const [pingAppletsCount, setPingAppletsCount] = useState<number>(0);
-	const [protocolInfo, setProtocolInfo] =
-		useState<IProtocolInfoArea>(defaultProtocolInfo);
 
-	const [data, setData] = useState<any>(defautlBarData);
-
-	const computeAveragedData = (measurements: IPingMultiMeasurement[]) => {
-		const processedMeasurements: IProcessedMultiPingMeasurement[] = [];
-		let averaged: IProcessedMultiPingMeasurement | null = null;
-		for (const measurement of measurements) {
-			const processedMeasurement =
-				processPingMultiMeasurement(measurement);
-			processedMeasurements.push(processedMeasurement);
-			if (!averaged) {
-				averaged = processedMeasurement;
-			} else {
-				averaged = add(averaged, processedMeasurement);
-			}
-		}
-		if (averaged != null) {
-			averaged = divide(averaged, processedMeasurements.length);
-		}
-
-		return averaged;
-	};
-
+	/**
+	 * Triggers the performance test and generates new csv filename
+	 */
 	const ping = () => {
 		generateCsvFilename();
 		operationBeginning = Date.now();
 		pingRecursive(formValues.repetitions, []);
 	};
 
-	// If only there were a mechanism that could enable us to wait for an asynchronous
-	// event to finish. Except there is one: promises. No doubt, this mind-boggling mystery
-	// of absence of promises in vert.x Eventbus Bridge Client (an ASYNCHRONOUS library for sending
-	// messages) rightfully belongs on the list of the greatest mysteries of human history,
-	// right between the lost city of Atlantis and the Bermuda Triangle. Nevertheless, let us pause
-	// for a second and enjoy the elegance and exquisiteness of the following 100-ish lines of
-	// Haskell code with TypeScript syntax that has been written thanks to the mentioned absence of promises.
+	/**
+	 * Handles recursive ping requests
+	 * @param msg - Ping response
+	 * @param performanceMeasurement - Measurement of the current ping request
+	 * @param itersLeft - The number of ping requests to send
+	 * @param pastMeasurements - An array of previous ping measurements
+	 */
 	const recursivePingResponseHandler = (
 		msg: IResponse,
 		performanceMeasurement: PerformanceMeasurement,
@@ -169,27 +161,42 @@ export const Ping: React.FC = () => {
 					Date.now() - operationBeginning
 				)
 			);
-			const averagedData = computeAveragedData(newMeasurement);
+
+			// compute the averade durations
+			const averagedData = computeAverageMeasurement(newMeasurement);
 
 			if (averagedData) {
 				const spreadData = spreadPerfData(averagedData);
 				const plottingData = preparePlottingData(spreadData);
 				setData(plottingData);
 				setCsvData(toCsv(spreadData));
+
+				addDebugMessage(
+					InfoSeverity.Success,
+					"Performance data has been successfully processed."
+				);
+			} else {
+				addDebugMessage(
+					InfoSeverity.Error,
+					"Measurement processing and plotting failed."
+				);
 			}
-			addDebugMessage(
-				InfoSeverity.Success,
-				"Performance data has been successfully processed."
-			);
+
 		}
 	};
+	
+	/**
+	 * Recursively sends ping requests
+	 * @param iterationsLeft 
+	 * @param pastMeasurements - Measurements of the past requests 
+	 */
 	const pingRecursive = (
 		iterationsLeft: number,
 		pastMeasurements: IPingMultiMeasurement[]
 	) => {
 		send(
 			{ operation: PingOperation.Ping },
-			"service.ping",
+			PING_SERVICE_ADDRESS,
 			(msg: IResponse, perfHeaders: PerformanceMeasurement) =>
 				recursivePingResponseHandler(
 					msg,
@@ -203,6 +210,10 @@ export const Ping: React.FC = () => {
 		);
 	};
 
+	/**
+	 * Submit handler
+	 * @param event - The submit event
+	 */
 	const handleSubmit = (event: any) => {
 		event.preventDefault();
 		setLoading(true);
@@ -246,11 +257,15 @@ export const Ping: React.FC = () => {
 		});
 	};
 
+	/**
+	 * Handles the connect response
+	 * @param body - The response body
+	 * @param performanceMeasurement  - Request durations
+	 */
 	const handleConnectResponse = (
 		body: IResponse,
 		performanceMeasurement: PerformanceMeasurement
 	) => {
-		// TODO: add operation to the error message
 		if (!checkResponseStatus(body)) {
 			addDebugMessage(InfoSeverity.Error, body.errMessage);
 			return;
@@ -266,11 +281,10 @@ export const Ping: React.FC = () => {
 		setPingAppletsCount(Number(body.message));
 	};
 
-	const defaultPingFormValues: IPingFormValues = { repetitions: 1 };
-	const [formValues, setFormValues] = useState<IPingFormValues>(
-		defaultPingFormValues
-	);
-
+	/**
+	 * Slider change handler - updates form values on every slider change
+	 * @param name - Property name
+	 */
 	const handleSliderChange = (name: string) => (_e: any, value: any) => {
 		setFormValues({
 			...formValues,
@@ -278,7 +292,7 @@ export const Ping: React.FC = () => {
 		});
 	};
 
-	const graph = data ? <Bar data={data} options={barOptions} /> : null;
+	// display the download button only when the performance measurement is present and ready to be downloaded
 	const downloadButton = csvData?.length ? (
 		<Tooltip title="Download performance data as a csv file for later analysis">
 			<CSVLink
@@ -311,7 +325,7 @@ export const Ping: React.FC = () => {
 						</Grid>
 
 						<Grid item xs={12}>
-							{graph}
+							<Bar data={data} options={barOptions} />
 						</Grid>
 
 						<Grid item xs={12} className={ping__applet_count}>

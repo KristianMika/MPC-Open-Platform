@@ -32,19 +32,24 @@ import "intro.js/introjs.css";
 import { IntroMessage } from "../constants/Intro";
 import { IProtocolFormValues } from "../store/models/IProtocolFormValues";
 import {
+	defaultOutputFieldValue,
 	defaultProtocolFormValues,
 	defaultProtocolInfo,
+	defaultPubKeyValue,
 } from "../constants/DefaultValues";
 import { IGeneralProtocol } from "../store/models/IGeneralProtocol";
-import { eventBus } from "./GlobalComponent";
 import { PerformanceMeasurement } from "../performance/PerformanceMeasurement";
 import { OperationResult } from "../constants/Operation";
 
+/**
+ *
+ * The general protocol component is a base component for all protocols.
+ * It contains input and output protocol fields as well as operation buttons
+ * for protocol querying
+ * @param props - Input props
+ * @returns General protocol component
+ */
 export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
-	// Default values
-	const defaultOutputFieldValue = " ";
-	const defaultPubKeyValue = " ";
-
 	// Styles
 	const {
 		protocol_form,
@@ -64,14 +69,17 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 	const [pubKey, setPubKey] = useState(defaultPubKeyValue);
 	const [protocolInfo, setProtocolInfo] =
 		useState<IProtocolInfoArea>(defaultProtocolInfo);
-	// TODO: for debug purposes only
 	const [lastPlaintext, setLastPlaintext] = useState("");
-
 	const [socketState, setSocketState] = useRecoilState(eventbusSocketState);
 	const [debugMessages, setDebugMessages] =
 		useRecoilState(debugMessagesState);
 
-	const addDebugMessage = (severity: InfoSeverity, message: string) => {
+	/**
+	 * Adds an information alert
+	 * @param severity - Information severity
+	 * @param message - The message to be displayed
+	 */
+	const addInfoAlert = (severity: InfoSeverity, message: string) => {
 		setProtocolInfo({
 			messages: [
 				...protocolInfo.messages,
@@ -79,14 +87,11 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 			],
 		});
 	};
-	const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-		const { name, value } = e.target;
-		setFormValues({
-			...formValues,
-			[name]: value,
-		});
-	};
 
+	/**
+	 * Logs a debug message into the bottom debug area
+	 * @param msg - The message to be logged
+	 */
 	const logDebugMessage = (msg: IResponse) => {
 		const res = msg.success
 			? OperationResult.Success
@@ -100,6 +105,23 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 		});
 	};
 
+	/**
+	 * Form input change handler
+	 * @param e - The change event
+	 */
+	const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+		const { name, value } = e.target;
+		setFormValues({
+			...formValues,
+			[name]: value,
+		});
+	};
+
+	/**
+	 * Stores a latency into the global state. The number of the most recent
+	 * measurements that are keps is specified by the `LATENCY_MEASUREMENT_COUNT` variable
+	 * @param latency - The latency in ms to be stored
+	 */
 	const storeLatency = (latency: number) => {
 		setLatencies({
 			latencies: [
@@ -109,30 +131,48 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 		});
 	};
 
+	/**
+	 * Response handler that creates information alerts
+	 * @param body - Response body
+	 * @param performanceMeasurement - Request durations
+	 */
 	const handleResponseWithAlert = (
 		body: IResponse,
 		performanceMeasurement: PerformanceMeasurement
 	) => handleResponse(body, performanceMeasurement, true);
+
+	/**
+	 * Response handler that does not create information alerts
+	 * @param body - Response body
+	 * @param performanceMeasurement - Request durations
+	 */
 	const handleResponseWithoutAlert = (
 		body: IResponse,
 		performanceMeasurement: PerformanceMeasurement
 	) => handleResponse(body, performanceMeasurement, false);
 
+	/**
+	 * Response handler
+	 * @param body - The response body
+	 * @param performanceMeasurement - Request durations
+	 * @param createAlert - The toggle deciding if an information alert should be created
+	 * @returns
+	 */
 	const handleResponse = (
 		body: IResponse,
 		performanceMeasurement: PerformanceMeasurement | undefined,
 		createAlert: boolean
 	) => {
-		// TODO: add operation to the error message
 		if (!checkResponseStatus(body) && createAlert) {
-			addDebugMessage(InfoSeverity.Error, body.errMessage);
+			addInfoAlert(InfoSeverity.Error, body.errMessage);
 			return;
 		}
+
 		switch (body.operation) {
 			case Operation.Sign:
 				console.log(performanceMeasurement?.toString());
 				setOutputField(body.signature);
-				addDebugMessage(
+				addInfoAlert(
 					InfoSeverity.Success,
 					appendDuration(
 						"The signature has been computed successfully",
@@ -146,12 +186,12 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 				);
 
 				if (wasSigVerificationSuccessfull) {
-					addDebugMessage(
+					addInfoAlert(
 						InfoSeverity.Success,
 						"The signature has been verified successfully"
 					);
 				} else {
-					addDebugMessage(
+					addInfoAlert(
 						InfoSeverity.Warning,
 						"Signature verification has failed"
 					);
@@ -162,7 +202,7 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 			case Operation.GetPubkey:
 				setPubKey(body.publicKey);
 				if (createAlert) {
-					addDebugMessage(
+					addInfoAlert(
 						InfoSeverity.Info,
 						"Public key has been updated"
 					);
@@ -170,7 +210,7 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 				break;
 
 			case Operation.Keygen:
-				addDebugMessage(
+				addInfoAlert(
 					InfoSeverity.Success,
 					appendDuration(
 						"Keys have been generated successfully",
@@ -182,7 +222,7 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 			case Operation.Reset:
 				if (createAlert) {
 					setPubKey(defaultPubKeyValue);
-					addDebugMessage(
+					addInfoAlert(
 						InfoSeverity.Success,
 						appendDuration(
 							"The request has been executed successfully",
@@ -194,7 +234,7 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 				break;
 			case Operation.Encrypt:
 				setOutputField(body.message);
-				addDebugMessage(
+				addInfoAlert(
 					InfoSeverity.Success,
 					appendDuration(
 						"The message has been encrypted successfully!",
@@ -205,7 +245,7 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 
 			case Operation.Decrypt:
 				setOutputField(body.message);
-				addDebugMessage(
+				addInfoAlert(
 					InfoSeverity.Success,
 					appendDuration(
 						"The message has been decrypted successfully!",
@@ -213,7 +253,7 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 					)
 				);
 				if (props.verifyDecryption(body.message, lastPlaintext)) {
-					addDebugMessage(
+					addInfoAlert(
 						InfoSeverity.Success,
 						"The message has been decrypted to the last encrypted plaintext!"
 					);
@@ -222,22 +262,24 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 		}
 	};
 
+	/**
+	 * An update protocol handler - It handles updates from the back-end application
+	 * (Events like protocol reset by another client)
+	 * @param body - Update body
+	 */
 	const handleProtocolUpdate = (body: IResponse) => {
 		if (!checkResponseStatus(body)) {
-			addDebugMessage(InfoSeverity.Error, body.errMessage);
+			addInfoAlert(InfoSeverity.Error, body.errMessage);
 			return;
 		}
 		switch (body.operation) {
 			case Operation.GetPubkey:
 				setPubKey(body.publicKey);
-				addDebugMessage(
-					InfoSeverity.Info,
-					"Public key has been updated"
-				);
+				addInfoAlert(InfoSeverity.Info, "Public key has been updated");
 				break;
 
 			case Operation.Keygen:
-				addDebugMessage(
+				addInfoAlert(
 					InfoSeverity.Success,
 					"Keys have been generated successfully!"
 				);
@@ -245,19 +287,22 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 
 			case Operation.Reset:
 				setPubKey(defaultPubKeyValue);
-				addDebugMessage(
+				addInfoAlert(
 					InfoSeverity.Success,
 					"The protocol has been reset"
 				);
-
 				break;
 		}
 	};
+
 	useEffect(() => {
 		if (!socketState.isOpen) {
 			return;
 		}
 
+		/**
+		 * Subscribe to protocol updates address
+		 */
 		registerSubscribeHandler(
 			`${props.protocolVerticleAddress}-updates`,
 			handleProtocolUpdate
@@ -269,6 +314,7 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 			protocol: props.protocol,
 		};
 
+		// once the connection has been reset, fetch the public key
 		send(
 			getPubkeyMessage,
 			props.protocolVerticleAddress,
@@ -276,6 +322,10 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 		);
 	}, [socketState]);
 
+	/**
+	 * Handles the protocol form submits
+	 * @param event - The submit event
+	 */
 	const handleSubmit = (event: any) => {
 		event.preventDefault();
 		setLoading(true);
@@ -290,12 +340,12 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 
 		if (operationsWithInput.includes(operation)) {
 			if (verifyHexString(inputField)) {
-				addDebugMessage(
+				addInfoAlert(
 					InfoSeverity.Success,
 					"Input is a valid hex string"
 				);
 			} else {
-				addDebugMessage(
+				addInfoAlert(
 					InfoSeverity.Error,
 					"Input is not a valid hex string"
 				);
@@ -304,13 +354,14 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 			}
 		}
 
+		// construct the request
 		const body: IMessage = {
 			operation: operation,
 			data: inputField,
 			protocol: props.protocol,
 		};
 
-		addDebugMessage(InfoSeverity.Info, composeRequestInfoAlert(operation));
+		addInfoAlert(InfoSeverity.Info, composeRequestInfoAlert(operation));
 
 		send(
 			body,

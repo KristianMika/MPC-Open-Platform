@@ -1,14 +1,16 @@
 import { IMystFormValues } from "../store/models/IMystFormValues";
+import { IPingFormValues } from "../store/models/IPingFormValues";
 import { IProtocolFormValues } from "../store/models/IProtocolFormValues";
 import IProtocolInfoArea from "../store/models/IProtocolInfoArea";
-import { InfoSeverity } from "./Constants";
+import { ISmpcRsaFormValues } from "../store/models/ISmpcRsaFormValues";
 
 export const defaultProtocolFormValues: IProtocolFormValues = {
+	// hash of the word "password"
 	data: "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",
 };
 
 export const defaultProtocolInfo: IProtocolInfoArea = {
-	messages:[]
+	messages: [],
 };
 
 export const mystFormDefaultValues: IMystFormValues = {
@@ -44,4 +46,15 @@ export const defautlBarData = {
 			backgroundColor: "#264653",
 		},
 	],
+};
+
+export const defaultOutputFieldValue = " ";
+
+export const defaultPubKeyValue = " ";
+
+export const defaultPingFormValues: IPingFormValues = { repetitions: 1 };
+
+export const ISmpcRsaDefaultFormValues: ISmpcRsaFormValues = {
+	isServerSimulated: false,
+	isClientSimulated: true,
 };

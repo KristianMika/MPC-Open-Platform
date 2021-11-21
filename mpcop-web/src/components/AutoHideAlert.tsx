@@ -1,31 +1,32 @@
 import { Alert, Collapse, IconButton } from "@mui/material";
-import {
-	InfoSeverity,
-	PROTOCOL_ALERT_VISIBILITY_TIME,
-} from "../constants/Constants";
+import { PROTOCOL_ALERT_VISIBILITY_TIME } from "../constants/Constants";
 import CloseIcon from "@material-ui/icons/Close";
 import { useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/core";
+import { IAutoHideAlert } from "../store/models/IAutoHideAlert";
 
-export interface IAutoHideAlert {
-	message: string;
-	severity: InfoSeverity;
-	timestamp: number;
-}
 const useStyles = makeStyles(() => ({
 	alert: {
 		margin: "0.25em auto",
 	},
 }));
+
+/**
+ * Auto hide alert is used for information alerts (messages). After it has been displayed
+ * for the specified time, the alert is automatically hidden
+ * @param props - The input props
+ */
 export const AutoHideAlert: React.FC<IAutoHideAlert> = (props) => {
 	const [open, setOpen] = useState(true);
+	const { alert } = useStyles();
+
+	// set a timeout to hide the component
 	useEffect(() => {
 		setTimeout(() => {
 			setOpen(false);
 		}, PROTOCOL_ALERT_VISIBILITY_TIME);
 	}, [open]);
 
-	const { alert } = useStyles();
 	return (
 		<Collapse in={open} key={props.timestamp}>
 			<Alert

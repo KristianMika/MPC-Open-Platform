@@ -1,3 +1,4 @@
+import { IHeaderData } from "../store/models/IHeaderData";
 import { IProtocolButton } from "../store/models/IProtocolButton";
 
 export enum Operation {
@@ -100,3 +101,31 @@ export const barOptions = {
 };
 
 export const VOWELS = ["a", "e", "i", "o", "u", "y"];
+
+/**
+ * The source data for header buttons
+ */
+export const headerData: IHeaderData[] = [
+	{
+		label: "Home",
+		href: "/",
+	},
+	{
+		label: "Myst",
+		href: "/protocols/myst",
+	},
+	{
+		label: "Smart-ID RSA",
+		href: "/protocols/smpcrsa",
+	},
+	{
+		label: "Ping",
+		href: "/ping",
+	},
+];
+
+export const GREY_FILTER_DISPLAY_DELAY = 3000;
+
+export const DEBUG_AREA_TEXT_COLOR = "#dddddd";
+
+

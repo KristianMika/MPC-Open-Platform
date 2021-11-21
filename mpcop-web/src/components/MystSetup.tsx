@@ -1,17 +1,10 @@
-import {
-	Button,
-	Dialog,
-	DialogActions,
-	DialogContent,
-	DialogContentText,
-	DialogTitle,
-	Grid,
-	Slider,
-	Tooltip,
-	Typography,
-} from "@material-ui/core";
+import { Button, Grid, Slider, Tooltip, Typography } from "@material-ui/core";
 import { ChangeEvent, useEffect, useState } from "react";
 import { useRecoilState } from "recoil";
+import {
+	MYST_SERVICE_ADDRESS,
+	MYST_SERVICE_UPDATES_ADDRESS,
+} from "../constants/Addresses";
 import {
 	COLOR_PRIMARY,
 	InfoSeverity,
@@ -43,48 +36,39 @@ import {
 	composeRequestInfoAlert,
 	formatLog,
 } from "../utils/utils";
-import { eventBus } from "./GlobalComponent";
+import { ConfirmationDialog } from "./ConfirmationDialog";
 import { LoaderSpinner } from "./LoaderSpinner";
 import { ProtocolInfoArea } from "./ProtocolInfoArea";
 
-const mystVerticleAddress = "service.myst";
+/**
+ * The myst setup components provides a user interface for Myst configuration.
+ * It allows to choose the number of simulated players
+ */
 export const MystSetup: React.FC = () => {
-	const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
-	const handleDialogClose = () => {
-		setIsDialogOpen(false);
-	};
-	const handleDialogOpen = () => {
-		setIsDialogOpen(true);
-	};
-	const handleSliderChange = (name: string) => (_e: any, value: any) => {
-		setFormValues({
-			...formValues,
-			[name]: value,
-		});
-	};
+	// states
 	const [formValues, setFormValues] = useState<IMystFormValues>(
 		mystFormDefaultValues
 	);
 	const [protocolInfo, setProtocolInfo] =
 		useState<IProtocolInfoArea>(defaultProtocolInfo);
+	const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
+	const [socketState, setSocketState] = useRecoilState(eventbusSocketState);
 	const [latencies, setLatencies] = useRecoilState(latencyState);
-	const storeLatency = (latency: number) => {
-		setLatencies({
-			latencies: [
-				...latencies.latencies.slice(-LATENCY_MEASUREMENT_COUNT + 1),
-				latency,
-			],
-		});
-	};
-	const addDebugMessage = (severity: InfoSeverity, message: string) => {
-		setProtocolInfo({
-			messages: [
-				...protocolInfo.messages,
-				{ message, severity, timestamp: Date.now() },
-			],
-		});
-	};
 	const [loading, setLoading] = useState<boolean>(false);
+	const [debugMessages, setDebugMessages] =
+		useRecoilState(debugMessagesState);
+
+	const formId = "myst_setup_form";
+
+	// Closes the confirmation dialog
+	const handleDialogClose = () => {
+		setIsDialogOpen(false);
+	};
+
+	// opens the confirmation dialog
+	const handleDialogOpen = () => {
+		setIsDialogOpen(true);
+	};
 
 	const {
 		protocol_setup_form,
@@ -94,17 +78,76 @@ export const MystSetup: React.FC = () => {
 		protocol_form__slider,
 	} = useProtocolSetupStyles();
 
-	const received_response_log = () => {
-		addDebugMessage(InfoSeverity.Info, `Received response`);
+	/**
+	 * Stores the new value from the slider into the form state
+	 * @param name
+	 * @returns
+	 */
+	const handleSliderChange = (name: string) => (_e: any, value: any) => {
+		setFormValues({
+			...formValues,
+			[name]: value,
+		});
 	};
+
+	/**
+	 * Stores a request network latency
+	 * @param latency - Latency in ms to be stored
+	 */
+	const storeLatency = (latency: number) => {
+		setLatencies({
+			latencies: [
+				...latencies.latencies.slice(-LATENCY_MEASUREMENT_COUNT + 1),
+				latency,
+			],
+		});
+	};
+
+	/**
+	 * Creates an information alert
+	 * @param severity - The severity of the alert
+	 * @param message - The message that will be diplayed
+	 */
+	const addInformationAlert = (severity: InfoSeverity, message: string) => {
+		setProtocolInfo({
+			messages: [
+				...protocolInfo.messages,
+				{ message, severity, timestamp: Date.now() },
+			],
+		});
+	};
+
+	// creates an information alert informing the response has been recieved
+	const informAboutReceivedResponse = () => {
+		addInformationAlert(InfoSeverity.Info, `Received response`);
+	};
+
+	/**
+	 * Handles a response without creation of information alerts
+	 * @param body - The reponse body
+	 * @param performanceMeasurement - Request durations
+	 */
 	const handleResponseWithAlert = (
 		body: IResponse,
 		performanceMeasurement: PerformanceMeasurement
 	) => handleResponse(body, performanceMeasurement, true);
+
+	/**
+	 * Handles a response with creation of information alerts
+	 * @param body - The response body
+	 * @param performanceMeasurement - Request durations
+	 */
 	const handleResponseWithoutAlert = (
 		body: IResponse,
 		performanceMeasurement: PerformanceMeasurement
 	) => handleResponse(body, performanceMeasurement, false);
+
+	/**
+	 * Handles the received response
+	 * @param body - Response body
+	 * @param performanceMeasurement - Request durations
+	 * @param createAlert - Information alerts creation toggle
+	 */
 	const handleResponse = (
 		body: IResponse,
 		performanceMeasurement: PerformanceMeasurement | undefined,
@@ -112,13 +155,13 @@ export const MystSetup: React.FC = () => {
 	) => {
 		setLoading(false);
 		if (!checkResponseStatus(body) && createAlert) {
-			addDebugMessage(InfoSeverity.Error, body.errMessage);
+			addInformationAlert(InfoSeverity.Error, body.errMessage);
 			return;
 		}
 		switch (body.operation) {
 			case Operation.GetConfig:
 				if (createAlert) {
-					addDebugMessage(
+					addInformationAlert(
 						InfoSeverity.Success,
 						"Updating the protocol configuration"
 					);
@@ -127,7 +170,7 @@ export const MystSetup: React.FC = () => {
 				break;
 			case Operation.Configure:
 				if (createAlert) {
-					addDebugMessage(
+					addInformationAlert(
 						InfoSeverity.Success,
 						appendDuration(
 							"The protocol has been configured successfully",
@@ -138,6 +181,11 @@ export const MystSetup: React.FC = () => {
 				break;
 		}
 	};
+
+	/**
+	 * Handles the myst configuration form submit
+	 * @param event
+	 */
 	const handleSubmit = (event: ChangeEvent<HTMLFormElement>) => {
 		event.preventDefault();
 		setLoading(true);
@@ -151,18 +199,24 @@ export const MystSetup: React.FC = () => {
 			data: JSON.stringify(configValues),
 			protocol: Protocol.Myst,
 		};
-		addDebugMessage(InfoSeverity.Info, composeRequestInfoAlert("CONFIG"));
+		addInformationAlert(
+			InfoSeverity.Info,
+			composeRequestInfoAlert("CONFIG")
+		);
 		send(
 			body,
-			mystVerticleAddress,
+			MYST_SERVICE_ADDRESS,
 			handleResponseWithAlert,
-			received_response_log,
+			informAboutReceivedResponse,
 			() => setLoading(false),
 			storeLatency
 		);
 	};
-	const [debugMessages, setDebugMessages] =
-		useRecoilState(debugMessagesState);
+
+	/**
+	 * Logs a debug message into the bottom debug area
+	 * @param msg - Message to be logged
+	 */
 	const logDebugMessage = (msg: IResponse) => {
 		const res = msg.success
 			? OperationResult.Success
@@ -175,14 +229,16 @@ export const MystSetup: React.FC = () => {
 			]),
 		});
 	};
-	const [socketState, setSocketState] = useRecoilState(eventbusSocketState);
+
+	// Request the current config on every component mount / socket state change
 	useEffect(() => {
 		if (!socketState.isOpen) {
 			return;
 		}
 
+		// register a subscribe handler for configuration updates
 		registerSubscribeHandler(
-			`${mystVerticleAddress}-updates`,
+			MYST_SERVICE_UPDATES_ADDRESS,
 			handleProtocolUpdate
 		);
 
@@ -194,7 +250,7 @@ export const MystSetup: React.FC = () => {
 
 		send(
 			getConfigMessage,
-			mystVerticleAddress,
+			MYST_SERVICE_ADDRESS,
 			handleResponseWithoutAlert,
 			logDebugMessage,
 			undefined,
@@ -202,14 +258,18 @@ export const MystSetup: React.FC = () => {
 		);
 	}, [socketState]);
 
+	/**
+	 * Handles a configuration update message
+	 * @param body - The update message body
+	 */
 	const handleProtocolUpdate = (body: IResponse) => {
 		if (!checkResponseStatus(body)) {
-			addDebugMessage(InfoSeverity.Error, body.errMessage);
+			addInformationAlert(InfoSeverity.Error, body.errMessage);
 			return;
 		}
 		switch (body.operation) {
 			case Operation.GetConfig:
-				addDebugMessage(
+				addInformationAlert(
 					InfoSeverity.Success,
 					"Updating the protocol configuration"
 				);
@@ -222,7 +282,7 @@ export const MystSetup: React.FC = () => {
 		<div>
 			<LoaderSpinner {...{ isVisible: loading, color: COLOR_PRIMARY }} />
 			<form
-				id="myst_setup_form"
+				id={formId}
 				onSubmit={handleSubmit}
 				className={protocol_setup_form}
 				data-intro={IntroMessage.PROTOCOL_SETUP}
@@ -279,35 +339,15 @@ export const MystSetup: React.FC = () => {
 								Setup
 							</Button>
 						</Tooltip>
-
-						<Dialog
-							open={isDialogOpen}
-							onClose={handleDialogClose}
-							aria-labelledby="alert-dialog-title"
-							aria-describedby="alert-dialog-description"
-						>
-							<DialogTitle id="alert-dialog-title">
-								{"Are you sure?"}
-							</DialogTitle>
-							<DialogContent>
-								<DialogContentText id="alert-dialog-description">
-									Modifying the protocol setup can reset the
-									cards and erase all secrets!
-								</DialogContentText>
-							</DialogContent>
-							<DialogActions>
-								<Button onClick={handleDialogClose} autoFocus>
-									Cancel
-								</Button>
-								<Button
-									onClick={handleDialogClose}
-									form="myst_setup_form"
-									type="submit"
-								>
-									Proceed
-								</Button>
-							</DialogActions>
-						</Dialog>
+						<ConfirmationDialog
+							isDialogOpen={isDialogOpen}
+							handleDialogClose={handleDialogClose}
+							dialogTitle={"Are you sure?"}
+							dialogContent={
+								"Modifying the protocol setup can reset the cards and erase all secrets!"
+							}
+							formName={formId}
+						/>
 					</Grid>
 					<Grid item xs={12}>
 						<ProtocolInfoArea {...protocolInfo} />
