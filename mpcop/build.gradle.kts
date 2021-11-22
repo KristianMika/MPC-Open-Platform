@@ -4,10 +4,12 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     // Apply the org.jetbrains.kotlin.jvm Plugin to add support for Kotlin.
     id("org.jetbrains.kotlin.jvm") version "1.5.0"
+
+    // Add shadowJar task
     id("com.github.johnrengelman.shadow") version "7.0.0"
+
     // Apply the application plugin to add support for building a CLI application in Java.
     application
-    java
 }
 
 version = "0.2.0"
@@ -15,9 +17,6 @@ group = "cz.muni.fi"
 repositories {
     mavenCentral()
 
-    // TODO: somehow add repositories from nested build.gradle files
-    // Repositories stolen from the smart-id rsa build.gradle
-    // Repository with JCardSim, Globalplatform, etc, ...
     maven(url = "https://dl.bintray.com/ph4r05/jcard")
 
     maven(url = "https://javacard.pro/maven")
@@ -28,9 +27,6 @@ repositories {
 dependencies {
     // Align versions of all Kotlin components
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
-
-    // Use the Kotlin JDK 8 standard library.
-    implementation(kotlin("stdlib-jdk8"))
 
     // Gson
     implementation("com.google.code.gson:gson:2.8.8")
@@ -44,9 +40,10 @@ dependencies {
     // https://mvnrepository.com/artifact/io.vertx/vertx-web
     implementation("io.vertx:vertx-web:$vertxVersion")
 
+    implementation("io.vertx:vertx-lang-kotlin:$vertxVersion")
+
     // Protocols
     implementation(project(":MPCTestClient"))
-    implementation(project(":MPCApplet"))
 
     implementation(project(":javacard-smpc-rsa"))
 
@@ -55,16 +52,15 @@ dependencies {
 
     implementation("com.klinec:jcardsim:3.0.5.11")
 
-    implementation("io.vertx:vertx-lang-kotlin-coroutines:$vertxVersion")
-
-    implementation("io.vertx:vertx-lang-kotlin:$vertxVersion")
-
+    // Test dependencies
     testImplementation("io.vertx:vertx-junit5:$vertxVersion")
 }
 
 application {
     // Define the main class for the application.
     mainClass.set("cz.muni.fi.mpcop.MpcopKt")
+
+    // Add a JVM switch for JCardSim
     applicationDefaultJvmArgs = listOf("-noverify")
 }
 
@@ -73,12 +69,11 @@ configure<JavaPluginConvention> {
 }
 
 tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = JavaVersion.VERSION_1_8.toString() //"1.8"
+    kotlinOptions.jvmTarget = JavaVersion.VERSION_1_8.toString() // "1.8"
 }
 
 tasks.withType<Test> {
     useJUnitPlatform()
-
 }
 
 tasks.withType<Wrapper> {
