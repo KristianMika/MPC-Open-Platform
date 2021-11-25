@@ -1,6 +1,7 @@
 package cz.muni.fi.mpcop
 
 import cz.muni.fi.mpcop.myst.MystVerticle
+import cz.muni.fi.mpcop.ping.PingVerticle
 import cz.muni.fi.mpcop.smpcrsa.SmpcRsaVerticle
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.AsyncResult
@@ -10,14 +11,15 @@ import java.util.logging.Logger
 
 /**
  * The [DeployerVerticle] class is responsible only for deploying other verticles.
- *
- * @author Kristian Mika
  */
 class DeployerVerticle : AbstractVerticle() {
     /**
      * A wrapper method that deploys all the verticles
      */
     private fun deployVerticles() {
+        // we want to deploy the protocol verticles as worker verticles,
+        // to avoid blocking the event loop, since they
+        // perform long-lasting computations
         deployWorkerVerticle(MystVerticle::class.java.name)
         deployWorkerVerticle(SmpcRsaVerticle::class.java.name)
         deployWorkerVerticle(PingVerticle::class.java.name)
@@ -25,7 +27,7 @@ class DeployerVerticle : AbstractVerticle() {
     }
 
     /**
-     * Deploys the [className] verticle specified in the argument and logs the result
+     * Deploys the [className] verticle with specified [deploymentOptions]
      */
     private fun deployVerticle(className: String, deploymentOptions: DeploymentOptions? = DeploymentOptions()) {
         vertx.deployVerticle(className, deploymentOptions) { result: AsyncResult<String?> ->
@@ -52,9 +54,11 @@ class DeployerVerticle : AbstractVerticle() {
 
     companion object {
         private val logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME)
+        private const val workerInstances = 1
+        private const val workerPoolSize = 1
         private val workerOptions = DeploymentOptions()
             .setWorker(true)
-            .setInstances(1)
-            .setWorkerPoolSize(1)
+            .setInstances(workerInstances)
+            .setWorkerPoolSize(workerPoolSize)
     }
 }

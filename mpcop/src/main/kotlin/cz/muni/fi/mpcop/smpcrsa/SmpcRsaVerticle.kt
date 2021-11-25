@@ -9,13 +9,15 @@ import cz.muni.cz.mpcop.smpcrsa.client_full.ClientFullMgr
 import cz.muni.cz.mpcop.smpcrsa.server.ServerMgr
 import cz.muni.fi.mpcop.AbstractProtocolVerticle
 import cz.muni.fi.mpcop.GeneralMPCOPException
+import cz.muni.fi.mpcop.Messages.CONFIG_HAS_FAILED
+import cz.muni.fi.mpcop.Messages.GENERIC_ERROR_MESSAGE
+import cz.muni.fi.mpcop.Messages.INVALID_FORMAT
+import cz.muni.fi.mpcop.Messages.KEYS_NOT_GENERATED_YET
 import cz.muni.fi.mpcop.Utils
 
 
 /**
- * The [SmpcRsaVerticle] class implements the [AbstractProtocolVerticle]
- *
- * @author Kristian Mika
+ * The [SmpcRsaVerticle] class represents the Smart-ID RSA protocol
  */
 class SmpcRsaVerticle :
     AbstractProtocolVerticle(CONSUMER_ADDRESS) {
@@ -27,22 +29,22 @@ class SmpcRsaVerticle :
 
     @Throws(GeneralMPCOPException::class)
     override fun sign(data: String): List<String> {
-        return requireNotNull(
-            try {
-                listOf(server?.signMessage(data, client?.signMessage(data)))
-            } catch (e: Exception) {
-                throw GeneralMPCOPException(e.toString())
-            }
-        ) as List<String>
+
+        val signature = try {
+            server?.signMessage(data, client?.signMessage(data))
+        } catch (e: Exception) {
+            throw GeneralMPCOPException(e.toString())
+        } ?: throw GeneralMPCOPException(GENERIC_ERROR_MESSAGE)
+        return listOf(signature)
     }
 
     @Throws(GeneralMPCOPException::class)
     override fun decrypt(data: String): String {
         return try {
-            server?.signMessage(data, client?.signMessage(data)) ?: ""
+            server?.signMessage(data, client?.signMessage(data))
         } catch (e: Exception) {
             throw GeneralMPCOPException(e.toString())
-        }
+        } ?: throw GeneralMPCOPException(GENERIC_ERROR_MESSAGE)
     }
 
     override fun encrypt(data: String, pubKey: String): String {
@@ -56,7 +58,7 @@ class SmpcRsaVerticle :
                 getPubkey(server)
             } catch (e: java.lang.Exception) {
                 logger.warning(e.toString())
-                throw GeneralMPCOPException("The public key has not been computed yet.")
+                throw GeneralMPCOPException(KEYS_NOT_GENERATED_YET)
             }
         return response
     }
@@ -77,7 +79,8 @@ class SmpcRsaVerticle :
 
     override fun areKeysGenerated(): Boolean {
         return try {
-            val _pubKey = getPubKey()
+            // if get pubkey won't fail, it means the keys have been generated
+            getPubKey()
             true
         } catch (e: Exception) {
             false
@@ -97,14 +100,14 @@ class SmpcRsaVerticle :
         val newConfig: SmpcRsaConfiguration = try {
             Gson().fromJson(conf, SmpcRsaConfiguration::class.java)
         } catch (e: JsonSyntaxException) {
-            throw GeneralMPCOPException("Invalid format")
+            throw GeneralMPCOPException(INVALID_FORMAT)
         }
 
         try {
             server = ServerMgr(!newConfig.isServerSimulated)
             client = ClientFullMgr(!newConfig.isClientSimulated)
         } catch (e: Exception) {
-            throw GeneralMPCOPException(e.message ?: "Configuration has failed")
+            throw GeneralMPCOPException(e.message ?: CONFIG_HAS_FAILED)
         }
         config = newConfig
         return getInfo()
@@ -112,7 +115,6 @@ class SmpcRsaVerticle :
 
     companion object {
         const val CONSUMER_ADDRESS = "service.smart-id-rsa"
-
     }
 
     init {

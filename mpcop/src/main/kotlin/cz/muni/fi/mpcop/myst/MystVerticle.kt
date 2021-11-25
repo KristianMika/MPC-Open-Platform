@@ -7,6 +7,12 @@ import com.google.gson.JsonSyntaxException
 import cz.muni.cz.mpcop.cardTools.Util
 import cz.muni.fi.mpcop.AbstractProtocolVerticle
 import cz.muni.fi.mpcop.GeneralMPCOPException
+import cz.muni.fi.mpcop.Messages.DECRYPTION_FAILED
+import cz.muni.fi.mpcop.Messages.ENCRYPTION_FAILED
+import cz.muni.fi.mpcop.Messages.GENERIC_ERROR_MESSAGE
+import cz.muni.fi.mpcop.Messages.INVALID_FORMAT
+import cz.muni.fi.mpcop.Messages.KEYS_NOT_GENERATED_YET
+import cz.muni.fi.mpcop.Messages.ZERO_PLAYERS_WARNING
 import cz.muni.fi.mpcop.Utils.bigIntegerFromHexString
 import cz.muni.fi.mpcop.Utils.toJson
 import mpctestclient.MPCRun
@@ -17,13 +23,12 @@ import java.util.*
 
 
 /**
- * The [MystVerticle] implements the [AbstractProtocolVerticle].
- *
- * @author Kristian Mika
+ * The [MystVerticle] class represents the Myst protocol
  */
 class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
     private var run: MPCRun? = null
-    private var config = MystConfiguration(virtualCardsCount = 5)
+    private var config = MystConfiguration(virtualCardsCount = DEFAULT_VIRTUAL_CARDS_COUNT)
+
     override fun getInfo(): String {
         return """
             The current number of players: ${run?.runCfg?.allPlayersCount.toString()}
@@ -37,7 +42,7 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
         val mystConfig: MystConfiguration = try {
             Gson().fromJson(conf, MystConfiguration::class.java)
         } catch (e: JsonSyntaxException) {
-            throw GeneralMPCOPException("Invalid format")
+            throw GeneralMPCOPException(INVALID_FORMAT)
         }
 
         config.simulatedPlayersCount = mystConfig.virtualCardsCount
@@ -47,9 +52,8 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
             run?.connectAll()
 
             if (run?.runCfg?.allPlayersCount == 0) {
-                throw GeneralMPCOPException("The protocol can't run with 0 players! Make sure you have connected cards.")
+                throw GeneralMPCOPException(ZERO_PLAYERS_WARNING)
             }
-
 
         } catch (e: Exception) {
             throw GeneralMPCOPException(e.message ?: e.toString())
@@ -72,9 +76,7 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
             run?.resetAll(run?.hostFullPriv)
             run?.performSetupAll(run?.hostFullPriv)
             run?.performKeyGen(run?.hostKeyGen)
-            vertx.setTimer(1) { _ ->
-                run?.signCacheAll(run?.hostDecryptSign)
-            }
+            signCache()
         } catch (e: Exception) {
             e.printStackTrace()
             throw GeneralMPCOPException(e.toString())
@@ -95,23 +97,25 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
     @Throws(GeneralMPCOPException::class)
     override fun getPubKey(): String {
         val pubkey =
-            run?.yagg ?: throw GeneralMPCOPException("The public key has not been computed yet.")
+            run?.yagg ?: throw GeneralMPCOPException(KEYS_NOT_GENERATED_YET)
         return Hex.toHexString(pubkey.getEncoded(false)).uppercase(Locale.ROOT)
     }
 
     @Throws(GeneralMPCOPException::class)
     override fun sign(data: String): List<String> {
         return try {
-            val sig: String = run?.signAll(bigIntegerFromHexString(data), run?.hostDecryptSign)?.toString(16) ?: ""
-            val sig_e: String = run?.e ?: ""
+            val sig: String? = run?.signAll(bigIntegerFromHexString(data), run?.hostDecryptSign)?.toString(HEX_ENCODING)
+            val sigE: String? = run?.e
+            if (sig == null || sigE == null) {
+                throw GeneralMPCOPException(GENERIC_ERROR_MESSAGE)
+            }
             signCache()
-            listOf(sig, sig_e)
+            listOf(sig, sigE)
         } catch (e: Exception) {
             logger.info(e.toString())
             throw GeneralMPCOPException(e.toString())
         }
     }
-
 
     /**
      * Generates random elements used in the signing phase in the background - does not block the main thread
@@ -128,21 +132,22 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
         return try {
             Util.toHex(run?.decryptAll(Util.hexStringToByteArray(data), run?.hostDecryptSign)?.getEncoded(false))
         } catch (e: Exception) {
-            throw GeneralMPCOPException(e.message ?: "Decryption failed")
+            throw GeneralMPCOPException(e.message ?: DECRYPTION_FAILED)
         }
     }
 
     override fun encrypt(data: String, pubKey: String): String {
         return try {
-            //Util.toHex(run?.encrypt(BigInteger(1, Util.hexStringToByteArray(data)), run?.hostFullPriv))
             Util.toHex(run?.encryptOnHost(BigInteger(1, Util.hexStringToByteArray(data))))
         } catch (e: Exception) {
-            throw GeneralMPCOPException(e.message ?: "Encryption failed")
+            throw GeneralMPCOPException(e.message ?: ENCRYPTION_FAILED)
         }
     }
 
     companion object {
         const val CONSUMER_ADDRESS = "service.myst"
+        const val DEFAULT_VIRTUAL_CARDS_COUNT: Short = 5
+        const val HEX_ENCODING = 16
     }
 
     init {

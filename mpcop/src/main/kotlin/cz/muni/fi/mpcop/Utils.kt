@@ -22,10 +22,8 @@ object Utils {
     private const val POSITIVE_SIGNUM: Int = 1
 
     /**
-     * Creates a positive BigInteger from a hex string
-     *
-     * @param input string
-     * @return a positive BigInteger created from the input string
+     * Creates a positive BigInteger from a hex [input] string.
+     * Returns a positive BigInteger
      */
     @JvmStatic
     fun bigIntegerFromHexString(input: String): BigInteger {
@@ -33,10 +31,7 @@ object Utils {
     }
 
     /**
-     * Serializes the input object into a JsonObject
-     *
-     * @param src object to be serialized
-     * @return the result JSON
+     * Serializes the [src] input object into a JsonObject
      */
     @JvmStatic
     fun toJsonObject(src: Any): JsonObject {
@@ -44,10 +39,7 @@ object Utils {
     }
 
     /**
-     * Serializes the input object into a JSON string
-     *
-     * @param src object to be serialized
-     * @return the result JSON object as a string
+     * Serializes the [src] input object into a JSON string
      */
     @JvmStatic
     fun toJson(src: Any): String {
@@ -58,6 +50,7 @@ object Utils {
      * Returns the private IP address of the preferred interface.
      */
     @Throws(SocketException::class)
+    @JvmStatic
     fun getPrivateIp(): String {
         val targetAddress = "8.8.8.8"
         val destinationPort = 10002
@@ -65,5 +58,17 @@ object Utils {
             socket.connect(InetAddress.getByName(targetAddress), destinationPort)
             return socket.localAddress.hostAddress
         }
+    }
+
+
+    /**
+     * Construct an update address from the [address] input string
+     * An update address is an address that is used for protocol updates, e.g. key generation.
+     * All clients are subscribed to this address and update the front-end text fields based on
+     * these messages
+     */
+    @JvmStatic
+    fun getUpdatesAddress(address: String): String {
+        return "${address}-updates"
     }
 }

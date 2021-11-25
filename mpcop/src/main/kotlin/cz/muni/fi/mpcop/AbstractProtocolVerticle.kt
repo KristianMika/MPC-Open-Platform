@@ -2,6 +2,11 @@ package cz.muni.fi.mpcop
 
 import com.google.gson.JsonElement
 import com.google.gson.JsonParser
+
+import cz.muni.fi.mpcop.Messages.KEYS_NOT_GENERATED_YET
+import cz.muni.fi.mpcop.Messages.MISSING_DATA_ERROR
+import cz.muni.fi.mpcop.Messages.UNCONFIGURED_PROTOCOL_ERROR
+import cz.muni.fi.mpcop.Utils.getUpdatesAddress
 import cz.muni.fi.mpcop.Utils.toJsonObject
 
 import io.vertx.core.AbstractVerticle
@@ -11,13 +16,9 @@ import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.core.json.get
 import java.util.logging.Logger
 
-// TODO: remove @param and @return tags
-// TODO: unify vertx.json and google.gson usage
 /**
  * The [AbstractProtocolVerticle] class represents
  * a base class for all MPCOP protocols.
- *
- * @author Kristian Mika
  */
 abstract class AbstractProtocolVerticle(private val CONSUMER_ADDRESS: String) : AbstractVerticle() {
     protected val logger: Logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME)
@@ -25,8 +26,13 @@ abstract class AbstractProtocolVerticle(private val CONSUMER_ADDRESS: String) : 
     private var isProtocolConfigured: Boolean = false
     var areKeysGenerated: Boolean = false
 
+    /**
+     * The [ExecutionResponse] class encapsulates a response to a specific request and a publish event
+     * A publish event is an event that should be published to all connected clients subscribed to the
+     * protocol's subscription address. An example of such an event is the key generation publish event.
+     */
     private data class ExecutionResponse(val response: Response, val publishEvent: Operation?) {
-        constructor(response:Response):this(response, null)
+        constructor(response: Response) : this(response, null)
     }
 
     private fun requestHandler(msg: Message<JsonObject>) {
@@ -36,20 +42,20 @@ abstract class AbstractProtocolVerticle(private val CONSUMER_ADDRESS: String) : 
             process(msg.body() as JsonObject)
         } catch (e: GeneralMPCOPException) {
             logger.warning(e.toString())
-            ExecutionResponse(Response("Protocol execution").failed().setErrMessage(e.message))
+            ExecutionResponse(Response().failed().setErrMessage(e.message))
         }
         val operationFinalTimestamp = System.currentTimeMillis()
-        val serializedResponse: JsonObject =  toJsonObject(response)
+        val serializedResponse: JsonObject = toJsonObject(response)
         logger.info("Replying: $serializedResponse")
         val options = DeliveryOptions()
         options.headers = msg.headers()
-        options.addHeader("operation_origin", operationOriginTimestamp.toString())
-        options.addHeader("operation_done", operationFinalTimestamp.toString())
+        options.addHeader(operationOriginTimestampName, operationOriginTimestamp.toString())
+        options.addHeader(operationDoneTimestampName, operationFinalTimestamp.toString())
         msg.reply(serializedResponse, options)
 
         if (publishEvent != null) {
             val (publishResponse, _) = executeOperation(publishEvent)
-            vertx.eventBus().publish("${CONSUMER_ADDRESS}-updates", toJsonObject(publishResponse))
+            vertx.eventBus().publish(getUpdatesAddress(CONSUMER_ADDRESS), toJsonObject(publishResponse))
         }
     }
 
@@ -60,15 +66,12 @@ abstract class AbstractProtocolVerticle(private val CONSUMER_ADDRESS: String) : 
     }
 
     /**
-     * Processes a request and calls the correct method.
-     *
-     * @param request to be processed
-     * @return the result of the requested operation
-     * @throws GeneralMPCOPException if the requested operation is not valid
+     * Processes a [request] and calls the correct method.
+     * Returns the result of the requested operation
      */
     @Throws(GeneralMPCOPException::class)
     private fun process(request: JsonObject): ExecutionResponse {
-        val rawOperation: String = request.getString("operation")
+        val rawOperation: String = request.getString(operationKeyName)
         val operation: Operation = try {
             Operation.valueOf(rawOperation)
         } catch (e: IllegalArgumentException) {
@@ -78,16 +81,15 @@ abstract class AbstractProtocolVerticle(private val CONSUMER_ADDRESS: String) : 
         // in case the protocol has not been configured yet,
         // allow only CONFIGURE and GET_CONFIG operations
         if (!isProtocolConfigured && (operation != Operation.CONFIGURE && operation != Operation.GET_CONFIG)) {
-            return ExecutionResponse(Response(operation).failed().setErrMessage("The protocol has not been configured yet."))
+            return ExecutionResponse(Response(operation).failed().setErrMessage(UNCONFIGURED_PROTOCOL_ERROR))
         }
 
-        val data = request.get<String>("data")
+        val data = request.get<String>(dataKeyName)
         return executeOperation(operation, data)
-
     }
 
     @Throws(GeneralMPCOPException::class)
-    private fun executeOperation(operation: Operation, data:String? = null): ExecutionResponse{
+    private fun executeOperation(operation: Operation, data: String? = null): ExecutionResponse {
         var publishEvent: Operation? = null
         var r = Response(operation)
         r = when (operation) {
@@ -116,22 +118,25 @@ abstract class AbstractProtocolVerticle(private val CONSUMER_ADDRESS: String) : 
             Operation.DECRYPT -> {
                 checkAreKeysGenerated()
                 if (data == null) {
-                    throw GeneralMPCOPException("Requested operation requires data")
+                    throw GeneralMPCOPException(MISSING_DATA_ERROR)
                 }
                 r.setMessage(decrypt(data))
             }
             Operation.ENCRYPT -> {
                 checkAreKeysGenerated()
                 if (data == null) {
-                    throw GeneralMPCOPException("Requested operation requires data")
+                    throw GeneralMPCOPException(MISSING_DATA_ERROR)
                 }
-                // TODO: pubkey can't be empty
-                r.setMessage(encrypt(data, state.pubKey ?: ""))
+
+                if (state.pubKey == null) {
+                    throw GeneralMPCOPException(KEYS_NOT_GENERATED_YET)
+                }
+                r.setMessage(encrypt(data, state.pubKey as String))
             }
             Operation.SIGN -> {
                 checkAreKeysGenerated()
                 if (data == null) {
-                    throw GeneralMPCOPException("Requested operation requires data")
+                    throw GeneralMPCOPException(MISSING_DATA_ERROR)
                 }
                 r.setSignatures(sign(data))
             }
@@ -140,7 +145,7 @@ abstract class AbstractProtocolVerticle(private val CONSUMER_ADDRESS: String) : 
                 val configResult = configure(configuration)
                 isProtocolConfigured = true
                 areKeysGenerated = areKeysGenerated()
-                publishEvent = Operation.GET_CONFIG;
+                publishEvent = Operation.GET_CONFIG
                 r.setMessage(configResult)
             }
             Operation.GET_CONFIG -> r.setMessage(getConfig())
@@ -151,55 +156,43 @@ abstract class AbstractProtocolVerticle(private val CONSUMER_ADDRESS: String) : 
     @Throws(GeneralMPCOPException::class)
     private fun checkAreKeysGenerated() {
         if (!areKeysGenerated) {
-            throw GeneralMPCOPException("The keys have not been generated yet")
+            throw GeneralMPCOPException(KEYS_NOT_GENERATED_YET)
         }
     }
 
     /**
-     * Serves the sign request - signs the input data string
-     *
-     * @param data to be signed
-     * @return all parts of the signature in a string array
-     * @throws GeneralMPCOPException if signing fails
+     * Serves the sign request - signs the input [data] string
      */
     @Throws(GeneralMPCOPException::class)
     protected abstract fun sign(data: String): List<String>
 
     /**
-     * Servers the decrypt request - decrypts the encrypted data
-     *
-     * @param data to be decrypted
-     * @return the plaintext
-     * @throws GeneralMPCOPException if decryption fails
+     * Servers the decrypt request - decrypts the encrypted [data]
      */
     @Throws(GeneralMPCOPException::class)
     protected abstract fun decrypt(data: String): String
 
 
+    /**
+     * Server the encrypt request - encrypts the plaintext [data] with the provided [pubKey]
+     */
     @Throws(GeneralMPCOPException::class)
     protected abstract fun encrypt(data: String, pubKey: String): String
 
     /**
      * Servers the "get public key" request - returns the public key
-     *
-     * @return the public key of the protocol
-     * @throws GeneralMPCOPException if fails
      */
     @Throws(GeneralMPCOPException::class)
     protected abstract fun getPubKey(): String
 
     /**
      * Serves the reset request - reset the protocol and invalidates all cryptographic secrets
-     *
-     * @throws GeneralMPCOPException if resetting fails
      */
     @Throws(GeneralMPCOPException::class)
     protected abstract fun reset()
 
     /**
      * Serves the "generate keys" request - generates keys.
-     *
-     * @throws GeneralMPCOPException if generation fails
      */
     @Throws(GeneralMPCOPException::class)
     protected abstract fun keygen()
@@ -207,15 +200,12 @@ abstract class AbstractProtocolVerticle(private val CONSUMER_ADDRESS: String) : 
     /**
      * Serves the "get info" request - Returns information about the protocol run,
      * e.g. the number of participants, the current protocol state, etc.
-     *
-     * @return protocol information
      */
     protected abstract fun getInfo(): String
 
     /**
      * Configures the protocol - e.g. sets the number of participants
-     *
-     * @return protocol configuration
+     * Returns the protocol configuration
      */
     @Throws(GeneralMPCOPException::class)
     protected abstract fun configure(conf: JsonElement): String
@@ -232,4 +222,11 @@ abstract class AbstractProtocolVerticle(private val CONSUMER_ADDRESS: String) : 
      * cards have already performed key generation in one of the previous MPCOP runs
      */
     protected abstract fun areKeysGenerated(): Boolean
+
+    companion object {
+        const val operationOriginTimestampName = "operation_origin"
+        const val operationDoneTimestampName = "operation_done"
+        const val operationKeyName = "operation"
+        const val dataKeyName = "data"
+    }
 }
