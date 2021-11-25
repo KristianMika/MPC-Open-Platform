@@ -7,7 +7,7 @@ import com.google.gson.JsonSyntaxException
 import cz.muni.cz.mpcop.cardTools.Util
 import cz.muni.fi.mpcop.AbstractProtocolVerticle
 import cz.muni.fi.mpcop.GeneralMPCOPException
-import cz.muni.fi.mpcop.Utils
+import cz.muni.fi.mpcop.Utils.bigIntegerFromHexString
 import cz.muni.fi.mpcop.Utils.toJson
 import mpctestclient.MPCRun
 import mpctestclient.MPCRunConfig
@@ -69,6 +69,7 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
     @Throws(GeneralMPCOPException::class)
     override fun keygen() {
         try {
+            run?.resetAll(run?.hostFullPriv)
             run?.performSetupAll(run?.hostFullPriv)
             run?.performKeyGen(run?.hostKeyGen)
             vertx.setTimer(1) { _ ->
@@ -101,7 +102,7 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
     @Throws(GeneralMPCOPException::class)
     override fun sign(data: String): List<String> {
         return try {
-            val sig: String = run?.signAll(Utils.bigIntegerFromString(data), run?.hostDecryptSign)?.toString(16) ?: ""
+            val sig: String = run?.signAll(bigIntegerFromHexString(data), run?.hostDecryptSign)?.toString(16) ?: ""
             val sig_e: String = run?.e ?: ""
             signCache()
             listOf(sig, sig_e)

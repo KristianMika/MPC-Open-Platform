@@ -2,15 +2,13 @@ package cz.muni.fi.mpcop
 
 
 import com.google.gson.GsonBuilder
+import cz.muni.cz.mpcop.cardTools.Util.hexStringToByteArray
 import io.vertx.core.json.JsonObject
 import java.math.BigInteger
 import java.net.DatagramSocket
 import java.net.InetAddress
 
 import java.net.SocketException
-
-
-
 
 
 /**
@@ -24,14 +22,14 @@ object Utils {
     private const val POSITIVE_SIGNUM: Int = 1
 
     /**
-     * Creates a positive BigInteger from a string
+     * Creates a positive BigInteger from a hex string
      *
      * @param input string
      * @return a positive BigInteger created from the input string
      */
     @JvmStatic
-    fun bigIntegerFromString(input: String): BigInteger {
-        return BigInteger(POSITIVE_SIGNUM, input.toByteArray())
+    fun bigIntegerFromHexString(input: String): BigInteger {
+        return BigInteger(POSITIVE_SIGNUM, hexStringToByteArray(input))
     }
 
     /**

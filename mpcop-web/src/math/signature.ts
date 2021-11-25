@@ -1,7 +1,6 @@
 import * as elliptic from "elliptic";
 import BN from "bn.js";
 import * as CryptoJS from "crypto-js";
-import * as util from "util";
 
 const ec = new elliptic.ec("p256");
 /**
@@ -17,10 +16,7 @@ export const verifySchnorrSignature = (
 	pubKeyString: string
 ) => {
 	// Message * G
-	const encoder = new util.TextEncoder();
-	const encodedPlain = encoder.encode(plaintext);
-
-	const message_bi = new BN(encodedPlain, 16);
+	const message_bi = new BN(plaintext, 'hex');
 
 	const message_ec: any = ec.g.mul(message_bi);
 
