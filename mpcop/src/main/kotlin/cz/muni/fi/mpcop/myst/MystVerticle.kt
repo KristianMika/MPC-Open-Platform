@@ -7,16 +7,23 @@ import com.google.gson.JsonSyntaxException
 import cz.muni.cz.mpcop.cardTools.Util
 import cz.muni.fi.mpcop.AbstractProtocolVerticle
 import cz.muni.fi.mpcop.GeneralMPCOPException
+import cz.muni.fi.mpcop.Messages.APPLET_LOCKED_ERROR
 import cz.muni.fi.mpcop.Messages.DECRYPTION_FAILED
 import cz.muni.fi.mpcop.Messages.ENCRYPTION_FAILED
 import cz.muni.fi.mpcop.Messages.GENERIC_ERROR_MESSAGE
+import cz.muni.fi.mpcop.Messages.INSUFFICIENT_PRIVILEGES_ERROR
 import cz.muni.fi.mpcop.Messages.INVALID_FORMAT
+import cz.muni.fi.mpcop.Messages.INVALID_TRANSITION_ERROR
 import cz.muni.fi.mpcop.Messages.KEYS_NOT_GENERATED_YET
 import cz.muni.fi.mpcop.Messages.ZERO_PLAYERS_WARNING
 import cz.muni.fi.mpcop.Utils.bigIntegerFromHexString
 import cz.muni.fi.mpcop.Utils.toJson
 import mpctestclient.MPCRun
 import mpctestclient.MPCRunConfig
+import mpctestclient.exception.AppletLockedException
+import mpctestclient.exception.FunctionNotAllowedException
+import mpctestclient.exception.MPCException
+import mpctestclient.exception.TransitionNotAllowedException
 import org.bouncycastle.util.encoders.Hex
 import java.math.BigInteger
 import java.util.*
@@ -55,6 +62,9 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
                 throw GeneralMPCOPException(ZERO_PLAYERS_WARNING)
             }
 
+        } catch (e: MPCException) {
+            logger.warning(e.toString())
+            throw GeneralMPCOPException(interpretException(e))
         } catch (e: Exception) {
             throw GeneralMPCOPException(e.message ?: e.toString())
         }
@@ -77,8 +87,10 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
             run?.performSetupAll(run?.hostFullPriv)
             run?.performKeyGen(run?.hostKeyGen)
             signCache()
+        } catch (e: MPCException) {
+            throw GeneralMPCOPException(interpretException(e))
         } catch (e: Exception) {
-            e.printStackTrace()
+            logger.warning(e.toString())
             throw GeneralMPCOPException(e.toString())
         }
     }
@@ -88,8 +100,10 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
         try {
             run?.resetAll(run?.hostFullPriv)
 
+        } catch (e: MPCException) {
+            throw GeneralMPCOPException(interpretException(e))
         } catch (e: Exception) {
-            logger.info(e.toString())
+            logger.warning(e.toString())
             throw GeneralMPCOPException(e.toString())
         }
     }
@@ -111,8 +125,10 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
             }
             signCache()
             listOf(sig, sigE)
+        } catch (e: MPCException) {
+            throw GeneralMPCOPException(interpretException(e))
         } catch (e: Exception) {
-            logger.info(e.toString())
+            logger.warning(e.toString())
             throw GeneralMPCOPException(e.toString())
         }
     }
@@ -131,7 +147,10 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
     override fun decrypt(data: String): String {
         return try {
             Util.toHex(run?.decryptAll(Util.hexStringToByteArray(data), run?.hostDecryptSign)?.getEncoded(false))
+        } catch (e: MPCException) {
+            throw GeneralMPCOPException(interpretException(e))
         } catch (e: Exception) {
+            logger.warning(e.toString())
             throw GeneralMPCOPException(e.message ?: DECRYPTION_FAILED)
         }
     }
@@ -139,7 +158,10 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
     override fun encrypt(data: String, pubKey: String): String {
         return try {
             Util.toHex(run?.encryptOnHost(BigInteger(1, Util.hexStringToByteArray(data))))
+        } catch (e: MPCException) {
+            throw GeneralMPCOPException(interpretException(e))
         } catch (e: Exception) {
+            logger.warning(e.toString())
             throw GeneralMPCOPException(e.message ?: ENCRYPTION_FAILED)
         }
     }
@@ -153,5 +175,18 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
     init {
         val runConfig = MPCRunConfig.getDefaultConfig()
         runConfig.simulatedPlayersCount = config.virtualCardsCount
+    }
+
+    /**
+     * Maps a Myst [exception] to [GeneralMPCOPException]
+     */
+    private fun interpretException(exception: MPCException): String {
+        logger.warning(exception.toString())
+        return when (exception) {
+            is FunctionNotAllowedException -> INSUFFICIENT_PRIVILEGES_ERROR
+            is AppletLockedException -> APPLET_LOCKED_ERROR
+            is TransitionNotAllowedException -> INVALID_TRANSITION_ERROR
+            else -> exception.message ?: GENERIC_ERROR_MESSAGE
+        }
     }
 }

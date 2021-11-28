@@ -19,4 +19,7 @@ object Messages {
     const val DECRYPTION_FAILED =  "Decryption failed"
     const val ENCRYPTION_FAILED = "Encryption failed"
     const val CONFIG_HAS_FAILED = "Configuration has failed"
+    const val INSUFFICIENT_PRIVILEGES_ERROR = "You don't have sufficient privileges for this operation."
+    const val APPLET_LOCKED_ERROR = "The applet has been locked. You need to reinstall the applet"
+    const val INVALID_TRANSITION_ERROR = "The requested operation can't be executed in the current protocol state."
 }
