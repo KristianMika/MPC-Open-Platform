@@ -10,7 +10,7 @@ import introJs from "intro.js";
 import { IntroMessage } from "../constants/Intro";
 
 const useStyles = makeStyles(() => ({
-	debugArea: { position: "fixed", width: "100%", bottom: 0 },
+	debugArea: { position: "fixed", width: "100%", bottom: 0, zIndex: 100 },
 	debugArea__debugButtons: {
 		position: "fixed",
 		right: 5,
@@ -44,7 +44,7 @@ export const DebugAreaWithButtons: React.FC = () => {
 	const debugAreaElement = isVisible ? (
 		<DebugArea {...debugMessages}></DebugArea>
 	) : null;
-	
+
 	return (
 		<footer className={debugArea}>
 			<div className={debugArea__debugButtons}>

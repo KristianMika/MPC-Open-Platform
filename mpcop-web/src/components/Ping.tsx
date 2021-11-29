@@ -13,7 +13,6 @@ import {
 	InfoSeverity,
 	LATENCY_MEASUREMENT_COUNT,
 	PingOperation,
-	
 } from "../constants/Constants";
 import {
 	defaultPingFormValues,
@@ -26,12 +25,13 @@ import {
 	appendDuration,
 	appendDurationStr,
 	checkResponseStatus,
+	formatLog,
 	getDateTimestamp,
 } from "../utils/utils";
 import { ProtocolInfoArea } from "./ProtocolInfoArea";
 import { Bar } from "react-chartjs-2";
 import { useRecoilState } from "recoil";
-import { latencyState } from "../store/atom";
+import { debugMessagesState, latencyState } from "../store/atom";
 import { CSVLink } from "react-csv";
 import {
 	computeAverageMeasurement,
@@ -46,6 +46,9 @@ import { IPingFormValues } from "../store/models/IPingFormValues";
 import { IPingMultiMeasurement } from "../store/models/IPingMultiMeasurement";
 import { CsvLines } from "../constants/Types";
 import { PING_SERVICE_ADDRESS } from "../constants/Addresses";
+import { OperationResult } from "../constants/Operation";
+import { IDebugMessages } from "../store/models/IDebugMessages";
+import { Origin } from "../constants/Origin";
 
 const useStyles = makeStyles(() => ({
 	status_page: {
@@ -74,6 +77,8 @@ const useStyles = makeStyles(() => ({
  * The ping component provides interface for platform performance testing
  */
 export const Ping: React.FC = () => {
+	const pingServiceAddress = "service.ping";
+
 	// states
 	const [loading, setLoading] = useState<boolean>(false);
 	const [latencies, setLatencies] = useRecoilState(latencyState);
@@ -86,6 +91,8 @@ export const Ping: React.FC = () => {
 	const [formValues, setFormValues] = useState<IPingFormValues>(
 		defaultPingFormValues
 	);
+	const [debugMessages, setDebugMessages] =
+		useRecoilState(debugMessagesState);
 
 	let operationBeginning: number;
 	const {
@@ -118,6 +125,23 @@ export const Ping: React.FC = () => {
 	};
 
 	/**
+	 * Logs a debug message into the bottom debug area
+	 * @param msg - The message to be logged
+	 */
+	 const logDebugMessage = (msg: IResponse, origin:Origin = Origin.RESPONSE) => {
+		const res = msg.success
+			? OperationResult.Success
+			: OperationResult.Error;
+
+		setDebugMessages((prevMessages: IDebugMessages) => ({
+			messages: [
+				...prevMessages.messages,
+				formatLog(res, JSON.stringify(msg), origin, "Ping"),
+			],
+		}));
+	};
+
+	/**
 	 * Triggers the performance test and generates new csv filename
 	 */
 	const ping = () => {
@@ -140,7 +164,7 @@ export const Ping: React.FC = () => {
 		pastMeasurements: IPingMultiMeasurement[]
 	) => {
 		if (!checkResponseStatus(msg)) {
-			addDebugMessage(InfoSeverity.Error, msg.errMessage);
+			addInformationAlert(InfoSeverity.Error, msg.errMessage);
 			setLoading(false);
 			return;
 		}
@@ -154,7 +178,7 @@ export const Ping: React.FC = () => {
 			pingRecursive(itersLeft, newMeasurement);
 		} else {
 			setLoading(false);
-			addDebugMessage(
+			addInformationAlert(
 				InfoSeverity.Success,
 				appendDurationStr(
 					"The performance testing has successfully finished.",
@@ -171,24 +195,23 @@ export const Ping: React.FC = () => {
 				setData(plottingData);
 				setCsvData(toCsv(spreadData));
 
-				addDebugMessage(
+				addInformationAlert(
 					InfoSeverity.Success,
 					"Performance data has been successfully processed."
 				);
 			} else {
-				addDebugMessage(
+				addInformationAlert(
 					InfoSeverity.Error,
 					"Measurement processing and plotting failed."
 				);
 			}
-
 		}
 	};
-	
+
 	/**
 	 * Recursively sends ping requests
-	 * @param iterationsLeft 
-	 * @param pastMeasurements - Measurements of the past requests 
+	 * @param iterationsLeft
+	 * @param pastMeasurements - Measurements of the past requests
 	 */
 	const pingRecursive = (
 		iterationsLeft: number,
@@ -226,7 +249,7 @@ export const Ping: React.FC = () => {
 			case PingOperation.Connect:
 				send(
 					{ operation },
-					"service.ping",
+					pingServiceAddress,
 					handleConnectResponse,
 					undefined,
 					() => setLoading(false),
@@ -236,7 +259,7 @@ export const Ping: React.FC = () => {
 
 			case PingOperation.Ping:
 				if (pingAppletsCount == 0) {
-					addDebugMessage(
+					addInformationAlert(
 						InfoSeverity.Warning,
 						'Make sure the smartcards are connected. Then click the "FIND CARDS" button.'
 					);
@@ -248,7 +271,7 @@ export const Ping: React.FC = () => {
 		}
 	};
 
-	const addDebugMessage = (severity: InfoSeverity, message: string) => {
+	const addInformationAlert = (severity: InfoSeverity, message: string) => {
 		setProtocolInfo({
 			messages: [
 				...protocolInfo.messages,
@@ -266,12 +289,13 @@ export const Ping: React.FC = () => {
 		body: IResponse,
 		performanceMeasurement: PerformanceMeasurement
 	) => {
+		logDebugMessage(body);
 		if (!checkResponseStatus(body)) {
-			addDebugMessage(InfoSeverity.Error, body.errMessage);
+			addInformationAlert(InfoSeverity.Error, body.errMessage);
 			return;
 		}
 
-		addDebugMessage(
+		addInformationAlert(
 			InfoSeverity.Success,
 			appendDuration(
 				`Successfully connected to ${body.message} cards.`,

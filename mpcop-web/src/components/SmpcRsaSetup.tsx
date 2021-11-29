@@ -12,6 +12,7 @@ import {
 	LATENCY_MEASUREMENT_COUNT,
 	Operation,
 	Protocol,
+	protocolSetupUpdatesOperations,
 } from "../constants/Constants";
 import { IMessage } from "../store/models/IMessage";
 import { useProtocolSetupStyles } from "../styles/protocolSetup";
@@ -46,6 +47,8 @@ import {
 } from "../constants/Addresses";
 import { ISmpcRsaFormValues } from "../store/models/ISmpcRsaFormValues";
 import { ConfirmationDialog } from "./ConfirmationDialog";
+import { IDebugMessages } from "../store/models/IDebugMessages";
+import { Origin } from "../constants/Origin";
 
 /**
  * This component provides user interface for Smart-ID RSA configuration
@@ -150,6 +153,7 @@ export const SmpcRsaSetup: React.FC = () => {
 		createAlert: boolean
 	) => {
 		setLoading(false);
+		logDebugMessage(body);
 		if (!checkResponseStatus(body) && createAlert) {
 			addInformationAlert(InfoSeverity.Error, body.errMessage);
 			return;
@@ -229,20 +233,23 @@ export const SmpcRsaSetup: React.FC = () => {
 	};
 
 	/**
-	 * Logs a debug message
-	 * @param msg
+	 * Logs a debug message into the bottom debug area
+	 * @param msg - The message to be logged
 	 */
-	const logDebugMessage = (msg: IResponse) => {
+	const logDebugMessage = (
+		msg: IResponse,
+		origin: Origin = Origin.RESPONSE
+	) => {
 		const res = msg.success
 			? OperationResult.Success
 			: OperationResult.Error;
 
-		const prevMessages = debugMessages.messages;
-		setDebugMessages({
-			messages: prevMessages.concat([
-				formatLog(res, JSON.stringify(msg), "Myst"),
-			]),
-		});
+		setDebugMessages((prevMessages: IDebugMessages) => ({
+			messages: [
+				...prevMessages.messages,
+				formatLog(res, JSON.stringify(msg), origin, "Smart-ID RSA"),
+			],
+		}));
 	};
 
 	/**
@@ -251,6 +258,11 @@ export const SmpcRsaSetup: React.FC = () => {
 	 * @returns
 	 */
 	const handleProtocolUpdate = (body: IResponse) => {
+		if (!protocolSetupUpdatesOperations.includes(body.operation)) {
+			// We don't want to interpret messages that don't contain protocol updates
+			return;
+		}
+		logDebugMessage(body, Origin.UPDATES);
 		if (!checkResponseStatus(body)) {
 			addInformationAlert(InfoSeverity.Error, body.errMessage);
 			return;
@@ -290,7 +302,7 @@ export const SmpcRsaSetup: React.FC = () => {
 			getConfigMessage,
 			SMPC_RSA_SERVICE_ADDRESS,
 			handleResponseWithoutAlert,
-			logDebugMessage,
+			undefined,
 			undefined,
 			storeLatency
 		);

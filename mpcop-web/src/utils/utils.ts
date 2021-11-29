@@ -63,8 +63,9 @@ const toTwoPlaces = (num: number): string => {
 export const formatLog = (
 	res: OperationResult = OperationResult.Info,
 	msg: string,
+	origin: string,
 	protocol = "MPCOP"
-): string => `[${res}] ${getTime()} - ${protocol}: ${msg}`;
+): string => `[${res}] (${origin}) - ${getTime()} - ${protocol}: ${msg}`;
 
 /**
  * Checks if the request has been successfull
@@ -246,8 +247,9 @@ export const divide = (
 };
 
 /**
- * Joins debug messages using the new-line character into a single string 
- * @param messages 
- * @returns 
+ * Joins debug messages using the new-line character into a single string
+ * @param messages
+ * @returns
  */
-export const joinDebugMessages = (messages: string[]):string => messages.join("\n");
+export const joinDebugMessages = (messages: string[]): string =>
+	messages.join("\n");

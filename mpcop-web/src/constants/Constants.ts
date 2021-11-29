@@ -24,8 +24,8 @@ export const operationsWithInput = [
 	Operation.Decrypt,
 ];
 export enum Protocol {
-	Myst = "myst",
-	SmartIdRsa = "smart-id-rsa",
+	Myst = "Myst",
+	SmartIdRsa = "Smart-ID-RSA",
 }
 
 export const protocolButtons: IProtocolButton[] = [
@@ -57,6 +57,8 @@ export const protocolButtons: IProtocolButton[] = [
 	},
 ];
 
+export const protocolUpdatesOperations = [Operation.Reset, Operation.GetPubkey];
+export const protocolSetupUpdatesOperations = [Operation.GetConfig]
 export const enum InfoSeverity {
 	Error = "error",
 	Warning = "warning",

@@ -11,6 +11,7 @@ import {
 	LATENCY_MEASUREMENT_COUNT,
 	Operation,
 	Protocol,
+	protocolSetupUpdatesOperations,
 } from "../constants/Constants";
 import {
 	defaultProtocolInfo,
@@ -18,6 +19,7 @@ import {
 } from "../constants/DefaultValues";
 import { IntroMessage } from "../constants/Intro";
 import { OperationResult } from "../constants/Operation";
+import { Origin } from "../constants/Origin";
 import { registerSubscribeHandler, send } from "../eventbus/eventbus";
 import { PerformanceMeasurement } from "../performance/PerformanceMeasurement";
 import {
@@ -25,6 +27,7 @@ import {
 	eventbusSocketState,
 	latencyState,
 } from "../store/atom";
+import { IDebugMessages } from "../store/models/IDebugMessages";
 import { IMessage } from "../store/models/IMessage";
 import { IMystFormValues } from "../store/models/IMystFormValues";
 import IProtocolInfoArea from "../store/models/IProtocolInfoArea";
@@ -154,6 +157,7 @@ export const MystSetup: React.FC = () => {
 		createAlert: boolean
 	) => {
 		setLoading(false);
+		logDebugMessage(body);
 		if (!checkResponseStatus(body) && createAlert) {
 			addInformationAlert(InfoSeverity.Error, body.errMessage);
 			return;
@@ -215,19 +219,22 @@ export const MystSetup: React.FC = () => {
 
 	/**
 	 * Logs a debug message into the bottom debug area
-	 * @param msg - Message to be logged
+	 * @param msg - The message to be logged
 	 */
-	const logDebugMessage = (msg: IResponse) => {
+	const logDebugMessage = (
+		msg: IResponse,
+		origin: Origin = Origin.RESPONSE
+	) => {
 		const res = msg.success
 			? OperationResult.Success
 			: OperationResult.Error;
 
-		const prevMessages = debugMessages.messages;
-		setDebugMessages({
-			messages: prevMessages.concat([
-				formatLog(res, JSON.stringify(msg), "Myst"),
-			]),
-		});
+		setDebugMessages((prevMessages: IDebugMessages) => ({
+			messages: [
+				...prevMessages.messages,
+				formatLog(res, JSON.stringify(msg), origin, "Myst"),
+			],
+		}));
 	};
 
 	// Request the current config on every component mount / socket state change
@@ -252,7 +259,7 @@ export const MystSetup: React.FC = () => {
 			getConfigMessage,
 			MYST_SERVICE_ADDRESS,
 			handleResponseWithoutAlert,
-			logDebugMessage,
+			undefined,
 			undefined,
 			storeLatency
 		);
@@ -263,6 +270,12 @@ export const MystSetup: React.FC = () => {
 	 * @param body - The update message body
 	 */
 	const handleProtocolUpdate = (body: IResponse) => {
+		if (!protocolSetupUpdatesOperations.includes(body.operation)) {
+			// We don't want to interpret messages that don't contain protocol updates
+			return;
+		}
+
+		logDebugMessage(body, Origin.UPDATES);
 		if (!checkResponseStatus(body)) {
 			addInformationAlert(InfoSeverity.Error, body.errMessage);
 			return;

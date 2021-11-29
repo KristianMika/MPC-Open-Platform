@@ -1,6 +1,8 @@
+import { Operation } from "../../constants/Constants";
+
 export interface IResponse {
 	success: boolean;
-	operation: string;
+	operation: Operation;
 	errMessage: string;
 	message: string;
 	signature: string;

@@ -6,6 +6,7 @@ import {
 	LATENCY_MEASUREMENT_COUNT,
 	Operation,
 	operationsWithInput,
+	protocolUpdatesOperations,
 } from "../constants/Constants";
 import {
 	appendDuration,
@@ -40,6 +41,8 @@ import {
 import { IGeneralProtocol } from "../store/models/IGeneralProtocol";
 import { PerformanceMeasurement } from "../performance/PerformanceMeasurement";
 import { OperationResult } from "../constants/Operation";
+import { IDebugMessages } from "../store/models/IDebugMessages";
+import { Origin } from "../constants/Origin";
 
 /**
  *
@@ -92,17 +95,17 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 	 * Logs a debug message into the bottom debug area
 	 * @param msg - The message to be logged
 	 */
-	const logDebugMessage = (msg: IResponse) => {
+	const logDebugMessage = (msg: IResponse, origin:Origin=Origin.RESPONSE) => {
 		const res = msg.success
 			? OperationResult.Success
 			: OperationResult.Error;
 
-		const prevMessages = debugMessages.messages;
-		setDebugMessages({
-			messages: prevMessages.concat([
-				formatLog(res, JSON.stringify(msg), props.protocol),
-			]),
-		});
+		setDebugMessages((prevMessages: IDebugMessages) => ({
+			messages: [
+				...prevMessages.messages,
+				formatLog(res, JSON.stringify(msg), origin, props.protocol),
+			],
+		}));
 	};
 
 	/**
@@ -166,6 +169,9 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 		if (!checkResponseStatus(body) && createAlert) {
 			addInfoAlert(InfoSeverity.Error, body.errMessage);
 			return;
+		}
+		if (createAlert) {
+			addInfoAlert(InfoSeverity.Info, "Received response");
 		}
 
 		switch (body.operation) {
@@ -268,6 +274,12 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 	 * @param body - Update body
 	 */
 	const handleProtocolUpdate = (body: IResponse) => {
+		if (!protocolUpdatesOperations.includes(body.operation)) {
+			// We don't want to interpret messages that don't contain protocol updates
+			return;
+		}
+
+		logDebugMessage(body, Origin.UPDATES);
 		if (!checkResponseStatus(body)) {
 			addInfoAlert(InfoSeverity.Error, body.errMessage);
 			return;
@@ -276,13 +288,6 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 			case Operation.GetPubkey:
 				setPubKey(body.publicKey);
 				addInfoAlert(InfoSeverity.Info, "Public key has been updated");
-				break;
-
-			case Operation.Keygen:
-				addInfoAlert(
-					InfoSeverity.Success,
-					"Keys have been generated successfully!"
-				);
 				break;
 
 			case Operation.Reset:
