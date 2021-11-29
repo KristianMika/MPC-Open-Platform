@@ -1,7 +1,5 @@
 package cz.muni.cz.mpcop.cardTools;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 
 /**
  *
@@ -44,54 +42,6 @@ public class Util {
         }
         return b;
     }    
-    
-    
-    // cz.muni.cz.mpcop.Utils
-    public static short getShort(byte[] buffer, int offset) {
-        return ByteBuffer.wrap(buffer, offset, 2).order(ByteOrder.BIG_ENDIAN).getShort();
-    }
-
-    public static short readShort(byte[] data, int offset) {
-        return (short) (((data[offset] << 8)) | ((data[offset + 1] & 0xff)));
-    }
-
-    public static byte[] shortToByteArray(int s) {
-        return new byte[]{(byte) ((s & 0xFF00) >> 8), (byte) (s & 0x00FF)};
-    }
-    
-    
-    public static byte[] joinArray(byte[]... arrays) {
-        int length = 0;
-        for (byte[] array : arrays) {
-            length += array.length;
-        }
-
-        final byte[] result = new byte[length];
-
-        int offset = 0;
-        for (byte[] array : arrays) {
-            System.arraycopy(array, 0, result, offset, array.length);
-            offset += array.length;
-        }
-
-        return result;
-    }
-
-    public static byte[] trimLeadingZeroes(byte[] array) {
-        short startOffset = 0;
-        for (int i = 0; i < array.length; i++) {
-            if (array[i] != 0) {
-                break;
-            } else {
-                // still zero
-                startOffset++;
-            }
-        }
-
-        byte[] result = new byte[array.length - startOffset];
-        System.arraycopy(array, startOffset, result, 0, array.length - startOffset);
-        return result;
-    }
 
     public static byte[] concat(byte[] a, byte[] b) {
         int aLen = a.length;

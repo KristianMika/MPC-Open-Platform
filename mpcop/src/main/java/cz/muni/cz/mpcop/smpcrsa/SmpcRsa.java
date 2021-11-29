@@ -9,10 +9,22 @@ import javax.smartcardio.ResponseAPDU;
 import java.math.BigInteger;
 import java.util.List;
 
-import static cz.muni.cz.mpcop.JavacardUtils.*;
+import static cz.muni.cz.mpcop.JavaCardUtils.*;
 
+/**
+ * The {@link SmpcRsa} class contains methods that require direct communication with JavaCards
+ *
+ * @author Kristian Mika
+ */
 public class SmpcRsa {
 
+    /**
+     * Requests the public modulus from a server
+     *
+     * @param server - The server that contains the public modulus
+     * @return the public modulus as a hex string
+     * @throws Exception if something fails
+     */
     static public String getPubkey(ServerMgr server) throws Exception {
         List<ResponseAPDU> serverPublicModulus;
         try {
@@ -24,7 +36,14 @@ public class SmpcRsa {
         return extractData(serverPublicModulus);
     }
 
-    public static void keygen(ClientFullMgr client, ServerMgr server) throws Exception {
+    /**
+     * Executes the whole collaborative key generation process.
+     *
+     * @param client  - The Smart-ID RSA client
+     * @param server- The Smart-ID RSA server
+     * @throws GeneralMPCOPException if somethings fails
+     */
+    public static void keygen(ClientFullMgr client, ServerMgr server) throws GeneralMPCOPException {
         List<ResponseAPDU> serverApdus;
         String[] clientKeys;
         try {
@@ -41,7 +60,6 @@ public class SmpcRsa {
 
             // the "4k" check
             if (checkWrongLength(serverApdus.get(0))) {
-                //logger.info("Generated moduli is not 4kb big, generating again.")
                 throw new GeneralMPCOPException("Couldn't generate keys: The generated moduli is not 4kb in size.");
             }
         } catch (Exception e) {

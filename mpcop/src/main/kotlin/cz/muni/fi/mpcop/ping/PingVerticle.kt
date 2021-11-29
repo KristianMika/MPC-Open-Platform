@@ -86,7 +86,7 @@ class PingVerticle : AbstractVerticle() {
 
         return when (request.operation) {
             PingOperation.CONNECT -> {
-                pingManager = PingManager(true)
+                pingManager = PingManager()
                 r.setMessage(pingManager?.pingPlayers?.size?.toString() ?: "0")
             }
 

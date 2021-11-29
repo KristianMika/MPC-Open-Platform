@@ -274,67 +274,6 @@ public class CardManager {
         return new CommandAPDU(apdu);
     }
 
-    private void log(ResponseAPDU response) {
-        log(response, 0);
-    }
-
-    private Card waitForCard(CardTerminals terminals)
-            throws CardException {
-        while (true) {
-            for (CardTerminal ct : terminals
-                    .list(CardTerminals.State.CARD_INSERTION)) {
-
-                return ct.connect("*");
-            }
-            terminals.waitForChange();
-        }
-    }
-
-    public boolean isbDebug() {
-        return bDebug;
-    }
-
-    public CardManager setbDebug(boolean bDebug) {
-        this.bDebug = bDebug;
-        return this;
-    }
-
-    public byte[] getAppletId() {
-        return appletId;
-    }
-
-    public CardManager setAppletId(byte[] appletId) {
-        this.appletId = appletId;
-        return this;
-    }
-
-    public Long getLastTransmitTime() {
-        return lastTransmitTime;
-    }
-
-    public CardManager setLastTransmitTime(Long lastTransmitTime) {
-        this.lastTransmitTime = lastTransmitTime;
-        return this;
-    }
-
-    public CommandAPDU getLastCommand() {
-        return lastCommand;
-    }
-
-    public CardManager setLastCommand(CommandAPDU lastCommand) {
-        this.lastCommand = lastCommand;
-        return this;
-    }
-
-    public CardChannel getChannel() {
-        return channel;
-    }
-
-    public CardManager setChannel(CardChannel channel) {
-        this.channel = channel;
-        return this;
-    }
-
     public boolean isFixLc() {
         return fixLc;
     }

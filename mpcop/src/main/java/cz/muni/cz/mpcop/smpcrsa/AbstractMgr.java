@@ -22,18 +22,13 @@ import java.util.List;
  */
 public abstract class AbstractMgr {
 
-
     public static final byte P2_PART_0 = 0x00;
     public static final byte P2_PART_1 = 0x01;
     public static final byte P2_SINGLE = 0x00;
     public static final byte P2_DIVIDED = 0x10;
-
     public static final byte NONE = 0x00;
-
-
     public static final short ARR_LENGTH = 256;
     public static final short MAX_APDU_LENGTH = 0xFF;
-
     public static final int SW_NO_ERROR = 0x9000;
 
     private final CardManager cardMgr;
@@ -103,15 +98,6 @@ public abstract class AbstractMgr {
      */
     public ResponseAPDU transmit(CommandAPDU cmd) throws Exception {
         return cardMgr.transmit(cmd);
-    }
-
-    /**
-     * Toggles debug messages
-     *
-     * @param isDebug truth value
-     */
-    public void setDebug(boolean isDebug) {
-        cardMgr.setbDebug(isDebug);
     }
 
     /**

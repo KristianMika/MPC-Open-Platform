@@ -7,15 +7,15 @@ import java.util.List;
 
 import static cz.muni.cz.mpcop.cardTools.Util.toHex;
 
-public class JavacardUtils {
+public class JavaCardUtils {
     private final static int SW_NO_ERROR = 0x9000;
-    private static final int SW_WRONG_LENGTH =  0x6700;
+    private static final int SW_WRONG_LENGTH = 0x6700;
 
     /**
-     * Checks the status word of the returned apdu response from a card
+     * Checks the status word of the returned APDUs response from a card
      *
-     * @param apdus that contains the status word
-     * @throws GeneralMPCOPException if the status word != 0x9000 (OK)
+     * @param apdus that contains status words
+     * @throws GeneralMPCOPException if a status word != 0x9000 (OK)
      */
     public static void checkSw(List<ResponseAPDU> apdus) throws GeneralMPCOPException {
         for (ResponseAPDU apdu : apdus) {
@@ -23,6 +23,12 @@ public class JavacardUtils {
         }
     }
 
+    /**
+     * Checks the status word of the returned apdu response from a card
+     *
+     * @param apdu that contains the status word
+     * @throws GeneralMPCOPException if the status word != 0x9000 (OK)
+     */
     public static void checkSw(ResponseAPDU apdu) throws GeneralMPCOPException {
         if (apdu.getSW() != SW_NO_ERROR) {
             throw new GeneralMPCOPException(String.format("A card returned an error: 0x%04X", apdu.getSW()));
@@ -45,7 +51,7 @@ public class JavacardUtils {
      * @param apdus that hold data
      * @return extracted data as a string
      */
-    public  static String extractData(List<ResponseAPDU> apdus) {
+    public static String extractData(List<ResponseAPDU> apdus) {
         StringBuilder data = new StringBuilder();
         for (ResponseAPDU r : apdus) {
             data.append(toHex(r.getData()));

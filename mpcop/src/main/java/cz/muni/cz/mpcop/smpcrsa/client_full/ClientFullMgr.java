@@ -1,10 +1,7 @@
 package cz.muni.cz.mpcop.smpcrsa.client_full;
 
-
-
-
-import cz.muni.cz.mpcop.smpcrsa.AbstractMgr;
 import cz.muni.cz.mpcop.cardTools.Util;
+import cz.muni.cz.mpcop.smpcrsa.AbstractMgr;
 import smpc_rsa.RSAClient;
 
 import javax.smartcardio.CommandAPDU;
@@ -16,8 +13,8 @@ import java.util.List;
  * Note: If simulator cannot be started try adding "-noverify" JVM parameter
  *
  * @author based on work by Petr Svenda, Dusan Klinec (ph4r05)
- * @author based on work by Lukas Zaoral
- * @author Kristian Mika
+ * @author Lukas Zaoral
+ * modified by Kristian Mika
  */
 public class ClientFullMgr extends AbstractMgr {
 
@@ -50,7 +47,6 @@ public class ClientFullMgr extends AbstractMgr {
         ));
 
         handleError(res, "Key generation");
-
     }
 
     /**
@@ -103,7 +99,6 @@ public class ClientFullMgr extends AbstractMgr {
 
         messageCmd = setNumber(num, CLA_RSA_SMPC_CLIENT, INS_SET_MESSAGE, NONE);
 
-
         for (CommandAPDU cmd : messageCmd)
             handleError(transmit(cmd), "Set message");
 
@@ -111,7 +106,6 @@ public class ClientFullMgr extends AbstractMgr {
                 CLA_RSA_SMPC_CLIENT, INS_SIGNATURE, NONE, NONE, ARR_LENGTH
         ));
         handleError(res, "Signing");
-
 
         return Util.toHex(res.getData());
     }
