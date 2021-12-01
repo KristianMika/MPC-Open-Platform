@@ -1,6 +1,8 @@
 import * as elliptic from "elliptic";
 import BN from "bn.js";
 import * as CryptoJS from "crypto-js";
+import NodeRSA from "node-rsa";
+import { constants } from "crypto";
 
 const ec = new elliptic.ec("p256");
 /**
@@ -16,7 +18,7 @@ export const verifySchnorrSignature = (
 	pubKeyString: string
 ) => {
 	// Message * G
-	const message_bi = new BN(plaintext, 'hex');
+	const message_bi = new BN(plaintext, "hex");
 
 	const message_ec: any = ec.g.mul(message_bi);
 
@@ -45,21 +47,41 @@ export const verifySchnorrSignature = (
 	return e_bn.cmp(ev_bn) === 0;
 };
 
-// TODO: missing implementation
+/**
+ * Verifies a textbook signature RSA signature
+ * @param signature - Signature as a hex string
+ * @param plaintext - Plaintext as a hex string
+ * @param pubKeyString - The public modulus as a hex string
+ * @returns true if the verification was successfull, false otherwise
+ */
 export const verifyRsaSignature = (
 	signature: string,
 	plaintext: string,
 	pubKeyString: string
 ) => {
-	// alert("bout to initialise")
-	// const m = new BN(plaintext, 16)
-	// const n = new BN(publicModulus, 16)
-	// const e = new BN(65537, 10)
-	// const s = new BN(signature, 16)
-	// alert("has been initialised")
-	// return s.pow(e).mod(n).cmp(m) === 0
+	const key = new NodeRSA();
 
-	//TODO: https://www.npmjs.com/package/jsrsasign
+	key.setOptions({
+		encryptionScheme: {
+			scheme: "pkcs1",
+			padding: constants.RSA_NO_PADDING,
+		},
+	});
 
-	return true;
+	key.importKey(
+		{
+			n: Buffer.from(pubKeyString, "hex"),
+			e: 65537,
+		},
+		"components-public"
+	);
+
+	const verif = key.encrypt(Buffer.from(signature, "hex"));
+
+	const verifWithoutPadding = verif.slice(
+		verif.length - Buffer.from(plaintext, "hex").length,
+		verif.length
+	);
+
+	return Buffer.from(plaintext, "hex").compare(verifWithoutPadding) == 0;
 };
