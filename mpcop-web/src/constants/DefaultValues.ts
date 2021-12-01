@@ -55,6 +55,6 @@ export const defaultPubKeyValue = " ";
 export const defaultPingFormValues: IPingFormValues = { repetitions: 1 };
 
 export const ISmpcRsaDefaultFormValues: ISmpcRsaFormValues = {
-	isServerSimulated: false,
-	isClientSimulated: true,
+	isServerSimulated: true,
+	isClientSimulated: false,
 };
