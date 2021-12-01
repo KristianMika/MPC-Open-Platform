@@ -26,9 +26,9 @@ const getTime = (): string => {
 export const getDateTimestamp = (): string => {
 	const currentDate = new Date();
 	return (
-		currentDate.getDate().toString() +
+		toTwoPlaces(currentDate.getDate()) +
 		"_" +
-		currentDate.getMonth().toString() +
+		toTwoPlaces(currentDate.getMonth()) +
 		"_" +
 		currentDate.getFullYear().toString() +
 		"_" +
