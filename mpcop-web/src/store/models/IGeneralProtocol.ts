@@ -1,4 +1,4 @@
-import { Protocol } from "../../constants/Constants";
+import { Operation, Protocol } from "../../constants/Constants";
 
 export interface IGeneralProtocol {
 	protocol: Protocol;
@@ -13,4 +13,5 @@ export interface IGeneralProtocol {
 		decryptedPlaintext: string,
 		originalPlaintext: string
 	) => boolean;
+	disabledButtons: Operation[]
 }

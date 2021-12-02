@@ -464,7 +464,7 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 						xs={12}
 						className={protocol_form__protocol_buttons_grid}
 					>
-						<ProtocolButtons />
+						<ProtocolButtons disabledButtons={props.disabledButtons}/>
 					</Grid>
 					<Grid item xs={12}>
 						<ProtocolInfoArea {...protocolInfo} />

@@ -13,10 +13,3 @@ export const verifyMystCipher = (
 	return wasVeirificationSuccessfull;
 };
 
-//TODO: missing implementation
-export const verifyRsaCipher = (
-	decryptedCiphertext: string,
-	plaintext: string
-): boolean => {
-	return true;
-};

@@ -8,17 +8,18 @@ import { GeneralProtocol } from "./GeneralProtocol";
 import { MystSetup } from "./MystSetup";
 
 /**
- * The Myst component "instantiates" the geneal protocol. 
+ * The Myst component "instantiates" the geneal protocol.
  * It provides a graphical interface for Myst administration
  */
 export const Myst: React.FC = () => {
 	const { protocol } = useProtocolStyles();
 	const protocolProps: IGeneralProtocol = {
 		protocol: Protocol.Myst,
-		protocolDiplayName: "Myst", 
+		protocolDiplayName: "Myst",
 		protocolVerticleAddress: MYST_SERVICE_ADDRESS,
 		verifySignature: verifySchnorrSignature,
 		verifyDecryption: verifyMystCipher,
+		disabledButtons: [],
 	};
 	return (
 		<main className={protocol}>

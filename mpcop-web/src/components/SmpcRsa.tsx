@@ -1,6 +1,5 @@
 import { SMPC_RSA_SERVICE_ADDRESS } from "../constants/Addresses";
-import { Protocol } from "../constants/Constants";
-import { verifyRsaCipher } from "../math/cipher";
+import { Operation, Protocol } from "../constants/Constants";
 import { verifyRsaSignature } from "../math/signature";
 import { IGeneralProtocol } from "../store/models/IGeneralProtocol";
 import { useProtocolStyles } from "../styles/protocol";
@@ -18,7 +17,8 @@ export const SmpcRsa: React.FC = () => {
 		protocolDiplayName: "Smart-ID RSA",
 		protocolVerticleAddress: SMPC_RSA_SERVICE_ADDRESS,
 		verifySignature: verifyRsaSignature,
-		verifyDecryption: verifyRsaCipher,
+		verifyDecryption: (_: string, __: string) => false,
+		disabledButtons: [Operation.Decrypt],
 	};
 	return (
 		<main className={protocol}>
