@@ -1,4 +1,4 @@
-mpcop (0.2.0) UNRELEASED; urgency=medium
+mpcop (0.2.0) unstable; urgency=medium
 
   * docs: add documentation
   * feat: use state for average latency in the home component 
@@ -8,7 +8,7 @@ mpcop (0.2.0) UNRELEASED; urgency=medium
   * feat: improve robustnes - provide additional checks 
   * docs: update static files path
 
- -- Kristian Mika <xmika2@mail.muni.cz>  Sun, 21 Nov 2021 07:38:30 +0100
+ -- Kristian Mika <xmika2@mail.muni.cz>  Thu, 02 Dec 2021 21:44:20 +0100
 
 mpcop (0.1.0) unstable; urgency=medium
 
