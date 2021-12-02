@@ -43,7 +43,11 @@ abstract class AbstractProtocolVerticle(private val CONSUMER_ADDRESS: String) : 
         } catch (e: GeneralMPCOPException) {
             logger.warning(e.toString())
             ExecutionResponse(Response().failed().setErrMessage(e.message))
+        } catch (e:Exception) {
+            logger.severe("Unknown error occured")
+            ExecutionResponse(Response().failed().setErrMessage(e.message))
         }
+
         val operationFinalTimestamp = System.currentTimeMillis()
         val serializedResponse: JsonObject = toJsonObject(response)
         logger.info("Replying: $serializedResponse")
@@ -222,6 +226,20 @@ abstract class AbstractProtocolVerticle(private val CONSUMER_ADDRESS: String) : 
      * cards have already performed key generation in one of the previous MPCOP runs
      */
     protected abstract fun areKeysGenerated(): Boolean
+
+    /**
+     * Verifies [inputString] as a hex string
+     */
+    @Throws(GeneralMPCOPException::class)
+    fun verifyInputHexString(inputString: String) {
+        if (inputString.isEmpty()) {
+            throw GeneralMPCOPException("Input data cannot be empty")
+        }
+
+        if (!Utils.verifyHexString(inputString)) {
+            throw GeneralMPCOPException("Invalid data format")
+        }
+    }
 
     companion object {
         const val operationOriginTimestampName = "operation_origin"

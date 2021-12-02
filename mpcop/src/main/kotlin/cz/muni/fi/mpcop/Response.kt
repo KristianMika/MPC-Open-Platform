@@ -6,8 +6,8 @@ package cz.muni.fi.mpcop
  * that is sent to the front-end controller
  */
 data class Response(var operation: Operation?) : BaseResponse() {
-    private var signature: String? = null
-    private var publicKey: String? = null
+    var signature: String? = null
+    var publicKey: String? = null
 
     constructor () : this(null)
 

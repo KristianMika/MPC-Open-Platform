@@ -22,4 +22,6 @@ object Messages {
     const val INSUFFICIENT_PRIVILEGES_ERROR = "You don't have sufficient privileges for this operation."
     const val APPLET_LOCKED_ERROR = "The applet has been locked. You need to reinstall the applet"
     const val INVALID_TRANSITION_ERROR = "The requested operation can't be executed in the current protocol state."
+    const val TWO_APPLETS_IN_A_SIMULATOR_ERROR = "Can't run 2 applets in a simulator"
+    const val OPERATION_NOT_SUPPORTED = "This operation is not supported"
 }

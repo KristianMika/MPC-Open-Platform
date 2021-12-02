@@ -13,6 +13,8 @@ import cz.muni.fi.mpcop.Messages.CONFIG_HAS_FAILED
 import cz.muni.fi.mpcop.Messages.GENERIC_ERROR_MESSAGE
 import cz.muni.fi.mpcop.Messages.INVALID_FORMAT
 import cz.muni.fi.mpcop.Messages.KEYS_NOT_GENERATED_YET
+import cz.muni.fi.mpcop.Messages.OPERATION_NOT_SUPPORTED
+import cz.muni.fi.mpcop.Messages.TWO_APPLETS_IN_A_SIMULATOR_ERROR
 import cz.muni.fi.mpcop.Utils
 
 
@@ -29,25 +31,23 @@ class SmpcRsaVerticle :
 
     @Throws(GeneralMPCOPException::class)
     override fun sign(data: String): List<String> {
-
+        verifyInputHexString(data)
         val signature = try {
             server?.signMessage(data, client?.signMessage(data))
         } catch (e: Exception) {
-            throw GeneralMPCOPException(e.toString())
+            throw GeneralMPCOPException(e.message ?: e.toString())
         } ?: throw GeneralMPCOPException(GENERIC_ERROR_MESSAGE)
         return listOf(signature)
     }
 
     @Throws(GeneralMPCOPException::class)
     override fun decrypt(data: String): String {
-        return try {
-            server?.signMessage(data, client?.signMessage(data))
-        } catch (e: Exception) {
-            throw GeneralMPCOPException(e.toString())
-        } ?: throw GeneralMPCOPException(GENERIC_ERROR_MESSAGE)
+        verifyInputHexString(data)
+        throw GeneralMPCOPException(OPERATION_NOT_SUPPORTED)
     }
 
     override fun encrypt(data: String, pubKey: String): String {
+        verifyInputHexString(data)
         return SmpcRsa.encrypt(data, pubKey)
     }
 
@@ -69,7 +69,7 @@ class SmpcRsaVerticle :
             client?.reset()
             server?.reset()
         } catch (e: Exception) {
-            throw GeneralMPCOPException(e.toString())
+            throw GeneralMPCOPException(e.message?:e.toString())
         }
     }
 
@@ -101,6 +101,10 @@ class SmpcRsaVerticle :
             Gson().fromJson(conf, SmpcRsaConfiguration::class.java)
         } catch (e: JsonSyntaxException) {
             throw GeneralMPCOPException(INVALID_FORMAT)
+        }
+
+        if (newConfig.isClientSimulated && newConfig.isServerSimulated) {
+            throw GeneralMPCOPException(TWO_APPLETS_IN_A_SIMULATOR_ERROR)
         }
 
         try {

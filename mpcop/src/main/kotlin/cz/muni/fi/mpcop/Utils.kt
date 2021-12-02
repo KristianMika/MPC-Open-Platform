@@ -71,4 +71,14 @@ object Utils {
     fun getUpdatesAddress(address: String): String {
         return "${address}-updates"
     }
+
+    /**
+     * Verifies the [inputString] as a hex string
+     * returns true if the hex string is a correct one, false otherwise
+     */
+    @JvmStatic
+    fun verifyHexString(inputString: String):Boolean {
+        val matchHexStringRegex = Regex("^[a-fA-F0-9]+$")
+       return inputString.matches(matchHexStringRegex) && inputString.length % 2 == 0
+    }
 }

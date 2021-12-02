@@ -168,7 +168,7 @@ public class CardManager {
         try {
             terminals = factory.terminals().list();
         } catch (Exception e) {
-            throw new CardException("No card terminals have been found. Make sure you have connected a card reader.");
+            throw new CardException("No card terminals have been found. Make sure you have a card reader connected.");
         }
 
         try {

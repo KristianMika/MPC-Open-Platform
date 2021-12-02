@@ -12,7 +12,6 @@ import io.vertx.core.MultiMap
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.Message
 import io.vertx.core.json.JsonObject
-
 import java.util.logging.Logger
 
 /**
@@ -87,7 +86,13 @@ class PingVerticle : AbstractVerticle() {
         return when (request.operation) {
             PingOperation.CONNECT -> {
                 pingManager = PingManager()
-                r.setMessage(pingManager?.pingPlayers?.size?.toString() ?: "0")
+                val connectedPlayersCount = pingManager?.pingPlayers?.size
+                if (connectedPlayersCount != null && connectedPlayersCount > 0) {
+                    r.setMessage(connectedPlayersCount.toString())
+                } else {
+                    r.failed().setErrMessage("Could not find any JavaCards with the ping applet installed")
+                }
+
             }
 
             PingOperation.PING -> {

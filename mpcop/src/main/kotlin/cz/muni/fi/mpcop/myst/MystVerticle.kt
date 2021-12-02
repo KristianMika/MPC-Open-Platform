@@ -18,6 +18,7 @@ import cz.muni.fi.mpcop.Messages.KEYS_NOT_GENERATED_YET
 import cz.muni.fi.mpcop.Messages.ZERO_PLAYERS_WARNING
 import cz.muni.fi.mpcop.Utils.bigIntegerFromHexString
 import cz.muni.fi.mpcop.Utils.toJson
+import cz.muni.fi.mpcop.Utils.verifyHexString
 import mpctestclient.MPCRun
 import mpctestclient.MPCRunConfig
 import mpctestclient.exception.AppletLockedException
@@ -50,6 +51,10 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
             Gson().fromJson(conf, MystConfiguration::class.java)
         } catch (e: JsonSyntaxException) {
             throw GeneralMPCOPException(INVALID_FORMAT)
+        }
+
+        if (mystConfig.virtualCardsCount < 0) {
+            throw GeneralMPCOPException("Invalid card count")
         }
 
         config.simulatedPlayersCount = mystConfig.virtualCardsCount
@@ -91,7 +96,7 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
             throw GeneralMPCOPException(interpretException(e))
         } catch (e: Exception) {
             logger.warning(e.toString())
-            throw GeneralMPCOPException(e.toString())
+            throw GeneralMPCOPException(e.message ?: e.toString())
         }
     }
 
@@ -104,7 +109,7 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
             throw GeneralMPCOPException(interpretException(e))
         } catch (e: Exception) {
             logger.warning(e.toString())
-            throw GeneralMPCOPException(e.toString())
+            throw GeneralMPCOPException(e.message?: e.toString())
         }
     }
 
@@ -117,6 +122,7 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
 
     @Throws(GeneralMPCOPException::class)
     override fun sign(data: String): List<String> {
+        verifyInputHexString(data)
         return try {
             val sig: String? = run?.signAll(bigIntegerFromHexString(data), run?.hostDecryptSign)?.toString(HEX_ENCODING)
             val sigE: String? = run?.e
@@ -145,6 +151,7 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
     }
 
     override fun decrypt(data: String): String {
+        verifyInputHexString(data)
         return try {
             Util.toHex(run?.decryptAll(Util.hexStringToByteArray(data), run?.hostDecryptSign)?.getEncoded(false))
         } catch (e: MPCException) {
@@ -156,6 +163,7 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
     }
 
     override fun encrypt(data: String, pubKey: String): String {
+        verifyInputHexString(data)
         return try {
             Util.toHex(run?.encryptOnHost(BigInteger(1, Util.hexStringToByteArray(data))))
         } catch (e: MPCException) {

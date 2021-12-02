@@ -219,7 +219,7 @@ class ControllerVerticle : AbstractVerticle() {
         // for whatever reason, the static handler path can't start with the root
         private const val staticContentDir: String = "../../../../../../www/mpcop/static"
         private val logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME)
-        private const val CONTROLLER_PORT = 8082
+        const val CONTROLLER_PORT = 8082
         private const val HEART_BEAT_INTERVAL: Long = 2000
         const val REPLY_TIMEOUT: Long = 60000
         var connectionCounter = AtomicInteger()
