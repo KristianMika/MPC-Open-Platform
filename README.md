@@ -75,7 +75,7 @@ This is caused by the fact that Docker for Windows uses Hyper-V.  Hyper-V does n
 
 ```bash
 docker pull mpcop/mpcop:latest
-docker run --device /dev/bus/usb -p 8082:8082 mpcop/mpcop:latest
+docker run --detach --device /dev/bus/usb -p 8082:8082 mpcop/mpcop:latest
 ```
 
 ## Test
