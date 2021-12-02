@@ -6,6 +6,7 @@ mpcop (0.2.0) UNRELEASED; urgency=medium
   * fix: increase z-index of the debug area
   * feat: improve client debug messages
   * feat: improve robustnes - provide additional checks 
+  * docs: update static files path
 
  -- Kristian Mika <xmika2@mail.muni.cz>  Sun, 21 Nov 2021 07:38:30 +0100
 

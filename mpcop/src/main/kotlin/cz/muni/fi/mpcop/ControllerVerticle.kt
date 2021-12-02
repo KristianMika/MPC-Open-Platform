@@ -216,8 +216,7 @@ class ControllerVerticle : AbstractVerticle() {
         const val HTTP_LOCATION_HEADER_NAME = "Location"
         const val DEFAULT_REDIRECT_PATH = "/index.html"
 
-        // for whatever reason, the static handler path can't start with the root
-        private const val staticContentDir: String = "../../../../../../www/mpcop/static"
+        private const val staticContentDir: String = "./static"
         private val logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME)
         const val CONTROLLER_PORT = 8082
         private const val HEART_BEAT_INTERVAL: Long = 2000
