@@ -54,6 +54,12 @@ dependencies {
 
     // Test dependencies
     testImplementation("io.vertx:vertx-junit5:$vertxVersion")
+
+    implementation("io.vertx:vertx-lang-kotlin-coroutines:$vertxVersion")
+
+    // https://mvnrepository.com/artifact/io.vertx/vertx-unit
+    testImplementation("io.vertx:vertx-unit:$vertxVersion")
+
 }
 
 application {
@@ -63,6 +69,8 @@ application {
     // Add a JVM switch for JCardSim
     applicationDefaultJvmArgs = listOf("-noverify")
 }
+
+
 
 configure<JavaPluginConvention> {
     sourceCompatibility = JavaVersion.VERSION_1_8
