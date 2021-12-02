@@ -177,7 +177,7 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 		switch (body.operation) {
 			case Operation.Sign:
 				console.log(performanceMeasurement?.toString());
-				setOutputField(body.signature);
+				setOutputField(body.signature?.toUpperCase());
 				addInfoAlert(
 					InfoSeverity.Success,
 					appendDuration(
@@ -239,7 +239,7 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 
 				break;
 			case Operation.Encrypt:
-				setOutputField(body.message);
+				setOutputField(body.message?.toUpperCase());
 				addInfoAlert(
 					InfoSeverity.Success,
 					appendDuration(
@@ -250,7 +250,7 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 				break;
 
 			case Operation.Decrypt:
-				setOutputField(body.message);
+				setOutputField(body.message?.toUpperCase());
 				addInfoAlert(
 					InfoSeverity.Success,
 					appendDuration(

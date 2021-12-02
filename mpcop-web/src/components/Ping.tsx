@@ -49,6 +49,7 @@ import { PING_SERVICE_ADDRESS } from "../constants/Addresses";
 import { OperationResult } from "../constants/Operation";
 import { IDebugMessages } from "../store/models/IDebugMessages";
 import { Origin } from "../constants/Origin";
+import { IntroMessage } from "../constants/Intro";
 
 const useStyles = makeStyles(() => ({
 	status_page: {
@@ -128,7 +129,10 @@ export const Ping: React.FC = () => {
 	 * Logs a debug message into the bottom debug area
 	 * @param msg - The message to be logged
 	 */
-	 const logDebugMessage = (msg: IResponse, origin:Origin = Origin.RESPONSE) => {
+	const logDebugMessage = (
+		msg: IResponse,
+		origin: Origin = Origin.RESPONSE
+	) => {
 		const res = msg.success
 			? OperationResult.Success
 			: OperationResult.Error;
@@ -341,6 +345,7 @@ export const Ping: React.FC = () => {
 						alignItems="center"
 						justifyContent="center"
 						className={status_page_grid}
+						data-intro={IntroMessage.PING}
 					>
 						<Grid item xs={12} className={ping_header}>
 							<Typography variant="h5" component="h1">
@@ -349,7 +354,11 @@ export const Ping: React.FC = () => {
 						</Grid>
 
 						<Grid item xs={12}>
-							<Bar data={data} options={barOptions} />
+							<Bar
+								data={data}
+								options={barOptions}
+								data-intro={IntroMessage.PING_BAR}
+							/>
 						</Grid>
 
 						<Grid item xs={12} className={ping__applet_count}>
@@ -389,7 +398,12 @@ export const Ping: React.FC = () => {
 								/>
 							</Tooltip>
 						</Grid>
-						<Grid item xs={12} className={status_row}>
+						<Grid
+							item
+							xs={12}
+							className={status_row}
+							data-intro={IntroMessage.PING_BUTTONS}
+						>
 							<Tooltip title="Finds and connects to JavaCards with the ping applet.">
 								<Button
 									type="submit"

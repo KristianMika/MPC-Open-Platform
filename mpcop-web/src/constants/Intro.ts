@@ -24,4 +24,10 @@ export class IntroMessage {
 		"The results of individual operations as well as any warnings and information messages will be displayed here.";
 	static PROTOCOL_SETUP =
 		"The protocol can be customized using this setup area. Be careful, though. Customizing the protocol can irreversibly erase cryptographic secrets!";
+	static PING =
+		"This area is used for performance measurement. First, click the 'FIND CARDS' button. The application will connect to all cards with the ping applet on them. Then, select the number of requests over which the final measurement will be averaged. And finally, ping the cards.";
+	static PING_BAR =
+		"This stacked bar represents durations of subsequent phases during the ping performace test with respect to the number of players participating in the measurement.";
+	static PING_BUTTONS =
+		"Once the measurement has finished, you can download your mesaurement data in csv format. (a 'DOWNLOAD CSV' button will appear in this area)";
 }
