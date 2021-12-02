@@ -78,6 +78,22 @@ docker pull mpcop/mpcop:latest
 docker run --device /dev/bus/usb -p 8082:8082 mpcop/mpcop:latest
 ```
 
+## Test
+
+### Front-end
+
+```bash
+cd mpcop-web
+npm test --all
+```
+
+### Back-end
+
+```bash
+cd mpcop
+./gradlew :test
+```
+
 ## Package
 
 We encourage you to use the prepared pipeline that builds the package for you.
