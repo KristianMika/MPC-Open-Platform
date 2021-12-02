@@ -48,6 +48,8 @@ jobs:
           export CHANGELOG_VERSION=$(dpkg-parsechangelog --show-field version);
           test $PROJECT_VERSION == $CHANGELOG_VERSION || (echo "Please, keep changelog version in track with the project version ($PROJECT_VERSION != $CHANGELOG_VERSION)" && exit 1);
           echo "::set-output name=app_version::${CHANGELOG_VERSION}";
+      - name: Run tests
+        run: ./gradlew :test
       - name: Build package
         run: dpkg-buildpackage -b -us -uc
       - name: Push final package
