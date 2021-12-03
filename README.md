@@ -51,7 +51,6 @@ The front-end browser application:
 ## Installation from a Debian Package
 
 1. Set up the MPCOP repository on your system:
-    - Using the script provided by [packagecloud.io](https://packagecloud.io/)
     ```bash
     echo "deb https://packagecloud.io/kristian_mika/mpcop/any/ any main" | sudo tee --append /etc/apt/sources.list.d/kristian_mika_mpcop.list
     echo "deb-src https://packagecloud.io/kristian_mika/mpcop/any/ any main" | sudo tee --append /etc/apt/sources.list.d/kristian_mika_mpcop.list
