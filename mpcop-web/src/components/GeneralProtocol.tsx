@@ -323,7 +323,10 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 		send(
 			getPubkeyMessage,
 			props.protocolVerticleAddress,
-			handleResponseWithoutAlert
+			handleResponseWithoutAlert,
+			logDebugMessage,
+			undefined, 
+			storeLatency
 		);
 	}, [socketState]);
 
