@@ -152,20 +152,27 @@ class ControllerVerticle : AbstractVerticle() {
      */
     private fun logNewConnection(address: String) {
         logger.info(
-            "New connection from " + address
-                    + "\nTotal number of connections: " + connectionCounter.incrementAndGet()
+            "New connection from $address"
+                    + "\nTotal number of connections: ${connectionCounter.incrementAndGet()}"
         )
     }
 
     /**
      * Logs a terminated connection and decrements the connection counter
-     *
+     * In cases when a host terminates connection without sending an [BridgeEventType.UNREGISTER] message
+     * (a network failure, the client's computer crashed, etc.) the [connectionCounter] may get into negative
+     * values. Solving this trouble requires catching the java.io.IOException: Connection reset by peer exception,
+     * which is thrown by the underlying Netty implementation. Solving this may not be so trivial,
+     * therefore it is left for future development. As a result, the [connectionCounter] can be used only for
+     * information purposes
      * @param address of the terminated connection
      */
     private fun logClosedConnection(address: String) {
+        val newConnectionCount =
+            if (connectionCounter.get() == 0) connectionCounter.get() else connectionCounter.decrementAndGet()
         logger.info(
-            "Connection from " + address + " has been terminated."
-                    + "\nTotal number of connections: " + connectionCounter.decrementAndGet()
+            "Connection from $address has been terminated."
+                    + "\nTotal number of connections: $newConnectionCount"
         )
     }
 
