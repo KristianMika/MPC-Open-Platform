@@ -6,7 +6,7 @@ import { ISmpcRsaFormValues } from "../store/models/ISmpcRsaFormValues";
 
 export const defaultProtocolFormValues: IProtocolFormValues = {
 	// hash of the word "password"
-	data: "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",
+	data: "5E884898DA28047151D0E56F8DC6292773603D0D6AABBDD62A11EF721D1542D8",
 };
 
 export const defaultProtocolInfo: IProtocolInfoArea = {
