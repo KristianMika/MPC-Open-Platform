@@ -233,7 +233,8 @@ export const Ping: React.FC = () => {
 				),
 			undefined,
 			undefined,
-			storeLatency
+			storeLatency,
+			addInformationAlert
 		);
 	};
 
@@ -257,8 +258,10 @@ export const Ping: React.FC = () => {
 					handleConnectResponse,
 					undefined,
 					() => setLoading(false),
-					storeLatency
+					storeLatency,
+					addInformationAlert
 				);
+
 				break;
 
 			case PingOperation.Ping:

@@ -95,7 +95,10 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 	 * Logs a debug message into the bottom debug area
 	 * @param msg - The message to be logged
 	 */
-	const logDebugMessage = (msg: IResponse, origin:Origin=Origin.RESPONSE) => {
+	const logDebugMessage = (
+		msg: IResponse,
+		origin: Origin = Origin.RESPONSE
+	) => {
 		const res = msg.success
 			? OperationResult.Success
 			: OperationResult.Error;
@@ -320,12 +323,13 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 		};
 
 		// once the connection has been reset, fetch the public key
+
 		send(
 			getPubkeyMessage,
 			props.protocolVerticleAddress,
 			handleResponseWithoutAlert,
 			logDebugMessage,
-			undefined, 
+			undefined,
 			storeLatency
 		);
 	}, [socketState]);
@@ -377,7 +381,8 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 			handleResponseWithAlert,
 			logDebugMessage,
 			() => setLoading(false),
-			storeLatency
+			storeLatency,
+			addInfoAlert
 		);
 	};
 
@@ -467,7 +472,9 @@ export const GeneralProtocol: React.FC<IGeneralProtocol> = (props) => {
 						xs={12}
 						className={protocol_form__protocol_buttons_grid}
 					>
-						<ProtocolButtons disabledButtons={props.disabledButtons}/>
+						<ProtocolButtons
+							disabledButtons={props.disabledButtons}
+						/>
 					</Grid>
 					<Grid item xs={12}>
 						<ProtocolInfoArea {...protocolInfo} />

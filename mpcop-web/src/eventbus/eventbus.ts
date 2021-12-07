@@ -1,4 +1,5 @@
 import { eventBus } from "../components/GlobalComponent";
+import { InfoSeverity } from "../constants/Constants";
 import { PerformanceMeasurement } from "../performance/PerformanceMeasurement";
 import { IMessage } from "../store/models/IMessage";
 import { IPingMessage } from "../store/models/IPingMessage";
@@ -23,13 +24,34 @@ export const send = (
 	) => void,
 	logDebugMessage: undefined | ((body: IResponse) => void) = undefined,
 	stopLoading: undefined | (() => void) = undefined,
-	storeLatency: undefined | ((latency: number) => void) = undefined
+	storeLatency: undefined | ((latency: number) => void) = undefined,
+	addInfoAlert:
+		| undefined
+		| ((severity: InfoSeverity, msg: string) => void) = undefined
 ): void => {
 	const originTimestamp = Date.now();
 	eventBus.send(address, msgBody, (error: Error, msg: any) => {
 		const operationDuration = Date.now() - originTimestamp;
+		if (stopLoading) {
+			stopLoading();
+		}
+		if (error != null) {
+			if (addInfoAlert) {
+				addInfoAlert(
+					InfoSeverity.Error,
+					`An error has occured during communication with the server. The server may be busy.`
+				);
+			}
+			console.log(`Error occured: ${error.message}`);
+			return;
+		}
 		if (msg == null) {
-			console.log("An error occured: the back-end hasn't responded");
+			if (addInfoAlert) {
+				addInfoAlert(
+					InfoSeverity.Error,
+					"The server hasn't responded. The target verticle may be busy."
+				);
+			}
 		} else {
 			msg.headers["whole_operation_duration"] = operationDuration;
 			const performanceData = PerformanceMeasurement.fromHeaders(
@@ -44,9 +66,6 @@ export const send = (
 				logDebugMessage(msg.body);
 			}
 			callback(msg.body, performanceData);
-		}
-		if (stopLoading) {
-			stopLoading();
 		}
 	});
 };

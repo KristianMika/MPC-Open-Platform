@@ -217,7 +217,8 @@ export const SmpcRsaSetup: React.FC = () => {
 			handleResponseWithAlert,
 			informAboutReceivedResponse,
 			() => setLoading(false),
-			storeLatency
+			storeLatency,
+			addInformationAlert
 		);
 	};
 
