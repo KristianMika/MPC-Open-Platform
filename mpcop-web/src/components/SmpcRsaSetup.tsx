@@ -26,6 +26,7 @@ import {
 	debugMessagesState,
 	eventbusSocketState,
 	latencyState,
+	smpcRsaConfigState,
 } from "../store/atom";
 import { IntroMessage } from "../constants/Intro";
 import {
@@ -45,7 +46,6 @@ import {
 	SMPC_RSA_SERVICE_ADDRESS,
 	SMPC_RSA_SERVICE_UPDATES_ADDRESS,
 } from "../constants/Addresses";
-import { ISmpcRsaFormValues } from "../store/models/ISmpcRsaFormValues";
 import { ConfirmationDialog } from "./ConfirmationDialog";
 import { IDebugMessages } from "../store/models/IDebugMessages";
 import { Origin } from "../constants/Origin";
@@ -55,9 +55,7 @@ import { Origin } from "../constants/Origin";
  */
 export const SmpcRsaSetup: React.FC = () => {
 	// states
-	const [formValues, setFormValues] = useState<ISmpcRsaFormValues>(
-		ISmpcRsaDefaultFormValues
-	);
+	const [formValues, setFormValues] = useRecoilState(smpcRsaConfigState);
 	const [protocolInfo, setProtocolInfo] =
 		useState<IProtocolInfoArea>(defaultProtocolInfo);
 	const [latencies, setLatencies] = useRecoilState(latencyState);

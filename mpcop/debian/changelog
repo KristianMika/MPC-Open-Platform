@@ -3,6 +3,7 @@ mpcop (0.3.0) UNRELEASED; urgency=medium
   * feat: update the Myst version
   * feat: polish the intro tour messages
   * feat: add info alert if the connection timeouts 
+  * feat: use recoil state for pubkeys and configs 
 
  -- Kristian Mika <xmika2@mail.muni.cz>  Fri, 03 Dec 2021 17:52:01 +0100
 

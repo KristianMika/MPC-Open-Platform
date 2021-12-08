@@ -26,6 +26,7 @@ import {
 	debugMessagesState,
 	eventbusSocketState,
 	latencyState,
+	mystConfigState,
 } from "../store/atom";
 import { IDebugMessages } from "../store/models/IDebugMessages";
 import { IMessage } from "../store/models/IMessage";
@@ -49,9 +50,7 @@ import { ProtocolInfoArea } from "./ProtocolInfoArea";
  */
 export const MystSetup: React.FC = () => {
 	// states
-	const [formValues, setFormValues] = useState<IMystFormValues>(
-		mystFormDefaultValues
-	);
+	const [formValues, setFormValues] = useRecoilState(mystConfigState);
 	const [protocolInfo, setProtocolInfo] =
 		useState<IProtocolInfoArea>(defaultProtocolInfo);
 	const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
