@@ -17,8 +17,6 @@ group = "cz.muni.fi"
 repositories {
     mavenCentral()
 
-    maven(url = "https://dl.bintray.com/ph4r05/jcard")
-
     maven(url = "https://javacard.pro/maven")
 
     maven(url = "https://deadcode.me/mvn")

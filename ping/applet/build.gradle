@@ -30,7 +30,6 @@ repositories {
     // mavenLocal() // for local maven repository if needed
 
     // Repository with JCardSim, Globalplatform, etc, ...
-    maven { url  "https://dl.bintray.com/ph4r05/jcard" }
     maven { url "https://javacard.pro/maven" }
     maven { url "https://deadcode.me/mvn" }
 
