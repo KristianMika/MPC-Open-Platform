@@ -92,6 +92,7 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
             run?.performSetupAll(run?.hostFullPriv)
             run?.performKeyGen(run?.hostKeyGen)
             signCache()
+            logger.info("Keys have been generated successfully")
         } catch (e: MPCException) {
             throw GeneralMPCOPException(interpretException(e))
         } catch (e: Exception) {
@@ -145,7 +146,9 @@ class MystVerticle : AbstractProtocolVerticle(CONSUMER_ADDRESS) {
     private fun signCache() {
         vertx.setTimer(1) { _ ->
             if (run?.isCachingRequired == true) {
+                logger.info("Myst: the caching phase has started")
                 run?.signCacheAll(run?.hostFullPriv)
+                logger.info("Myst: the caching phase has finished")
             }
         }
     }
