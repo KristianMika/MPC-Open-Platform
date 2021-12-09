@@ -1,11 +1,11 @@
-mpcop (0.3.0) UNRELEASED; urgency=medium
+mpcop (0.3.0) unstable; urgency=medium
 
   * feat: update the Myst version
   * feat: polish the intro tour messages
   * feat: add info alert if the connection timeouts 
   * feat: use recoil state for pubkeys and configs 
 
- -- Kristian Mika <xmika2@mail.muni.cz>  Fri, 03 Dec 2021 17:52:01 +0100
+ -- Kristian Mika <xmika2@mail.muni.cz>  Thu, 09 Dec 2021 14:04:59 +0100
 
 mpcop (0.2.0) unstable; urgency=medium
 
