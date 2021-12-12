@@ -12,7 +12,7 @@ plugins {
     application
 }
 
-version = "0.3.1"
+version = "1.0.0"
 group = "cz.muni.fi"
 repositories {
     mavenCentral()
