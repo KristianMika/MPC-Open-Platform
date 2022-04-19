@@ -1,5 +1,6 @@
 # Open Platform for Multiparty Signatures with Smartcards
 [![MPCOP CI/CD](https://github.com/KristianMika/MPC-Open-Platform/actions/workflows/mpcop.yaml/badge.svg)](https://github.com/KristianMika/MPC-Open-Platform/actions/workflows/mpcop.yaml)
+[![Thesis paper](https://img.shields.io/badge/Thesis-here-blue.svg)](https://is.muni.cz/th/ee2j3/)
 
 This project aims to create an open platform that uses sets of smartcards connected to a Raspberry Pi and allows the execution of several Secure Multiparty Computation protocols. 
 
@@ -19,7 +20,7 @@ The back-end application:
 
 <div style="text-align:center">
 
-![MPC Open Platform architecture](.github/images/MPCNodeScheme.png)
+![MPC Open Platform architecture](.github/images/diagram.png)
 
 </div>
 
